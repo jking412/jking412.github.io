@@ -3,11 +3,11 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: jking412 の 博客
+title: jkingの 博客
 subtitle: ''
 description: '生活也许不总是美好，不如意时看看头顶的天空，她总是那么纯洁，那么美好，那么宽广，向你展开怀抱...'
 keywords:
-author: jking412
+author: jking
 language: zh-CN
 timezone: 'Asia/Shanghai'
 
@@ -103,7 +103,7 @@ theme: butterfly
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repository: https://github.com/jking412/jking412.github.io.git
+  repository: git@github.com:jking412/jking412.github.io.git
   branch: master
 
 
