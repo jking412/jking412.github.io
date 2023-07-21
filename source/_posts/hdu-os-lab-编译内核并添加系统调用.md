@@ -1,7 +1,7 @@
 ---
 title: hdu-os-lab-编译内核并添加系统调用
 date: 2023-06-02 22:26:59
-categories: [hdu-os-lab]
+categories: [hdu]
 tags: [linux]
 ---
 

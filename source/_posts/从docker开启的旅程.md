@@ -2,7 +2,6 @@
 title: (一)开启docker的旅程
 date: 2022-12-16 11:34:36
 categories:
-  - 云原生
 tags:
   - docker
 ---
