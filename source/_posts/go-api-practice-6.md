@@ -2,7 +2,6 @@
 title: (六)封装验证器
 date: 2022-08-27 09:58:01
 tags: go
-categories: Go的API项目实战
 ---
 
 # 开始前的准备

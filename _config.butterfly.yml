@@ -13,6 +13,7 @@ menu:
   # Link: /link/ || fas fa-link
   About: /about/ || fas fa-heart
 
+
 # Code Blocks (代碼相關)
 # --------------------------------------
 
@@ -806,7 +807,7 @@ pjax:
 
 # Inject the css and script (aplayer/meting)
 aplayerInject:
-  enable: false
+  enable: true
   per_page: true
 
 # Snackbar (Toast Notification 彈窗)
@@ -860,9 +861,13 @@ css_prefix: true
 # 插入代码到头部 </head> 之前 和 底部 </body> 之前
 inject:
   head:
-    # - <link rel="stylesheet" href="/xxx.css">
+    # 自定义css
+    # - <link rel="stylesheet" href="/css/reveal.css?1">
+    # - <link rel="stylesheet" href="/css/white.css?1">
+    # 静态文件后面加个  ?任意内容  可以在每次更新之后用户自动重新请求.
+    # 例如添加 ?1 ,在修改此文件后改成 ?2 ,用户访问你的网站时,不会使用本地的缓存,而是请求新的内容。没修改的话就不用动。
   bottom:
-    # - <script src="xxxx"></script>
+    # - <script src="/js/reveal.js?1"></script>
 
 # CDN
 # Don't modify the following settings unless you know how they work

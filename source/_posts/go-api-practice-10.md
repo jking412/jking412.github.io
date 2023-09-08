@@ -2,7 +2,6 @@
 title: (十)统一返回格式
 date: 2022-09-08 13:27:13
 tags: go
-categories: Go的API项目实战
 ---
 
 # 新建response包封装返回内容

@@ -2,7 +2,6 @@
 title: (九)使用redis和captcha
 date: 2022-09-08 13:27:08
 tags: go
-categories: Go的API项目实战
 ---
 
 # 开始前的准备

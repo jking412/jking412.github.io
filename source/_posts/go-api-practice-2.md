@@ -1,7 +1,6 @@
 ---
 title: (二)集成gin
 tags: go
-categories: Go的API项目实战
 date: 2022-08-22 07:32:36
 ---
 

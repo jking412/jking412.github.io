@@ -2,7 +2,6 @@
 title: (七)集成zap
 date: 2022-08-28 20:41:09
 tags: go
-categories: Go的API项目实战
 ---
 
 # 开始前的准备

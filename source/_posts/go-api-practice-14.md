@@ -2,7 +2,6 @@
 title: (十四)邮箱发送验证码
 date: 2022-09-08 13:31:16
 tags: go
-categories: Go的API项目实战
 ---
 
 # 开始前的准备

@@ -2,7 +2,6 @@
 title: (五)完成验证手机和邮箱是否存在接口
 date: 2022-08-27 09:57:58
 tags: go
-categories: Go的API项目实战
 ---
 
 # 开始前的准备

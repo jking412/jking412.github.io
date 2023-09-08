@@ -1,7 +1,6 @@
 ---
 title: (一)项目基础信息和说明
 tags: go
-categories: Go的API项目实战
 date: 2022-08-21 21:52:00
 ---
 

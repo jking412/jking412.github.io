@@ -1,7 +1,6 @@
 ---
 title: (三)集成viper
 tags: go
-categories: Go的API项目实战
 date: 2022-08-22 09:38:36
 ---
 

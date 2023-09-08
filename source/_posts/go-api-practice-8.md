@@ -2,7 +2,6 @@
 title: (八)在gin和gorm中使用zap
 date: 2022-08-28 20:41:16
 tags: go
-categories: Go的API项目实战
 ---
 
 # 开始前的准备

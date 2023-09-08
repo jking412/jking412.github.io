@@ -2,7 +2,6 @@
 title: (四)集成gorm
 date: 2022-08-27 09:57:54
 tags: go
-categories: Go的API项目实战
 ---
 
 # 开始前的准备
