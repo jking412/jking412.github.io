@@ -44,7 +44,7 @@ $ sudo apt install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev l
                  gawk build-essential bison flex texinfo gperf libtool patchutils bc \
                  zlib1g-dev libexpat-dev git \
                  libglib2.0-dev libfdt-dev libpixman-1-dev \
-                 libncurses5-dev libncursesw5-dev
+                 libncurses5-dev libncursesw5-dev libelf-dev
 ```
 
 下载完成后我们先创建一个总文件夹，名字可以随意，我这里就叫`hdu-os-lab`了，我们将linux源码解压到总文件夹下，然后进入linux文件夹，开始编译。
@@ -156,6 +156,7 @@ $ make menuconfig
 
 ```shell
 $ make 
+$ make install
 ```
 
 ![image-20230602192540669](https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602192540669.png)
