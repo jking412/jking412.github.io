@@ -1,7 +1,8 @@
 ---
-title: hdu-os-lab-编译内核并添加系统调用
+title: lab2-编译内核并添加系统调用
 date: 2023-06-02 22:26:59
 tags: [linux]
+categories: [hdu-os-lab]
 ---
 
 在开始之前，请现配置好基本的环境，请你先完成下面博客中的qemu和busybox部分
