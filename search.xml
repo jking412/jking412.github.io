@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>openssl生成自签名证书</title>
+      <link href="/2024/01/27/openssl%E7%94%9F%E6%88%90%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6/"/>
+      <url>/2024/01/27/openssl%E7%94%9F%E6%88%90%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6/</url>
+      
+        <content type="html"><![CDATA[<p>使用openssl可以方便的生成自签名证书，步骤如下</p><ol><li>创建私钥</li></ol><p>由于是自签名，该私钥会同时用于签名和服务器本身，采用如下命令生成</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out my.key 2048</span><br></pre></td></tr></table></figure><ol start="2"><li>基于私钥创建csr（证书请求签名），csr中包含服务器公钥</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -new -key my.key -out my.csr -subj <span class="string">&quot;/C=CN/ST=shanghai/L=shanghai/O=example/OU=it/CN=domain1/CN=domain2&quot;</span></span><br></pre></td></tr></table></figure><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/C= Country 国家</span><br><span class="line">/ST= State or Province 省</span><br><span class="line">/L= Location or City 城市</span><br><span class="line">/O= Organization 组织或企业</span><br><span class="line">/OU= Organization Unit 部门</span><br><span class="line">/CN= Common Name 域名或IP</span><br></pre></td></tr></table></figure><ol start="3"><li>最后使用csr和key来生成证书</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -req -<span class="keyword">in</span> my.csr -out my.crt -signkey my.key -days 3650</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> https </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>lab1-添加内核模块</title>
       <link href="/2023/10/17/lab1-%E6%B7%BB%E5%8A%A0%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/"/>
       <url>/2023/10/17/lab1-%E6%B7%BB%E5%8A%A0%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/</url>
