@@ -4,6 +4,19 @@
   
     
     <entry>
+      <title>解决Ubuntu24安装搜狗输入法失败</title>
+      <link href="/2025/03/09/%E8%A7%A3%E5%86%B3Ubuntu24%E5%AE%89%E8%A3%85%E6%90%9C%E7%8B%90%E8%BE%93%E5%85%A5%E6%B3%95%E5%A4%B1%E8%B4%A5/"/>
+      <url>/2025/03/09/%E8%A7%A3%E5%86%B3Ubuntu24%E5%AE%89%E8%A3%85%E6%90%9C%E7%8B%90%E8%BE%93%E5%85%A5%E6%B3%95%E5%A4%B1%E8%B4%A5/</url>
+      
+        <content type="html"><![CDATA[<p>​新安装了Ubuntu24之后，无法成功安装搜狐输入法，原因是Ubuntu24使用的是fcitx5，版本过新，最简单的办法就是卸载fcitx5，安装老fcitx</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt remove fcitx5 fcitx5-chinese-addons fcitx5-module-chttrans fcitx5-module-fullwidth fcitx5-module-punctuation</span><br><span class="line"><span class="built_in">sudo</span> apt install fcitx fcitx-data</span><br></pre></td></tr></table></figure><p>然后剩下的内容按照搜狐官网的安装教程安装即可</p><p><a href="https://pinyin.sogou.com/linux/help.php">https://pinyin.sogou.com/linux/help.php</a></p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>hexo环境配置记录</title>
       <link href="/2025/03/09/hexo%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E8%AE%B0%E5%BD%95/"/>
       <url>/2025/03/09/hexo%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E8%AE%B0%E5%BD%95/</url>
