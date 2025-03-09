@@ -1,0 +1,244 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>编译x86_64 linux并运行在qemu上 | jking の 博客</title><meta name="author" content="jking"><meta name="copyright" content="jking"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本节内容将会告诉你如何自己编译内核并且将这个内核运行在qemu模拟器上。在成功运行之后，我们可以自由的修改并验证我们的内核，以下操作均在Ubntun 22.04下完成。 在开始之前我们有一些需要注意的东西：  在编译过程中，你会遇到各种各样的环境问题，造成的原因可能是多样的，尤其是在遇到这样比较复杂"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://jking412.github.io/2023/06/02/%E7%BC%96%E8%AF%91x86_64%20linux%E5%B9%B6%E8%BF%90%E8%A1%8C%E5%9C%A8qemu%E4%B8%8A/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '编译x86_64 linux并运行在qemu上',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-03-09 11:25:48'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/font.css"><meta name="generator" content="Hexo 6.3.0"><link href="https://cdn.bootcss.com/KaTeX/0.11.1/katex.min.css" rel="stylesheet" /></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">79</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">35</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sunrise-1014712.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="jking の 博客"><span class="site-name">jking の 博客</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">编译x86_64 linux并运行在qemu上</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-06-02T12:32:52.000Z" title="发表于 2023-06-02 20:32:52">2023-06-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-09T03:25:48.705Z" title="更新于 2025-03-09 11:25:48">2025-03-09</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="编译x86_64 linux并运行在qemu上"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>本节内容将会告诉你如何自己编译内核并且将这个内核运行在qemu模拟器上。在成功运行之后，我们可以自由的修改并验证我们的内核，以下操作均在<code>Ubntun 22.04</code>下完成。</p>
+<p>在开始之前我们有一些需要注意的东西：</p>
+<ol>
+<li>在编译过程中，你会遇到各种各样的环境问题，造成的原因可能是多样的，尤其是在遇到这样比较复杂的任务时，所以你现在最好就做好长时间作战的心理准备，<code>更重要的是会自己使用搜索引擎</code>（还在用baidu的赶紧埋了😭），不要想着跟着做就能解决问题，下面我列出了一些高频的环境问题，当你遇到问题时可以回头过来看看：
+<ul>
+<li>当你在编译内核时出现编译错误，大概率是缺少某个包，这个时候去网上搜索，安装对应的包一般就能解决问题了。</li>
+<li>粗心导致的错误，这是一个漫长的过程，你极有可能在某一步输错了内容而导致整个内容的崩坏，这个一般难以检查，只能更加细心，尽量使用复制而不是自己输入。</li>
+<li>…</li>
+</ul>
+</li>
+<li>不要完全相信教程，一方面是教程本身的问题，一方面是我们的环境并不完全相同。</li>
+</ol>
+<p>为了完成我们的目标，我们需要编译完成三个项目：</p>
+<ol>
+<li>linux：提供内核</li>
+<li>qemu：提供模拟环境</li>
+<li>busybox：提供根文件系统和一些基本的系统工具</li>
+</ol>
+<p>下面我们一步一步来</p>
+<h1 id="linux"><a class="markdownIt-Anchor" href="#linux"></a> linux</h1>
+<p>我们去下面这个网站下载linux源码</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/torvalds/linux">https://github.com/torvalds/linux</a></p>
+<p>为了使遇到环境问题的可能性尽可能小，我们下载与我们当前系统版本相似的内核，用<code>uname -r</code>查看内核版本</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602153004363.png" alt="image-20230602153004363" /></p>
+<p>可以看到我的linux内核版本是5.19，我们选择和和自己内核版本相同的linux源码，选择tag以后下载</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602153140796.png" alt="image-20230602153140796" /></p>
+<p>我们先安装一些会用到的包（大概率是不够的）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> apt install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev libgmp-dev \</span></span><br><span class="line"><span class="language-bash">                 gawk build-essential bison flex texinfo gperf libtool patchutils bc \</span></span><br><span class="line"><span class="language-bash">                 zlib1g-dev libexpat-dev git \</span></span><br><span class="line"><span class="language-bash">                 libglib2.0-dev libfdt-dev libpixman-1-dev \</span></span><br><span class="line"><span class="language-bash">                 libncurses5-dev libncursesw5-dev libelf-dev</span></span><br></pre></td></tr></table></figure>
+<p>下载完成后我们先创建一个总文件夹，名字可以随意，我这里就叫<code>hdu-os-lab</code>了，我们将linux源码解压到总文件夹下，然后进入linux文件夹，开始编译。</p>
+<p>第一步创建x64默认的配置文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make ARCH=x86_64 x86_64_defconfig</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602153618577.png" alt="image-20230602153618577" /></p>
+<p>第二步进行进一步配置，默认即可</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make ARCH=x86_64 menuconfig</span></span><br></pre></td></tr></table></figure>
+<p>进入到这个页面后<code>Save</code>然后<code>Exit</code>即可，如果出现报错大概率是你的终端太小了（物理），不足以容纳配置页面，将你的终端拉大一点就行了。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602153843373.png" alt="image-20230602153843373" /></p>
+<p>第三部正式开始编译，这一部时间略久，5-10分钟左右（作者机子上）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make bzImage -j$(nproc) # -j 表示开启多线程编译，nproc是cpu的数量</span><br></pre></td></tr></table></figure>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602163737358.png" alt="image-20230602163737358" /></p>
+<p>显示<code>ready</code>内核就编译好了</p>
+<h1 id="qemu"><a class="markdownIt-Anchor" href="#qemu"></a> qemu</h1>
+<p>qemu的部分有两种方法，第一种方法是用包管理工具直接安装，第二种方式是自己编译，在本文采用了后者，这里还是推荐大家使用前者。</p>
+<h2 id="直接安装"><a class="markdownIt-Anchor" href="#直接安装"></a> 直接安装</h2>
+<ul>
+<li><strong>Arch:</strong> <code>pacman -S qemu</code></li>
+<li><strong>Debian/Ubuntu:</strong> <code>apt-get install qemu</code></li>
+<li><strong>Fedora:</strong> <code>dnf install @virtualization</code></li>
+<li><strong>Gentoo:</strong> <code>emerge --ask app-emulation/qemu</code></li>
+<li><strong>RHEL/CentOS:</strong> <code>yum install qemu-kvm</code></li>
+<li><strong>SUSE:</strong> <code>zypper install qemu</code></li>
+</ul>
+<h2 id="自己编译"><a class="markdownIt-Anchor" href="#自己编译"></a> 自己编译</h2>
+<p>下载源码，在本文中使用了<code>8.0.0</code>版本</p>
+<p><a target="_blank" rel="noopener" href="https://www.qemu.org/download/#source">https://www.qemu.org/download/#source</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">mkdir</span> qemu-x64</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> ../qemu-8.0.0</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">./configure --target-list=x86_64-softmmu --prefix=<span class="variable">$&#123;qemu-x64所在目录&#125;</span> <span class="comment"># 可执行文件最后会被放在这个目录下面</span></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make install</span></span><br></pre></td></tr></table></figure>
+<p>下面是每个步骤成功的截图</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">./configure --target-list=x86_64-softmmu --prefix=<span class="variable">$&#123;qemu-x64所在目录&#125;</span></span></span><br></pre></td></tr></table></figure>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602185718930.png" alt="image-20230602185718930" /></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602190638011.png" alt="image-20230602190638011" /></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make install</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602190805645.png" alt="image-20230602190805645" /></p>
+<p>然后把<code>qemu-x64下的bin目录</code>导出（export导出的环境变量只在当前shell有效），你也可以把环境变量写到<code>.bashrc</code>文件中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=&quot;$PATH:&#123;qemu-x64的bin目录&#125;&quot;</span><br></pre></td></tr></table></figure>
+<h1 id="busybox"><a class="markdownIt-Anchor" href="#busybox"></a> busybox</h1>
+<p>到了现在不知道你是不是已经经历了很多折磨😇，再坚持坚持，这里是最后一个部分了。</p>
+<p>源码：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/mirror/busybox">https://github.com/mirror/busybox</a></p>
+<p>下载完后进入目录</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make menuconfig</span></span><br></pre></td></tr></table></figure>
+<p><code>Settings -&gt; Build Options -&gt; Build static binary (no shared libs)</code></p>
+<p>（按空格选择，按回车进入）</p>
+<p>选完<code>Exit</code>然后保存即可</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602192335841.png" alt="image-20230602192335841" /></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make</span> </span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make install</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602192540669.png" alt="image-20230602192540669" /></p>
+<p>好了，到目前三个部分的编译就大功告成了!</p>
+<h1 id="制作根文件系统"><a class="markdownIt-Anchor" href="#制作根文件系统"></a> 制作根文件系统</h1>
+<p>按照下面的顺序执行命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">如果想要在系统中包含动态库，这里要需要改为2g</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">qemu-img create rootfs.img  1g</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">mkfs.ext4 rootfs.img</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">mkdir</span> rootfs</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> mount -o loop rootfs.img  rootfs</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> rootfs</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r ../busybox/_install/* .</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> <span class="built_in">mkdir</span> proc sys dev etc etc/init.d</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> etc/init.d/</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> <span class="built_in">touch</span> rcS</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> vi rcS</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">rcS 的内容如下：</span></span><br><span class="line">---------------------</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line">mount -t proc none /proc</span><br><span class="line">mount -t sysfs none /sys</span><br><span class="line">/sbin/mdev -s</span><br><span class="line">---------------------</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> <span class="built_in">chmod</span> +x rcS</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> ../../../</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> umount rootfs</span></span><br></pre></td></tr></table></figure>
+<h1 id="启动x86_64-qemu模拟器"><a class="markdownIt-Anchor" href="#启动x86_64-qemu模拟器"></a> 启动x86_64 qemu模拟器</h1>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">qemu-system-x86_64 -kernel linux-5.19/arch/x86/boot/bzImage -boot c -m 2048M -hda rootfs.img -append <span class="string">&quot;root=/dev/sda rw console=ttyS0,115200 acpi=off nokaslr&quot;</span> -serial stdio -display none</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602194750613.png" alt="image-20230602194750613" /></p>
+<p>如果到了这里，我终于可以恭喜你成功辣😝</p>
+<h1 id="体验x86_64环境"><a class="markdownIt-Anchor" href="#体验x86_64环境"></a> 体验x86_64环境</h1>
+<p>（其实没什么可体验的，因为本机就是x64😕）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> mount rootfs.img rootfs</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">进入到rootfs编写hello.c</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> vim hello.c</span></span><br><span class="line">---</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">include &lt;stdio.h&gt;</span></span><br><span class="line"></span><br><span class="line">int main()&#123;</span><br><span class="line">    printf(&quot;Hello World!&quot;);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line">---</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">使用静态编译，因为我们创建的系统中没有复制动态库</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> gcc -static hello.c -o static-hello</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">我们启动我们的qemu模拟器</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">./static-hello</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602203056031.png" alt="image-20230602203056031" /></p>
+<p>如果你想要运行动态链接的可执行文件，那么需要你复制必须的动态库，如果你前面创建的是2g的映像，直接复制动态库即可，下面我假设你创建的是1g的映像，我们先创建一个新的映像。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">qemu-img create rootfs-lib.img 2g</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">mkfs.ext4 rootfs-lib.img</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">mkdir</span> rootfs-lib</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> mount rootfs-lib.img rootfs-lib</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> mount rootfs.img rootfs</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r rootfs/* rootfs-lib</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> rootfs-lib</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> <span class="built_in">mkdir</span> lib lib64</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r /lib/x86_64-linux-gnu lib</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> <span class="built_in">cp</span> /lib64/ld-linux-x86-64.so.2 lib64/ld-linux-x86-64.so.2</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> gcc hello.c -o hello</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> ..</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> umount rootfs-lib</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">sudo</span> umount rootfs</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">qemu-system-x86_64 -kernel linux-5.19/arch/x86/boot/bzImage -boot c -m 2048M -hda rootfs-lib.img -append <span class="string">&quot;root=/dev/sda rw console=ttyS0,115200 acpi=off nokaslr&quot;</span> -serial stdio -display none</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230602210005168.png" alt="image-20230602210005168" /></p>
+<p>完结撒花🌸</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://jking412.github.io">jking</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://jking412.github.io/2023/06/02/%E7%BC%96%E8%AF%91x86_64%20linux%E5%B9%B6%E8%BF%90%E8%A1%8C%E5%9C%A8qemu%E4%B8%8A/">https://jking412.github.io/2023/06/02/%E7%BC%96%E8%AF%91x86_64%20linux%E5%B9%B6%E8%BF%90%E8%A1%8C%E5%9C%A8qemu%E4%B8%8A/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jking412.github.io" target="_blank">jking の 博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/linux/">linux</a><a class="post-meta__tags" href="/tags/qemu/">qemu</a></div><div class="post_share"><div class="social-share" data-image="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/06/02/lab2-%E7%BC%96%E8%AF%91%E5%86%85%E6%A0%B8%E5%B9%B6%E6%B7%BB%E5%8A%A0%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" title="lab2-编译内核并添加系统调用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">lab2-编译内核并添加系统调用</div></div></a></div><div class="next-post pull-right"><a href="/2023/06/01/%E5%9C%A8u%E7%9B%98%E4%B8%AD%E5%AE%89%E8%A3%85ubuntu/" title="在u盘中安装ubuntu"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">在u盘中安装ubuntu</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/10/17/lab1-%E6%B7%BB%E5%8A%A0%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/" title="lab1-添加内核模块"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-17</div><div class="title">lab1-添加内核模块</div></div></a></div><div><a href="/2023/06/02/lab2-%E7%BC%96%E8%AF%91%E5%86%85%E6%A0%B8%E5%B9%B6%E6%B7%BB%E5%8A%A0%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/" title="lab2-编译内核并添加系统调用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-02</div><div class="title">lab2-编译内核并添加系统调用</div></div></a></div><div><a href="/2023/06/29/linux%E6%90%AD%E5%BB%BAdosbox%E7%8E%AF%E5%A2%83/" title="linux搭建dosbox环境"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-29</div><div class="title">linux搭建dosbox环境</div></div></a></div><div><a href="/2023/06/07/tmux%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/" title="tmux使用教程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-07</div><div class="title">tmux使用教程</div></div></a></div><div><a href="/2023/06/07/vim%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/" title="vim的基本用法"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-07</div><div class="title">vim的基本用法</div></div></a></div><div><a href="/2023/08/15/%E5%88%B6%E4%BD%9Ciso%E9%95%9C%E5%83%8F%E6%96%87%E4%BB%B6/" title="制作iso镜像文件"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-15</div><div class="title">制作iso镜像文件</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">jking</div><div class="author-info__description">生活也许不总是美好，不如意时看看头顶的天空，她总是那么纯洁，那么美好，那么宽广，向你展开怀抱...</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">79</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">35</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/jking412"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#linux"><span class="toc-number">1.</span> <span class="toc-text"> linux</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#qemu"><span class="toc-number">2.</span> <span class="toc-text"> qemu</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%B4%E6%8E%A5%E5%AE%89%E8%A3%85"><span class="toc-number">2.1.</span> <span class="toc-text"> 直接安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%AA%E5%B7%B1%E7%BC%96%E8%AF%91"><span class="toc-number">2.2.</span> <span class="toc-text"> 自己编译</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#busybox"><span class="toc-number">3.</span> <span class="toc-text"> busybox</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%B6%E4%BD%9C%E6%A0%B9%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">4.</span> <span class="toc-text"> 制作根文件系统</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8x86_64-qemu%E6%A8%A1%E6%8B%9F%E5%99%A8"><span class="toc-number">5.</span> <span class="toc-text"> 启动x86_64 qemu模拟器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%93%E9%AA%8Cx86_64%E7%8E%AF%E5%A2%83"><span class="toc-number">6.</span> <span class="toc-text"> 体验x86_64环境</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/09/hexo%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E8%AE%B0%E5%BD%95/" title="hexo环境配置记录">hexo环境配置记录</a><time datetime="2025-03-09T02:32:45.000Z" title="发表于 2025-03-09 10:32:45">2025-03-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/01/27/openssl%E7%94%9F%E6%88%90%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6/" title="openssl生成自签名证书">openssl生成自签名证书</a><time datetime="2024-01-27T02:48:20.000Z" title="发表于 2024-01-27 10:48:20">2024-01-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/17/lab1-%E6%B7%BB%E5%8A%A0%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/" title="lab1-添加内核模块">lab1-添加内核模块</a><time datetime="2023-10-17T04:13:02.000Z" title="发表于 2023-10-17 12:13:02">2023-10-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/10/%E5%9C%A8linux%E4%B8%8A%E5%AE%89%E8%A3%85wireshark/" title="在linux上安装wireshark">在linux上安装wireshark</a><time datetime="2023-10-10T02:29:28.000Z" title="发表于 2023-10-10 10:29:28">2023-10-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/09/kube-proxy%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6%E6%B5%85%E6%9E%90/" title="kube-proxy工作机制浅析">kube-proxy工作机制浅析</a><time datetime="2023-10-09T01:15:59.000Z" title="发表于 2023-10-09 09:15:59">2023-10-09</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sunrise-1014712.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By jking</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"> <div style="width: 100%;height: 100%;text-align: center;"> <a href="https://beian.miit.gov.cn/" target="_blank">浙ICP备2022032096号</a> </div> </div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
