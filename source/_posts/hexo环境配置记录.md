@@ -99,7 +99,6 @@ git clone -b main https://github.com/jking412/jking412.github.io.git
 
 ```bash
 cd jking412.github.io
-rm package-lock.json #这是一个不该上传的文件
 npm install
 cp -r butterfly themes
 hexo clean
