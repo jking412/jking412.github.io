@@ -1,0 +1,207 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>cas认证流程简介 | jking の 博客</title><meta name="author" content="jking"><meta name="copyright" content="jking"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CAS是什么 在认识CAS之前，我们先认识一下SSO。 SSO是Single Sign On的缩写，意为单点登录，是一种应用架构，用户只需要登录一次就可以访问所有相互信任的应用。 SSO只是一种架构，而CAS就是实现SSO的一套方案，CAS是Central Authentication Servi"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://jking412.github.io/2022/11/18/cas%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E7%AE%80%E4%BB%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'cas认证流程简介',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-04-25 15:54:24'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/font.css"><meta name="generator" content="Hexo 6.3.0"><link href="https://cdn.bootcss.com/KaTeX/0.11.1/katex.min.css" rel="stylesheet" /></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">81</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">35</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sunrise-1014712.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="jking の 博客"><span class="site-name">jking の 博客</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">cas认证流程简介</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-11-18T03:06:56.000Z" title="发表于 2022-11-18 11:06:56">2022-11-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-25T07:54:24.255Z" title="更新于 2025-04-25 15:54:24">2025-04-25</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="cas认证流程简介"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="cas是什么"><a class="markdownIt-Anchor" href="#cas是什么"></a> CAS是什么</h1>
+<p>在认识CAS之前，我们先认识一下SSO。</p>
+<p>SSO是<code>Single Sign On</code>的缩写，意为单点登录，是一种应用架构，用户只需要登录一次就可以访问所有相互信任的应用。</p>
+<p>SSO只是一种架构，而CAS就是实现SSO的一套方案，CAS是<code>Central Authentication Service</code>的简称。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/c967cd85751e4e739cd8455286c86302_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0.png" alt="c967cd85751e4e739cd8455286c86302_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0" /></p>
+<h1 id="了解cas"><a class="markdownIt-Anchor" href="#了解cas"></a> 了解CAS</h1>
+<p>我们先来用一个奇怪的游乐场模拟一下CAS整个运作的流程</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221118183917114.png" alt="image-20221118183917114" /></p>
+<p>在这个游乐场中，我们只需要去<code>授权中心</code>买一次票就可以在全场畅玩。每个游乐设施都需要自己它们自己<code>单独的票据</code>，但是我们不需要在每个地点购买票据，只要有游乐场的通票，我们可以用这个通票让游乐设施的售票处找游乐场授权中心验证（防止通票伪造），验证通过以后售票处会给我们票据，拿着对应的票据我们就可以在对应的游乐设施快乐的玩耍了。</p>
+<p>在实际CAS实现中，对应关系如下</p>
+<ul>
+<li>游客——浏览器</li>
+<li>游乐场授权中心——cas server授权认证中心</li>
+<li>游乐设施——多个APP</li>
+<li>通票——TGC（Ticket Grangting Ticket）</li>
+<li>游乐设施专门的票据——app对应cookie</li>
+</ul>
+<p>关系图如下（限于CAS的流程实在比较繁琐，所以下面这个图省略了部分内容，主要省略在<code>验证通过</code>这里）</p>
+<p>但实际上，我们脱离cas本身复杂的流程来思考，cas只是把多个应用的登录功能抽离出来做了一个集成而已。这里先说明一下，在被省略的验证通过流程中，涉及<code>TGC</code>，<code>TGT</code>和<code>ST</code>三种票据，我们将在下面的具体流程中介绍（一方面不希望过早的把问题复杂化，一方面不希望误导读者，真是纠结啊，大家谅解一下）</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221118184737951.png" alt="image-20221118184737951" /></p>
+<h1 id="cas的具体流程"><a class="markdownIt-Anchor" href="#cas的具体流程"></a> CAS的具体流程</h1>
+<p>我会分别介绍四个方面内容</p>
+<ul>
+<li>从浏览器发出TGC到浏览器拿到app的cookie的过程中发生了什么（也就是省略内容）</li>
+<li>没有拿到TGC（没有在cas登陆过）的整个登录流程</li>
+<li>拿到TGC的整个流程</li>
+<li>退出登陆的流程</li>
+</ul>
+<p>如果看完前面拆分的流程图和第一部分仍然感到疑惑，那么可以仔细看看第2部分，那里有完整的流程，当然，你要有耐心（放大了图慢慢看，看的时候要保证脑子里有user，brower，cas server，app四个对象，要知道，仅凭文字这些流程会很抽象，要让流程动起来）</p>
+<h2 id="从tgc到app-cookie"><a class="markdownIt-Anchor" href="#从tgc到app-cookie"></a> 从TGC到app cookie</h2>
+<ul>
+<li>
+<p>TGT：Ticket Grangting Ticket</p>
+</li>
+<li>
+<p>TGC：Ticket Granting Cookie</p>
+</li>
+<li>
+<p>ST：Service Ticket</p>
+</li>
+</ul>
+<p>TGC和TGC是cas server的一对cookie和session，这样理解就可以了，TGC是用户在cas server登录过的凭证</p>
+<p>ST是允许用户访问某一APP的凭据，这个讲起来比较抽象，下面看图，这个图假设用户已经获取了TGC（要注意，上面的流程图已经和这里不同了，也就是说上面的图为了简化流程本身就有错误的内容）</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221118190222832.png" alt="image-20221118190222832" /></p>
+<p><code>是不是看完这些更加头晕了，由于拆分了流程，局部的认知可能还是会让你感到不明白，下面我们来看看整个流程</code></p>
+<h2 id="未登录状态下无tgc的完整流程"><a class="markdownIt-Anchor" href="#未登录状态下无tgc的完整流程"></a> 未登录状态下（无TGC）的完整流程</h2>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/5e8d855819894c3fa1f8ba85ead37cb2_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0.png" alt="" /></p>
+<p>这里我能说的就是大家认真看图，一定要把四个角色在流程中做什么搞清楚</p>
+<h2 id="有tgc状态下登录app"><a class="markdownIt-Anchor" href="#有tgc状态下登录app"></a> 有TGC状态下登录APP</h2>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/d3264e5b6f18444cb700616d6904fcf8_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0.png" alt="" /></p>
+<p>流程和上面区别不大，唯一的区别就是免去了用户了登录，这也是cas最重要的地方</p>
+<h2 id="退出登录"><a class="markdownIt-Anchor" href="#退出登录"></a> 退出登录</h2>
+<p>需要了解的是，使用cas server的App在一个退出登陆后会全部退出登录</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/a616807e5bd34deb985c72a201826695_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0.png" alt="" /></p>
+<p>流程有点多，静下心来也许才是最好的方法</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://jking412.github.io">jking</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://jking412.github.io/2022/11/18/cas%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E7%AE%80%E4%BB%8B/">https://jking412.github.io/2022/11/18/cas%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E7%AE%80%E4%BB%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jking412.github.io" target="_blank">jking の 博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/sso/">sso</a><a class="post-meta__tags" href="/tags/cas/">cas</a></div><div class="post_share"><div class="social-share" data-image="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/11/22/%E4%BB%8Egithub-page%E5%88%B0github-action/" title="从github page到github action"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">从github page到github action</div></div></a></div><div class="next-post pull-right"><a href="/2022/11/17/swaggo%E7%9A%84%E4%BD%BF%E7%94%A8/" title="swaggo的使用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">swaggo的使用</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">jking</div><div class="author-info__description">生活也许不总是美好，不如意时看看头顶的天空，她总是那么纯洁，那么美好，那么宽广，向你展开怀抱...</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">81</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">35</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/jking412"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#cas%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.</span> <span class="toc-text"> CAS是什么</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%86%E8%A7%A3cas"><span class="toc-number">2.</span> <span class="toc-text"> 了解CAS</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#cas%E7%9A%84%E5%85%B7%E4%BD%93%E6%B5%81%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text"> CAS的具体流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8Etgc%E5%88%B0app-cookie"><span class="toc-number">3.1.</span> <span class="toc-text"> 从TGC到app cookie</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AA%E7%99%BB%E5%BD%95%E7%8A%B6%E6%80%81%E4%B8%8B%E6%97%A0tgc%E7%9A%84%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-number">3.2.</span> <span class="toc-text"> 未登录状态下（无TGC）的完整流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%89tgc%E7%8A%B6%E6%80%81%E4%B8%8B%E7%99%BB%E5%BD%95app"><span class="toc-number">3.3.</span> <span class="toc-text"> 有TGC状态下登录APP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%80%E5%87%BA%E7%99%BB%E5%BD%95"><span class="toc-number">3.4.</span> <span class="toc-text"> 退出登录</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/26/Git%E5%B0%8F%E7%99%BD%E6%88%90%E9%95%BF%E8%AE%B0/" title="Git小白成长记">Git小白成长记</a><time datetime="2025-04-25T23:21:28.000Z" title="发表于 2025-04-26 07:21:28">2025-04-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/09/%E8%A7%A3%E5%86%B3Ubuntu24%E5%AE%89%E8%A3%85%E6%90%9C%E7%8B%90%E8%BE%93%E5%85%A5%E6%B3%95%E5%A4%B1%E8%B4%A5/" title="解决Ubuntu24安装搜狗输入法失败">解决Ubuntu24安装搜狗输入法失败</a><time datetime="2025-03-09T03:38:31.000Z" title="发表于 2025-03-09 11:38:31">2025-03-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/09/hexo%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E8%AE%B0%E5%BD%95/" title="hexo环境配置记录">hexo环境配置记录</a><time datetime="2025-03-09T02:32:45.000Z" title="发表于 2025-03-09 10:32:45">2025-03-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/01/27/openssl%E7%94%9F%E6%88%90%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6/" title="openssl生成自签名证书">openssl生成自签名证书</a><time datetime="2024-01-27T02:48:20.000Z" title="发表于 2024-01-27 10:48:20">2024-01-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/17/lab1-%E6%B7%BB%E5%8A%A0%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/" title="lab1-添加内核模块">lab1-添加内核模块</a><time datetime="2023-10-17T04:13:02.000Z" title="发表于 2023-10-17 12:13:02">2023-10-17</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sunrise-1014712.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By jking</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"> <div style="width: 100%;height: 100%;text-align: center;"> <a href="https://beian.miit.gov.cn/" target="_blank">浙ICP备2022032096号</a> </div> </div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

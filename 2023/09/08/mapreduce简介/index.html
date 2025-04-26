@@ -1,0 +1,211 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>mapreduce简介 | jking の 博客</title><meta name="author" content="jking"><meta name="copyright" content="jking"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="MapReduce是一个编程模型，用于处理和生成大数据。用户通过编写Map函数处理输入键值对生成中间键值对，通过编写Reduce函数来合并所有的中间键值对并生成结果。在我们的日常生活中，大部分的任务都可以被抽象成一个MapReduce模型，并通过这个模型解决问题。  MapReduce介绍 我们所遇"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://jking412.github.io/2023/09/08/mapreduce%E7%AE%80%E4%BB%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'mapreduce简介',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-04-25 15:54:24'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/font.css"><meta name="generator" content="Hexo 6.3.0"><link href="https://cdn.bootcss.com/KaTeX/0.11.1/katex.min.css" rel="stylesheet" /></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">81</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">35</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sunrise-1014712.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="jking の 博客"><span class="site-name">jking の 博客</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">mapreduce简介</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-09-08T08:20:45.000Z" title="发表于 2023-09-08 16:20:45">2023-09-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-25T07:54:24.271Z" title="更新于 2025-04-25 15:54:24">2025-04-25</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="mapreduce简介"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>MapReduce是一个编程模型，用于处理和生成大数据。用户通过编写Map函数处理输入键值对生成中间键值对，通过编写Reduce函数来合并所有的中间键值对并生成结果。在我们的日常生活中，大部分的任务都可以被抽象成一个MapReduce模型，并通过这个模型解决问题。</p>
+<h1 id="mapreduce介绍"><a class="markdownIt-Anchor" href="#mapreduce介绍"></a> MapReduce介绍</h1>
+<p>我们所遇到的大多数计算问题都很直观，但是当计算的数量十分庞大时，我们往往要借助于成百上千的机器共同计算来加速这个过程，但在从一个机器拓展到一个集群时我们会遇到比原来多得多的问题。比如我们该如何并行化计算，如何把数据分发到机器中，如何处理机器宕机带来的问题，毫无疑问，这是一个复杂的问题。</p>
+<p>分布式的计算带来了各种各样复杂的问题，但MapReduce的出现给解决分布式计算带来了一个足够简洁的解决方案。</p>
+<h2 id="编程模型"><a class="markdownIt-Anchor" href="#编程模型"></a> 编程模型</h2>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/Untitled%20(1).png" alt="Untitled (1)" />整个计算过程接受一组输入键值对，并输出一组键值对。我们需要为这个计算过程提供两个函数，<code>Map</code>和<code>Reduce</code>。</p>
+<p>Map函数接受一组键值对输入并生产一组中间键值对，然后按照一定的标准把这些键值对分组并传输给Reduce函数。</p>
+<p>Reduce函数接受中间键值对作为输入，合并这些数据并产生一组键值对作为最终输出。</p>
+<h2 id="一个简单的案例"><a class="markdownIt-Anchor" href="#一个简单的案例"></a> 一个简单的案例</h2>
+<p>下面是一个MapReduce实现的伪代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">map(String key, String value):</span><br><span class="line">    // key: document name</span><br><span class="line">    // value: document contents</span><br><span class="line">    for each word w in value:</span><br><span class="line">		EmitIntermediate(w, &quot;1&quot;);</span><br><span class="line">		</span><br><span class="line">reduce(String key, Iterator values):</span><br><span class="line">    // key: a word</span><br><span class="line">    // values: a list of counts</span><br><span class="line">    int result = 0;</span><br><span class="line">    for each v in values:</span><br><span class="line">    	result += ParseInt(v);</span><br><span class="line">    Emit(AsString(result));</span><br></pre></td></tr></table></figure>
+<p>map函数获取文章中的每个单词，并简单的给每个key赋值为1，然后把这些结果提交给reduce函数，reduce函数合并相同的key，输出最终结果。</p>
+<h2 id="常见应用场景"><a class="markdownIt-Anchor" href="#常见应用场景"></a> 常见应用场景</h2>
+<ol>
+<li>
+<p>Distributed Grep：在大规模文本数据中查找指定的字符串，并输出匹配的行。Map 阶段将每个输入文件分割为多个块，Reduce 阶段将匹配的行进行汇总。</p>
+</li>
+<li>
+<p>Count of URL Access Frequency：统计 Web 日志中每个 URL 的访问频率，用于分析用户行为和网站性能。Map 阶段将每个日志文件解析为键值对，其中键为 URL，值为 1，Reduce 阶段将相同 URL 的值相加并输出。</p>
+</li>
+<li>
+<p>Reverse Web-Link Graph：将 Web 页面之间的链接关系转化为反向的页面到链接的关系，用于搜索引擎排名等应用。Map 阶段将每个页面解析为键值对，其中键为页面 URL，值为与该页面相连的 URL，Reduce 阶段将相同 URL 的值进行合并。</p>
+</li>
+<li>
+<p>Term-Vector per Host：为每个主机计算其包含的文本数据中每个单词的频率向量，用于文本分类和信息检索。Map 阶段将每个文档解析为键值对，其中键为主机名，值为单词和出现次数的列表，Reduce 阶段将相同主机名的列表进行合并。</p>
+</li>
+<li>
+<p>Inverted Index：为大规模文本数据建立倒排索引，用于支持全文搜索和相关性排序等应用。Map 阶段将每个文档解析为键值对，其中键为单词，值为文档 ID 和出现次数的列表，Reduce 阶段将相同单词的列表进行合并。</p>
+</li>
+<li>
+<p>Distributed Sort：对大规模数据进行排序，用于数据清洗、数据分析等应用。Map 阶段将输入数据分割为多个块，并对每个块进行内部排序，Reduce 阶段将多个有序块进行归并排序。</p>
+</li>
+</ol>
+<h1 id="mapreduce实现"><a class="markdownIt-Anchor" href="#mapreduce实现"></a> MapReduce实现</h1>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20230402194955138.png" alt="image-20230402194955138" /></p>
+<h2 id="执行流程"><a class="markdownIt-Anchor" href="#执行流程"></a> 执行流程</h2>
+<p>我们把输入分成M份的split，然后分配给worker执行map，在worker执行完毕后，我们整理worker的输出的中间键值对，根据Reduce分区的数量分为R份，然后再交给Reduce函数执行。</p>
+<p>下面是具体的流程：</p>
+<ol>
+<li>首先我们把输入分成M份，每一份的大小通常在16~64M范围内，这由用户设置。</li>
+<li>然后master节点分配未完成的任务给空闲的节点。</li>
+<li>被分配到map任务的节点处理输出的键值对，并将中间键值对保存在本地缓存中。</li>
+<li>然后执行map任务的节点会定期将缓存中的内容写到磁盘，并将这些内容分成R个区域，然后将它们的位置发送给master。</li>
+<li>当reduce节点被通知这些文件的位置，它会通过RPC来读取文件的内容从map节点中，等reduce节点读取完所有需要的内容，它会对中间键值对进行排序。</li>
+<li>然后reduce节点会迭代这些键值对，并将它们合并，最终生成一个结果文件。</li>
+<li>最后当所有的任务完成，master节点会通知用户程序并返回。</li>
+</ol>
+<p>在成功的结束执行以后，我们会获得R份的输出文件，一般来说，我们不需要去合并这R份文件，因为它们往往是其它分布式计算的输入或者它们可以被其它的分布式应用处理。</p>
+<h2 id="主节点数据结构"><a class="markdownIt-Anchor" href="#主节点数据结构"></a> 主节点数据结构</h2>
+<p>Master节点需要维护一些数据结构以保证整个过程的正确执行，下面是部分数据结构：</p>
+<ol>
+<li>Job 完成状态：记录每个 map 任务和 reduce 任务的完成状态，状态包括未执行，正在处理和已完成。</li>
+<li>资源分配表：记录每个 worker 节点的负载状况和可用资源，以便于进行任务调度和资源分配。</li>
+<li>中间结果信息表：记录每个 map 任务产生的中间结果文件的位置和大小，以便于 reduce 任务能够访问和处理中间结果。</li>
+</ol>
+<h2 id="容错"><a class="markdownIt-Anchor" href="#容错"></a> 容错</h2>
+<p>这里我们仅仅讨论Worker Failure的情况，对于Master节点的容错我们不予讨论。</p>
+<p>首先，master节点会定时去ping工作节点，假如在一段预先设定好的时间内没有收到回复，master会认为该工作节点已经宕机，所有由该节点完成的map任务都会被设置为空闲状态，由该节点正在执行的map或reduce任务都会被设置为未完成，这些被重新设置为未完成的任务会被重新执行。</p>
+<p>正在执行的任务需要重新执行很容易理解，这里解释一下为什么所有被该节点执行完成的map节点都需要重新执行。这是因为在MapReduce模型中，map函数执行的结果会被放在本机的本地磁盘中，而reduce函数的执行结果会被放置在远程文件系统中，如何执行map的机器宕机，那么执行的结果将无法被访问，所以必须重新执行，而reduce函数的执行结果由于保存在远程，所以无需重新执行。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://jking412.github.io">jking</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://jking412.github.io/2023/09/08/mapreduce%E7%AE%80%E4%BB%8B/">https://jking412.github.io/2023/09/08/mapreduce%E7%AE%80%E4%BB%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jking412.github.io" target="_blank">jking の 博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/09/08/ssh%E7%9A%84%E5%8E%9F%E7%90%86/" title="ssh的原理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">ssh的原理</div></div></a></div><div class="next-post pull-right"><a href="/2023/09/08/C%E8%AF%AD%E8%A8%80%E7%9A%84%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" title="C语言的内存模型"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">C语言的内存模型</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">jking</div><div class="author-info__description">生活也许不总是美好，不如意时看看头顶的天空，她总是那么纯洁，那么美好，那么宽广，向你展开怀抱...</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">81</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">35</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/jking412"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#mapreduce%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.</span> <span class="toc-text"> MapReduce介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.1.</span> <span class="toc-text"> 编程模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E6%A1%88%E4%BE%8B"><span class="toc-number">1.2.</span> <span class="toc-text"> 一个简单的案例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.3.</span> <span class="toc-text"> 常见应用场景</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#mapreduce%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.</span> <span class="toc-text"> MapReduce实现</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="toc-number">2.1.</span> <span class="toc-text"> 执行流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E8%8A%82%E7%82%B9%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">2.2.</span> <span class="toc-text"> 主节点数据结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%B9%E9%94%99"><span class="toc-number">2.3.</span> <span class="toc-text"> 容错</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/26/Git%E5%B0%8F%E7%99%BD%E6%88%90%E9%95%BF%E8%AE%B0/" title="Git小白成长记">Git小白成长记</a><time datetime="2025-04-25T23:21:28.000Z" title="发表于 2025-04-26 07:21:28">2025-04-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/09/%E8%A7%A3%E5%86%B3Ubuntu24%E5%AE%89%E8%A3%85%E6%90%9C%E7%8B%90%E8%BE%93%E5%85%A5%E6%B3%95%E5%A4%B1%E8%B4%A5/" title="解决Ubuntu24安装搜狗输入法失败">解决Ubuntu24安装搜狗输入法失败</a><time datetime="2025-03-09T03:38:31.000Z" title="发表于 2025-03-09 11:38:31">2025-03-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/09/hexo%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E8%AE%B0%E5%BD%95/" title="hexo环境配置记录">hexo环境配置记录</a><time datetime="2025-03-09T02:32:45.000Z" title="发表于 2025-03-09 10:32:45">2025-03-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/01/27/openssl%E7%94%9F%E6%88%90%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6/" title="openssl生成自签名证书">openssl生成自签名证书</a><time datetime="2024-01-27T02:48:20.000Z" title="发表于 2024-01-27 10:48:20">2024-01-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/17/lab1-%E6%B7%BB%E5%8A%A0%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/" title="lab1-添加内核模块">lab1-添加内核模块</a><time datetime="2023-10-17T04:13:02.000Z" title="发表于 2023-10-17 12:13:02">2023-10-17</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sunrise-1014712.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By jking</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"> <div style="width: 100%;height: 100%;text-align: center;"> <a href="https://beian.miit.gov.cn/" target="_blank">浙ICP备2022032096号</a> </div> </div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

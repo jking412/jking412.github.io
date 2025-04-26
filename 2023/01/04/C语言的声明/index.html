@@ -1,0 +1,297 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>C语言声明 | jking の 博客</title><meta name="author" content="jking"><meta name="copyright" content="jking"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="C语言的声明可以嵌套，所以可以构成一些相当复杂的嵌套，这种过于复杂的声明并不推荐，但是我们应该学会如何去阅读这些声明。并在后面的部分会讲述如何利用typedef去简化这些声明  left-right rule &amp;quot;left-right&amp;quot; rule是解读C语言声明的强力规则，掌握这个"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://jking412.github.io/2023/01/04/C%E8%AF%AD%E8%A8%80%E7%9A%84%E5%A3%B0%E6%98%8E/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'C语言声明',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-04-25 15:54:24'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/font.css"><meta name="generator" content="Hexo 6.3.0"><link href="https://cdn.bootcss.com/KaTeX/0.11.1/katex.min.css" rel="stylesheet" /></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">81</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">35</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sunrise-1014712.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="jking の 博客"><span class="site-name">jking の 博客</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">C语言声明</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-01-04T07:09:55.000Z" title="发表于 2023-01-04 15:09:55">2023-01-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-25T07:54:24.252Z" title="更新于 2025-04-25 15:54:24">2025-04-25</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="C语言声明"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>C语言的声明可以嵌套，所以可以构成一些相当复杂的嵌套，这种过于复杂的声明并不推荐，但是我们应该学会如何去阅读这些声明。并在后面的部分会讲述如何利用typedef去简化这些声明</p>
+<h1 id="left-right-rule"><a class="markdownIt-Anchor" href="#left-right-rule"></a> left-right rule</h1>
+<p><code>&quot;left-right&quot; rule</code>是解读C语言声明的强力规则，掌握这个规则足够让我们解决几乎所有的C声明，而且规则并不复杂，分为下面几步</p>
+<blockquote>
+<ol>
+<li>从变量名开始阅读</li>
+<li>从包含变量名的最内部的括号由内而外解释，对于每个括号的内部，先往右边解释，再往左边解释，层层解释&gt; 直至结束。</li>
+</ol>
+</blockquote>
+<p>第一条规则告诉你如何开始，第二条规则告诉你如何解释，然后，我们要记住一些规则，你可以理解为这是规定的内容，是死的。</p>
+<ul>
+<li><code>*</code>  读作 “指向…的指针” ，接下里的标识符修饰指针指向的内容</li>
+<li><code>[]</code>   读作 “…的数组” ，接下来的标识符修饰数组的元素</li>
+<li><code>()</code>  读作 “返回…的函数”，接下来的标识符修饰函数返回值</li>
+</ul>
+<p><code>读作...</code>是用语言的方式去将声明一层层定义出来，就是反映了接下来修饰的内容，理解后面的部分我认为会更加直接。</p>
+<p>好的，看了上面的内容你大概了还是相当模糊的，不要急，上面的内容暂时不必关系，下面我会开始列举一些例子，可以一边看例子一边看解释规则，如果你想自己尝试一下也可以先自己解读。</p>
+<hr />
+<p>先来看一点我们以前可能遇到的头疼声明</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1.</span> <span class="type">const</span> <span class="type">int</span> * a;</span><br><span class="line"><span class="number">2.</span> <span class="type">int</span> <span class="type">const</span> * a;</span><br><span class="line"><span class="number">3.</span> <span class="type">int</span> * <span class="type">const</span> a;</span><br></pre></td></tr></table></figure>
+<p>不知道你是否还记得结果，在这三个声明中，只有<code>3的指针是只读的，也就是指针常量</code>，其它两个都是<code>指针指向的对象是只读的，也就是常量指针</code>。我们来一个个解读。</p>
+<p><code>const int * a</code>：</p>
+<ol>
+<li>
+<p>先找到变量名a</p>
+</li>
+<li>
+<p>无括号，总共就一层，先往右看，没有任何标识符</p>
+</li>
+<li>
+<p>往左看，首先我们看到的是一个<code>*</code>，OK，那么此时<code>a</code>已经是一个<code>指针</code>了，<code>接下来的标识符只会修饰指针指向的内容，这一点很关键</code></p>
+</li>
+<li>
+<p>继续往左看，看到<code>int</code>，说明指针指向一个<code>int</code>类型的变量</p>
+</li>
+<li>
+<p>再看到<code>const</code>，表明该<code>int</code>类型的变量是一个常量</p>
+</li>
+</ol>
+<p>那么这个声明的结果就是<code>变量a是一个指针，指针指向的内容是一个int类型的常量</code></p>
+<p><code>int const * a</code>：</p>
+<ol>
+<li>找到变量名a</li>
+<li>往右看，无标识符</li>
+<li>往左看，<code>*</code>，a是一个指针</li>
+<li>往左看，<code>const</code>，指向的变量是一个常量</li>
+<li>往左看，<code>int</code>，该常量是int类型的</li>
+</ol>
+<p>那么这个声明的结果就是<code>变量a是一个指针，指针指向的内容是一个int类型的常量</code></p>
+<p><code>int * const a</code>：</p>
+<ol>
+<li>找到变量名a</li>
+<li>往右看，无标识符</li>
+<li>往左看，<code>const</code>，a是常量</li>
+<li>往左看，<code>*</code>，a是一个指针，也就是a现在是一个常量指针，接下来的标识符会开始修饰指针指向的变量</li>
+<li>往左看，<code>int</code>，指针指向的变量是int类型的</li>
+</ol>
+<p>那么这个声明的结果就是<code>变量a是一个常量指针，指针指向的内容是一个int类型的变量</code></p>
+<p>从上面的例子中，有两点很重要</p>
+<ol>
+<li>按照顺序读取</li>
+<li>一定要理解标识符什么时候修饰变量a，什么时候修饰a指向的内容，当a被定义为指针以后，标识符就只会修饰指针指向的内容，这是一个固定的规则</li>
+</ol>
+<hr />
+<p>再来看一个容易混淆的例子</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1.</span> <span class="type">int</span> *p[<span class="number">10</span>];</span><br><span class="line"><span class="number">2.</span> <span class="type">int</span> (*p)[<span class="number">10</span>];</span><br></pre></td></tr></table></figure>
+<p><code>1是指针数组，2是数组指针</code></p>
+<p><code>int *p[10]</code>：</p>
+<ol>
+<li>找到变量名p</li>
+<li>往右看，<code>[10]</code>，p是一个数组，接下来标识符只能修饰数组元素</li>
+<li>往左看，<code>*</code>，数组元素是指针</li>
+<li>往左看，<code>int</code>，指针指向的变量是int类型</li>
+</ol>
+<p><code>int (*p)[10]</code>：</p>
+<ol>
+<li>找到变量名p</li>
+<li>因为有括号，所以要先处理<code>(*p)</code></li>
+<li>往右看，无标识符</li>
+<li>往左看，<code>*</code>，p是一个指针，接下来的标识符只会修饰指针指向的内容</li>
+<li>解释完括号内部的，现在解释外部的，<code>int ()[10]</code></li>
+<li>往右看，<code>[10]</code>，指针指向的变量是数组类型的</li>
+<li>往左看，<code>int</code>，数组的元素是int类型</li>
+</ol>
+<hr />
+<p>我们继续来看一点复杂一些的例子</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> * <span class="type">const</span> *(*b)(<span class="type">int</span> a);</span><br></pre></td></tr></table></figure>
+<ol>
+<li>找到变量名b</li>
+<li>有括号，我们要先解释<code>(*b)</code></li>
+<li><code>*b</code>往右看，无标识符</li>
+<li>往左看，b是一个指针</li>
+<li>然后再解释<code>char * const *  (int a)</code></li>
+<li>往右看<code>(int a)</code>，b指向的变量是一个函数，参数是一个整型变量，接下来左边的标识符都只会修饰函数返回值</li>
+<li>往左看，<code>*</code>，该函数的返回值是一个指针</li>
+<li>往左看<code>const</code>，返回值的指针指向一个常量</li>
+<li>往左看，<code>*</code>，这个常量是一个指针</li>
+<li>往左看，<code>char</code>，指针常量指向一个char类型变量</li>
+</ol>
+<p>那么这个声明的结果就是<code>变量a是一个函数指针，函数的参数是一个整型变量，返回值是一个指针，指针指向一个指针常量，指针常量指向一个字符型变量</code></p>
+<p>这里要说明一下，函数的参数也是要经过解释的，只不过这个例子和下面这个例子的函数参数都复杂我就直接跳过了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *(* a[<span class="number">10</span>])(<span class="type">int</span> **p);</span><br></pre></td></tr></table></figure>
+<ol>
+<li>找到变量名a</li>
+<li>先处理<code>(* a[10])</code></li>
+<li>往右看，<code>[10]</code>，a是一个数组，接下来的标识符只会修饰数组元素</li>
+<li>往左看，<code>*</code>，数组元素是指针类型</li>
+<li>接下来解释<code>char *()(int **p)</code></li>
+<li>往右看，<code>(int **p)</code>，指针指向一个函数，参数是二级指针</li>
+<li>往左看，<code>*</code>，返回值是一个指针</li>
+<li>往左看，<code>char</code>，char类型指针</li>
+</ol>
+<p>那么这个声明的结果就是<code>变量a是一个数组，数组元素是函数指针，函数参数是二级指针，返回值一个指向字符型变量的指针</code></p>
+<p>OK，如果你看完并理解了上面的内容，你会发现解释C的声明实际上也不是太复杂，我重新总结一下要点，我相信现在的你看这些要点会有新的感悟</p>
+<ol>
+<li>按照顺序解释</li>
+<li>记住现在解释的内容是什么，比如变量已经声明为指针后，要清楚接下来的标识符只会修饰指针指向的内容，而不会再来修饰这个指针本身。</li>
+</ol>
+<p>虽然现在我们会解释C语言的声明，但是复杂的声明在绝大部分情况下都不是好的选择，接下里我们介绍用typedef来简化声明</p>
+<h1 id="用typedef来简化声明"><a class="markdownIt-Anchor" href="#用typedef来简化声明"></a> 用typedef来简化声明</h1>
+<p>typedef在我们初学C时其实并不太常用，大多数时候我们用来简化结构体的声明</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Node</span>&#123;</span></span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">Node</span> <span class="title">Node</span>;</span></span><br></pre></td></tr></table></figure>
+<p>接下来我们就可以直接用<code>Node</code>而不是<code>struct Node</code>来定义变量，这种做法是否明智不是我们要讨论的内容，但是仅仅是这样的使用远远没有展现出typedef的力量。</p>
+<h2 id="typedef和define的区别"><a class="markdownIt-Anchor" href="#typedef和define的区别"></a> typedef和#define的区别</h2>
+<p>如果我们仅仅只是像上面一样用过typedef，我们可能会对typedef的真实作用产生误区。</p>
+<p>#define是完全的字符串替换，仅此而已，但是typedef从某种意义上来说，它真实的重命名了一个类型。</p>
+<p>比如下面这个例子</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> A int*</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span>* B;</span><br><span class="line">A a,b;</span><br><span class="line">B c,d;</span><br></pre></td></tr></table></figure>
+<p>变量<code>a是指针</code>，而变量<code>b只是一个普通的整型变量</code>，因为实际的定义是这样的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> *a,b;</span><br></pre></td></tr></table></figure>
+<p>但是<code>c和d都是指针</code>，因为B是类型<code>int *</code>的别名，是一个整体，可以说B本身就是一个新的类型。</p>
+<p>上面的例子已经展现了typedef与字符串替换大不相同，但typedef不仅于此，如果你没有真正的明白typedef的作用，那么下面这个例子你一定无法理解</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> Array[<span class="number">20</span>];</span><br><span class="line">Array a;</span><br></pre></td></tr></table></figure>
+<p>此时的a是一个长度为20的整型数组。Array是一个独立的类型，这个类型是长度为20的整型数组。</p>
+<p>现在你应该可以明白typedef的用法了，下面就来看看typedef怎么简化声明。</p>
+<h2 id="typedef简化声明"><a class="markdownIt-Anchor" href="#typedef简化声明"></a> typedef简化声明</h2>
+<p>我们来简化上面的例子</p>
+<p><code>char *(* a[10])(int **p);</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">char</span> *(*Func)(<span class="type">int</span> **p);</span><br><span class="line"><span class="comment">// 那么a可以定义如下</span></span><br><span class="line">Func a[<span class="number">10</span>];</span><br></pre></td></tr></table></figure>
+<p>我们用typedef把函数部分和数组部分拆分了开来，这些简化效果不是特别明显，我们来看更复杂一点的例子。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *(* (*a[<span class="number">10</span>])[<span class="number">10</span>][<span class="number">10</span>])(<span class="type">int</span> **p,<span class="type">char</span> *(*f)(<span class="type">int</span> *p[<span class="number">10</span>]));</span><br></pre></td></tr></table></figure>
+<p>这个例子已经毫无可读性了，也不需要耗费心神去解释，我们来简化这个声明。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 先简化作为参数的函数</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">char</span> *(*ParamFunc)(<span class="type">int</span> *p[<span class="number">10</span>]);</span><br><span class="line"><span class="comment">// 再把整个函数部分抽离出来</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">char</span> *(*Func)(<span class="type">int</span> **p,ParamFunc f);</span><br><span class="line"><span class="comment">// 最后再把数组部分加上</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="title function_">Func</span> <span class="params">(*ComplexPointer[<span class="number">10</span>])</span>[10][10];</span><br><span class="line"><span class="comment">// 接下来就可以直接定义了</span></span><br><span class="line">ComplexPointer a;</span><br><span class="line"><span class="comment">// 下面是不使用typedef的，对比一下</span></span><br><span class="line"><span class="type">char</span> *(* (*a[<span class="number">10</span>])[<span class="number">10</span>][<span class="number">10</span>])(<span class="type">int</span> **p,<span class="type">char</span> *(*f)(<span class="type">int</span> *p[<span class="number">10</span>]));</span><br></pre></td></tr></table></figure>
+<p>可见typedef在复杂声明中的力量，当然，简化的方法可以按照你自己的想法任意的组织。</p>
+<p>好了，本文主要是讲述了C语言的声明相关内容，希望能让你有所收获。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://jking412.github.io">jking</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://jking412.github.io/2023/01/04/C%E8%AF%AD%E8%A8%80%E7%9A%84%E5%A3%B0%E6%98%8E/">https://jking412.github.io/2023/01/04/C%E8%AF%AD%E8%A8%80%E7%9A%84%E5%A3%B0%E6%98%8E/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jking412.github.io" target="_blank">jking の 博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/01/25/%E5%A6%82%E4%BD%95%E9%98%85%E8%AF%BB%E4%B8%80%E6%9C%AC%E4%B9%A6/" title="如何阅读一本书"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">如何阅读一本书</div></div></a></div><div class="next-post pull-right"><a href="/2023/01/02/C%E8%AF%AD%E8%A8%80%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" title="C语言的数据存储"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">C语言的数据存储</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/362b2ce12eddacc0.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">jking</div><div class="author-info__description">生活也许不总是美好，不如意时看看头顶的天空，她总是那么纯洁，那么美好，那么宽广，向你展开怀抱...</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">81</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">35</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/jking412"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#left-right-rule"><span class="toc-number">1.</span> <span class="toc-text"> left-right rule</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%94%A8typedef%E6%9D%A5%E7%AE%80%E5%8C%96%E5%A3%B0%E6%98%8E"><span class="toc-number">2.</span> <span class="toc-text"> 用typedef来简化声明</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#typedef%E5%92%8Cdefine%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">2.1.</span> <span class="toc-text"> typedef和#define的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#typedef%E7%AE%80%E5%8C%96%E5%A3%B0%E6%98%8E"><span class="toc-number">2.2.</span> <span class="toc-text"> typedef简化声明</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/26/Git%E5%B0%8F%E7%99%BD%E6%88%90%E9%95%BF%E8%AE%B0/" title="Git小白成长记">Git小白成长记</a><time datetime="2025-04-25T23:21:28.000Z" title="发表于 2025-04-26 07:21:28">2025-04-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/09/%E8%A7%A3%E5%86%B3Ubuntu24%E5%AE%89%E8%A3%85%E6%90%9C%E7%8B%90%E8%BE%93%E5%85%A5%E6%B3%95%E5%A4%B1%E8%B4%A5/" title="解决Ubuntu24安装搜狗输入法失败">解决Ubuntu24安装搜狗输入法失败</a><time datetime="2025-03-09T03:38:31.000Z" title="发表于 2025-03-09 11:38:31">2025-03-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/09/hexo%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E8%AE%B0%E5%BD%95/" title="hexo环境配置记录">hexo环境配置记录</a><time datetime="2025-03-09T02:32:45.000Z" title="发表于 2025-03-09 10:32:45">2025-03-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/01/27/openssl%E7%94%9F%E6%88%90%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6/" title="openssl生成自签名证书">openssl生成自签名证书</a><time datetime="2024-01-27T02:48:20.000Z" title="发表于 2024-01-27 10:48:20">2024-01-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/17/lab1-%E6%B7%BB%E5%8A%A0%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/" title="lab1-添加内核模块">lab1-添加内核模块</a><time datetime="2023-10-17T04:13:02.000Z" title="发表于 2023-10-17 12:13:02">2023-10-17</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sunrise-1014712.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By jking</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"> <div style="width: 100%;height: 100%;text-align: center;"> <a href="https://beian.miit.gov.cn/" target="_blank">浙ICP备2022032096号</a> </div> </div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
