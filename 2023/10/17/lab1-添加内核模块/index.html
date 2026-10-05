@@ -1,0 +1,150 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="以题目一为例进行内核模块编程： 题目1： 1. 设计一个模块，要求列出系统中所有内核线程的程序名、PID、进程状态、进程优先级、父进程的PID。 2. 设计一个带参数的模块，其参数为某个进程的PID号，模块的功能是列出该进程的家族信息，包括父进程、兄弟进程和子进程的程序名、PID号、进程状态。具体参"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2023/10/17/lab1-%E6%B7%BB%E5%8A%A0%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="lab1-添加内核模块 · jking の 博客"><meta property="og:description" content="以题目一为例进行内核模块编程： 题目1： 1. 设计一个模块，要求列出系统中所有内核线程的程序名、PID、进程状态、进程优先级、父进程的PID。 2. 设计一个带参数的模块，其参数为某个进程的PID号，模块的功能是列出该进程的家族信息，包括父进程、兄弟进程和子进程的程序名、PID号、进程状态。具体参"><meta property="og:url" content="https://jking412.github.io/2023/10/17/lab1-%E6%B7%BB%E5%8A%A0%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2023-10-17T04:13:02.000Z"><title>lab1-添加内核模块 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2023-10-17T04:13:02.000Z">2023.10.17</time><span>jking</span></div><h1>lab1-添加内核模块</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/linux/">linux</a></li></ul></header><details class="toc"><summary>文章目录 <span>4 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#认识内核模块编程的基本框架">认识内核模块编程的基本框架</a></li><li><a href="#编程打印进程信息">编程打印进程信息</a></li><li><a href="#第一小题">第一小题</a></li><li><a href="#第二小题">第二小题</a></li></ul></nav></details><div class="prose"><p>以题目一为例进行内核模块编程：</p>
+<blockquote>
+<p>题目1：</p>
+<ol>
+<li>设计一个模块，要求列出系统中所有内核线程的程序名、PID、进程状态、进程优先级、父进程的PID。</li>
+<li>设计一个带参数的模块，其参数为某个进程的PID号，模块的功能是列出该进程的家族信息，包括父进程、兄弟进程和子进程的程序名、PID号、进程状态。具体参见教材P336</li>
+</ol>
+</blockquote>
+<p>环境: <code>ubuntu22</code></p>
+<h1 id="认识内核模块编程的基本框架">认识内核模块编程的基本框架</h1>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/init.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/module.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/kernel.h></span></span>
+<span class="line"><span style="color:#6A737D">// 初始化函数</span></span>
+<span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> int</span><span style="color:#6F42C1"> hello_init</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#6A737D">// 清理函数</span></span>
+<span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> void</span><span style="color:#6F42C1"> hello_exit</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 函数注册</span></span>
+<span class="line"><span style="color:#6F42C1">module_init</span><span style="color:#24292E">(hello_init);  </span></span>
+<span class="line"><span style="color:#6F42C1">module_exit</span><span style="color:#24292E">(hello_exit);  </span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 模块许可申明</span></span>
+<span class="line"><span style="color:#6F42C1">MODULE_LICENSE</span><span style="color:#24292E">(</span><span style="color:#032F62">"GPL"</span><span style="color:#24292E">);  </span></span></code></pre>
+<p>有下述几个问题需要注意：</p>
+<ol>
+<li>三个头文件必须引入</li>
+<li>必须注册初始化和退出函数</li>
+<li>必须有模块许可申明</li>
+</ol>
+<p>此外，需要注意的是在内核中<code>我们不能使用用户态函数，也就是说我们不能适用诸如printf,strlen等函数，需要使用专门的内核函数</code></p>
+<p>下面是Makefile模板，下面是最基本，也是最常用的模板，其中为一要注意的问题是<code>obj-m的名字需要与编写内核代码文件的名字对应，也就是说这里obj-m是module1.o，你的.c文件的名字应该是module1.c</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="Makefile"><code><span class="line"><span style="color:#24292E">obj-m:=module1.o    </span></span>
+<span class="line"><span style="color:#24292E">KDIR:= /lib/modules/</span><span style="color:#032F62">$(</span><span style="color:#005CC5">shell</span><span style="color:#032F62"> uname -r)</span><span style="color:#24292E">/build</span></span>
+<span class="line"><span style="color:#24292E">PWD:= </span><span style="color:#032F62">$(</span><span style="color:#005CC5">shell</span><span style="color:#032F62"> pwd)</span><span style="color:#24292E"> </span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">default</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#032F62">	$(</span><span style="color:#005CC5">MAKE</span><span style="color:#032F62">)</span><span style="color:#24292E"> -C </span><span style="color:#032F62">$(</span><span style="color:#24292E">KDIR</span><span style="color:#032F62">)</span><span style="color:#24292E"> M=</span><span style="color:#032F62">$(</span><span style="color:#24292E">PWD</span><span style="color:#032F62">)</span><span style="color:#24292E"> modules  </span></span>
+<span class="line"><span style="color:#6F42C1">clean</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#032F62">	$(</span><span style="color:#005CC5">MAKE</span><span style="color:#032F62">)</span><span style="color:#24292E"> -C </span><span style="color:#032F62">$(</span><span style="color:#24292E">KDIR</span><span style="color:#032F62">)</span><span style="color:#24292E"> M=</span><span style="color:#032F62">$(</span><span style="color:#24292E">PWD</span><span style="color:#032F62">)</span><span style="color:#24292E"> clean</span></span></code></pre>
+<h1 id="编程打印进程信息">编程打印进程信息</h1>
+<h2 id="第一小题">第一小题</h2>
+<p>代码比较简单，先放在这里</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/init.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/module.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/kernel.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/sched.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/init_task.h></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 初始化函数</span></span>
+<span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> int</span><span style="color:#6F42C1"> hello_init</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#6F42C1">    pr_alert</span><span style="color:#24292E">(</span><span style="color:#032F62">"list start !</span><span style="color:#005CC5">\n</span><span style="color:#032F62">"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    struct</span><span style="color:#24292E"> task_struct </span><span style="color:#D73A49">*</span><span style="color:#24292E">p;</span></span>
+<span class="line"><span style="color:#6F42C1">    printk</span><span style="color:#24292E">(KERN_ALERT</span><span style="color:#032F62">"名称</span><span style="color:#005CC5">\t</span><span style="color:#032F62">进程号</span><span style="color:#005CC5">\t</span><span style="color:#032F62">状态</span><span style="color:#005CC5">\t</span><span style="color:#032F62">优先级</span><span style="color:#005CC5">\t</span><span style="color:#032F62">父进程号"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    int</span><span style="color:#24292E"> kernel_thread_num </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">    for_each_process</span><span style="color:#24292E">(p)</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E">(p->mm </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> NULL</span><span style="color:#24292E">){</span><span style="color:#6A737D"> //内核线程的mm成员为空</span></span>
+<span class="line"><span style="color:#24292E">            kernel_thread_num</span><span style="color:#D73A49">++</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">            pr_info</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%s\t%d\t%ld\t%d\n</span><span style="color:#032F62">"</span><span style="color:#24292E">,p->comm,p->pid, p->stats,p->rt_priority,p->parent->pid);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#6F42C1">    pr_info</span><span style="color:#24292E">(</span><span style="color:#032F62">"kernel thread num is </span><span style="color:#005CC5">%d\n</span><span style="color:#032F62">"</span><span style="color:#24292E">,kernel_thread_num);</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#6A737D">// 清理函数</span></span>
+<span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> void</span><span style="color:#6F42C1"> hello_exit</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 函数注册</span></span>
+<span class="line"><span style="color:#6F42C1">module_init</span><span style="color:#24292E">(hello_init);  </span></span>
+<span class="line"><span style="color:#6F42C1">module_exit</span><span style="color:#24292E">(hello_exit);  </span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 模块许可申明</span></span>
+<span class="line"><span style="color:#6F42C1">MODULE_LICENSE</span><span style="color:#24292E">(</span><span style="color:#032F62">"GPL"</span><span style="color:#24292E">);  </span></span></code></pre>
+<p>介绍一下一些函数:</p>
+<ol>
+<li>pr_info,pr_alert…：用于内核打印</li>
+<li>for_each_process：通过遍历init_task(0号进程对应的进程标识符)来遍历所有内核线程</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> for_each_process</span><span style="color:#24292E">(</span><span style="color:#E36209">p</span><span style="color:#24292E">) </span><span style="color:#005CC5">\</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (p </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#24292E">init_task ; (p </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> next_task</span><span style="color:#24292E">(p)) </span><span style="color:#D73A49">!=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#24292E">init_task ; )</span></span></code></pre>
+<p>这里最后打印了内核线程的数量，我们可以通过linux命令简单验证，我们通过内核线程的组id为0这一特点计算内核线程数量</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> ps</span><span style="color:#005CC5"> -e</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> pgid</span><span style="color:#D73A49"> |</span><span style="color:#6F42C1"> awk</span><span style="color:#032F62"> '$1 == 0'</span><span style="color:#D73A49"> |</span><span style="color:#6F42C1"> wc</span><span style="color:#005CC5"> -l</span></span></code></pre>
+<p>易比较得到一致的结果</p>
+<h2 id="第二小题">第二小题</h2>
+<p>第二小题也不难，主要是对内核提供的一些宏的应用</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/init.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/module.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/kernel.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/sched.h></span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> &#x3C;linux/init_task.h></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> pid_t</span><span style="color:#24292E">  pid </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">module_param</span><span style="color:#24292E">(pid,</span><span style="color:#D73A49">int</span><span style="color:#24292E">,</span><span style="color:#D73A49">0</span><span style="color:#005CC5">644</span><span style="color:#24292E">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 初始化函数</span></span>
+<span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> int</span><span style="color:#6F42C1"> hello_init</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#6F42C1">    pr_alert</span><span style="color:#24292E">(</span><span style="color:#032F62">"list start !</span><span style="color:#005CC5">\n</span><span style="color:#032F62">"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    struct</span><span style="color:#24292E"> task_struct </span><span style="color:#D73A49">*</span><span style="color:#24292E">task </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> pid_task</span><span style="color:#24292E">(</span><span style="color:#6F42C1">find_get_pid</span><span style="color:#24292E">(pid), PIDTYPE_PID);</span></span>
+<span class="line"><span style="color:#D73A49">    struct</span><span style="color:#24292E"> task_struct </span><span style="color:#D73A49">*</span><span style="color:#24292E">parent </span><span style="color:#D73A49">=</span><span style="color:#24292E"> task->parent;</span></span>
+<span class="line"><span style="color:#D73A49">    struct</span><span style="color:#24292E"> task_struct </span><span style="color:#D73A49">*</span><span style="color:#24292E">sibling;</span></span>
+<span class="line"><span style="color:#D73A49">    struct</span><span style="color:#24292E"> list_head </span><span style="color:#D73A49">*</span><span style="color:#24292E">list;</span></span>
+<span class="line"><span style="color:#6A737D">    // List it own process</span></span>
+<span class="line"><span style="color:#6F42C1">    pr_info</span><span style="color:#24292E">(</span><span style="color:#032F62">"Root: Name: </span><span style="color:#005CC5">%s</span><span style="color:#032F62">, PID: </span><span style="color:#005CC5">%d</span><span style="color:#032F62">, State: </span><span style="color:#005CC5">%ld\n</span><span style="color:#032F62">"</span><span style="color:#24292E">,task->comm,task->pid,task->stats);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    // List parent process</span></span>
+<span class="line"><span style="color:#6F42C1">    pr_info</span><span style="color:#24292E">(</span><span style="color:#032F62">"Parent: Name: </span><span style="color:#005CC5">%s</span><span style="color:#032F62">, PID: </span><span style="color:#005CC5">%d</span><span style="color:#032F62">, State: </span><span style="color:#005CC5">%ld\n</span><span style="color:#032F62">"</span><span style="color:#24292E">, parent->comm, parent->pid, parent->stats);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    // List child processes</span></span>
+<span class="line"><span style="color:#6F42C1">    list_for_each</span><span style="color:#24292E">(list, </span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">task->children) {</span></span>
+<span class="line"><span style="color:#24292E">        sibling </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> list_entry</span><span style="color:#24292E">(list, </span><span style="color:#D73A49">struct</span><span style="color:#24292E"> task_struct, sibling);</span></span>
+<span class="line"><span style="color:#6F42C1">        pr_info</span><span style="color:#24292E">(</span><span style="color:#032F62">"Child: Name: </span><span style="color:#005CC5">%s</span><span style="color:#032F62">, PID: </span><span style="color:#005CC5">%d</span><span style="color:#032F62">, State: </span><span style="color:#005CC5">%ld\n</span><span style="color:#032F62">"</span><span style="color:#24292E">, sibling->comm, sibling->pid, sibling->stats);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    // List sibling processes</span></span>
+<span class="line"><span style="color:#6F42C1">    list_for_each</span><span style="color:#24292E">(list, </span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">parent->children) {</span></span>
+<span class="line"><span style="color:#24292E">        sibling </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> list_entry</span><span style="color:#24292E">(list, </span><span style="color:#D73A49">struct</span><span style="color:#24292E"> task_struct, sibling);</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (sibling </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> task) {</span></span>
+<span class="line"><span style="color:#6F42C1">            pr_info</span><span style="color:#24292E">(</span><span style="color:#032F62">"Sibling: Name: </span><span style="color:#005CC5">%s</span><span style="color:#032F62">, PID: </span><span style="color:#005CC5">%d</span><span style="color:#032F62">, State: </span><span style="color:#005CC5">%ld\n</span><span style="color:#032F62">"</span><span style="color:#24292E">, sibling->comm, sibling->pid, sibling->stats);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#6A737D">// 清理函数</span></span>
+<span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> void</span><span style="color:#6F42C1"> hello_exit</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 函数注册</span></span>
+<span class="line"><span style="color:#6F42C1">module_init</span><span style="color:#24292E">(hello_init);  </span></span>
+<span class="line"><span style="color:#6F42C1">module_exit</span><span style="color:#24292E">(hello_exit);  </span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 模块许可申明</span></span>
+<span class="line"><span style="color:#6F42C1">MODULE_LICENSE</span><span style="color:#24292E">(</span><span style="color:#032F62">"GPL"</span><span style="color:#24292E">);  </span></span></code></pre>
+<p>还是简单介绍一下：</p>
+<ol>
+<li>module_param(name,type,perm)：声明模块的名字，分别为变量名，变量类型和权限</li>
+<li>list_for_each：一个用于帮助遍历的宏</li>
+<li>list_entry：用于帮助类型转换</li>
+</ol></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2023/10/10/%E5%9C%A8linux%E4%B8%8A%E5%AE%89%E8%A3%85wireshark/"><span>上一篇</span>在linux上安装wireshark</a></div><div><a href="/2024/01/27/openssl%E7%94%9F%E6%88%90%E8%87%AA%E7%AD%BE%E5%90%8D%E8%AF%81%E4%B9%A6/"><span>下一篇</span>openssl生成自签名证书</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

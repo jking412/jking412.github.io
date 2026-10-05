@@ -1,0 +1,309 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="xv6的启动过程大致可以分为BIOS-bootloader-kernel，三个环节，本小节主要讲述bootloader的相关内容。 BIOS的作用是将磁盘的第一个扇区的内容移入到地址为0x7c00的位置，然后把控制权交给这份内容。这一份内容就是bootloader。 bootloader由boota"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2023/09/08/xv6%E7%B3%BB%E7%BB%9F%E5%90%AF%E5%8A%A8%E2%80%94%E2%80%94bootloader/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="xv6中创建syscall · jking の 博客"><meta property="og:description" content="xv6的启动过程大致可以分为BIOS-bootloader-kernel，三个环节，本小节主要讲述bootloader的相关内容。 BIOS的作用是将磁盘的第一个扇区的内容移入到地址为0x7c00的位置，然后把控制权交给这份内容。这一份内容就是bootloader。 bootloader由boota"><meta property="og:url" content="https://jking412.github.io/2023/09/08/xv6%E7%B3%BB%E7%BB%9F%E5%90%AF%E5%8A%A8%E2%80%94%E2%80%94bootloader/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2023-09-08T08:20:49.000Z"><title>xv6中创建syscall · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2023-09-08T08:20:49.000Z">2023.09.08</time><span>jking</span></div><h1>xv6中创建syscall</h1></header><div class="prose"><p>xv6的启动过程大致可以分为BIOS->bootloader->kernel，三个环节，本小节主要讲述bootloader的相关内容。</p>
+<p>BIOS的作用是将磁盘的第一个扇区的内容移入到地址为0x7c00的位置，然后把控制权交给这份内容。这一份内容就是bootloader。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/%E6%97%A0%E6%A0%87%E9%A2%98-2023-05-02-1258.png" alt="无标题-2023-05-02-1258"></p>
+<p>bootloader由bootasm.S和bootmain.c组成，所以接下来主要分析这两个文件的代码。</p>
+<h1 id="bootasms">bootasm.S</h1>
+<p>代码不算长，我们先贴上完整的代码：</p>
+<p><code>bootasm.S</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="assembly"><code><span class="line"><span style="color:#24292E">#</span><span style="color:#D73A49">include</span><span style="color:#032F62"> "asm.h"</span></span>
+<span class="line"><span style="color:#24292E">#</span><span style="color:#D73A49">include</span><span style="color:#032F62"> "memlayout.h"</span></span>
+<span class="line"><span style="color:#24292E">#</span><span style="color:#D73A49">include</span><span style="color:#032F62"> "mmu.h"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Start the first CPU: switch to 32-bit protected mode, jump into C.</span></span>
+<span class="line"><span style="color:#6A737D"># The BIOS loads this code from the first sector of the hard disk into</span></span>
+<span class="line"><span style="color:#6A737D"># memory at physical address 0x7c00 and starts executing in real mode</span></span>
+<span class="line"><span style="color:#6A737D"># with %cs=0 %ip=7c00.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">.code16                      </span><span style="color:#6A737D"> # Assemble for 16-bit mode</span></span>
+<span class="line"><span style="color:#6F42C1">.globl</span><span style="color:#24292E"> start</span></span>
+<span class="line"><span style="color:#6F42C1">start:</span></span>
+<span class="line"><span style="color:#D73A49">  cli</span><span style="color:#6A737D">                         # BIOS enabled interrupts; disable</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  # Zero data segment registers DS, ES, and SS.</span></span>
+<span class="line"><span style="color:#24292E">  xorw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">,%</span><span style="color:#005CC5">ax</span><span style="color:#6A737D">             # Set %ax to zero</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">,%</span><span style="color:#005CC5">ds</span><span style="color:#6A737D">             # -> Data Segment</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">,%</span><span style="color:#005CC5">es</span><span style="color:#6A737D">             # -> Extra Segment</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">,%</span><span style="color:#005CC5">ss</span><span style="color:#6A737D">             # -> Stack Segment</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  # Physical address line A20 is tied to zero so that the first PCs </span></span>
+<span class="line"><span style="color:#6A737D">  # with 2 MB would run software that assumed 1 MB.  Undo that.</span></span>
+<span class="line"><span style="color:#6F42C1">seta20.1:</span></span>
+<span class="line"><span style="color:#24292E">  inb     $0x64,%</span><span style="color:#005CC5">al</span><span style="color:#6A737D">               # Wait for not busy</span></span>
+<span class="line"><span style="color:#24292E">  testb   $0x2,%</span><span style="color:#005CC5">al</span></span>
+<span class="line"><span style="color:#D73A49">  jnz</span><span style="color:#24292E">     seta20</span><span style="color:#D73A49">.</span><span style="color:#6F42C1">1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">  movb    $0xd1,%</span><span style="color:#005CC5">al</span><span style="color:#6A737D">               # 0xd1 -> port 0x64</span></span>
+<span class="line"><span style="color:#24292E">  outb    %</span><span style="color:#005CC5">al</span><span style="color:#24292E">,$0x64</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">seta20.2:</span></span>
+<span class="line"><span style="color:#24292E">  inb     $0x64,%</span><span style="color:#005CC5">al</span><span style="color:#6A737D">               # Wait for not busy</span></span>
+<span class="line"><span style="color:#24292E">  testb   $0x2,%</span><span style="color:#005CC5">al</span></span>
+<span class="line"><span style="color:#D73A49">  jnz</span><span style="color:#24292E">     seta20</span><span style="color:#D73A49">.</span><span style="color:#6F42C1">2</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">  movb    $0xdf,%</span><span style="color:#005CC5">al</span><span style="color:#6A737D">               # 0xdf -> port 0x60</span></span>
+<span class="line"><span style="color:#24292E">  outb    %</span><span style="color:#005CC5">al</span><span style="color:#24292E">,$0x60</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  # Switch from real to protected mode.  Use a bootstrap GDT that makes</span></span>
+<span class="line"><span style="color:#6A737D">  # virtual addresses map directly to physical addresses so that the</span></span>
+<span class="line"><span style="color:#6A737D">  # effective memory map doesn't change during the transition.</span></span>
+<span class="line"><span style="color:#D73A49">  lgdt</span><span style="color:#24292E">    gdtdesc</span></span>
+<span class="line"><span style="color:#24292E">  movl    %</span><span style="color:#005CC5">cr0</span><span style="color:#24292E">, %</span><span style="color:#005CC5">eax</span></span>
+<span class="line"><span style="color:#24292E">  orl     $CR0_PE, %</span><span style="color:#005CC5">eax</span></span>
+<span class="line"><span style="color:#24292E">  movl    %</span><span style="color:#005CC5">eax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">cr0</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">//PAGEBREAK!</span></span>
+<span class="line"><span style="color:#6A737D">  # Complete the transition to 32-bit protected mode by using a long jmp</span></span>
+<span class="line"><span style="color:#6A737D">  # to reload %cs and %eip.  The segment descriptors are set up with no</span></span>
+<span class="line"><span style="color:#6A737D">  # translation, so that the mapping is still the identity mapping.</span></span>
+<span class="line"><span style="color:#24292E">  ljmp    $(SEG_KCODE&#x3C;&#x3C;</span><span style="color:#005CC5">3</span><span style="color:#24292E">), $start32</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">.code32 </span><span style="color:#6A737D"> # Tell assembler to generate 32-bit code now.</span></span>
+<span class="line"><span style="color:#6F42C1">start32:</span></span>
+<span class="line"><span style="color:#6A737D">  # Set up the protected-mode data segment registers</span></span>
+<span class="line"><span style="color:#24292E">  movw    $(SEG_KDATA&#x3C;&#x3C;</span><span style="color:#005CC5">3</span><span style="color:#24292E">), %</span><span style="color:#005CC5">ax</span><span style="color:#6A737D">    # Our data segment selector</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">ds</span><span style="color:#6A737D">                # -> DS: Data Segment</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">es</span><span style="color:#6A737D">                # -> ES: Extra Segment</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">ss</span><span style="color:#6A737D">                # -> SS: Stack Segment</span></span>
+<span class="line"><span style="color:#24292E">  movw    </span><span style="color:#005CC5">$0</span><span style="color:#24292E">, %</span><span style="color:#005CC5">ax</span><span style="color:#6A737D">                 # Zero segments not ready for use</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">fs</span><span style="color:#6A737D">                # -> FS</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">gs</span><span style="color:#6A737D">                # -> GS</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  # Set up the stack pointer and call into C.</span></span>
+<span class="line"><span style="color:#24292E">  movl    $start, %</span><span style="color:#005CC5">esp</span></span>
+<span class="line"><span style="color:#D73A49">  call</span><span style="color:#24292E">    bootmain</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  # If bootmain returns (it shouldn't), trigger a Bochs</span></span>
+<span class="line"><span style="color:#6A737D">  # breakpoint if running under Bochs, then loop.</span></span>
+<span class="line"><span style="color:#24292E">  movw    $0x8a00, %</span><span style="color:#005CC5">ax</span><span style="color:#6A737D">            # 0x8a00 -> port 0x8a00</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">dx</span></span>
+<span class="line"><span style="color:#24292E">  outw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">dx</span></span>
+<span class="line"><span style="color:#24292E">  movw    $0x8ae0, %</span><span style="color:#005CC5">ax</span><span style="color:#6A737D">            # 0x8ae0 -> port 0x8a00</span></span>
+<span class="line"><span style="color:#24292E">  outw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">dx</span></span>
+<span class="line"><span style="color:#6F42C1">spin:</span></span>
+<span class="line"><span style="color:#D73A49">  jmp</span><span style="color:#24292E">     spin</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Bootstrap GDT</span></span>
+<span class="line"><span style="color:#24292E">.p2align </span><span style="color:#005CC5">2</span><span style="color:#6A737D">                                # force 4 byte alignment</span></span>
+<span class="line"><span style="color:#005CC5">gdt</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">  SEG_NULLASM                            </span><span style="color:#6A737D"> # null seg</span></span>
+<span class="line"><span style="color:#24292E">  SEG_ASM(STA_X|STA_R, </span><span style="color:#005CC5">0x0</span><span style="color:#24292E">, </span><span style="color:#005CC5">0xffffffff</span><span style="color:#24292E">)  </span><span style="color:#6A737D"> # code seg</span></span>
+<span class="line"><span style="color:#24292E">  SEG_ASM(STA_W, </span><span style="color:#005CC5">0x0</span><span style="color:#24292E">, </span><span style="color:#005CC5">0xffffffff</span><span style="color:#24292E">)        </span><span style="color:#6A737D"> # data seg</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">gdtdesc:</span></span>
+<span class="line"><span style="color:#24292E">  .</span><span style="color:#D73A49">word</span><span style="color:#24292E">   (gdtdesc - </span><span style="color:#005CC5">gdt</span><span style="color:#24292E"> - </span><span style="color:#005CC5">1</span><span style="color:#24292E">)            </span><span style="color:#6A737D"> # sizeof(gdt) - 1</span></span>
+<span class="line"><span style="color:#24292E">  .long   </span><span style="color:#005CC5">gdt</span><span style="color:#6A737D">                             # address gdt</span></span></code></pre>
+<p>接下来我们大致分析一下：</p>
+<ol>
+<li>
+<p>先是关闭了中断，定义了下面的函数名（start），然后做了一些初始化工作。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="assembly"><code><span class="line"><span style="color:#24292E">.code16                      </span><span style="color:#6A737D"> # Assemble for 16-bit mode</span></span>
+<span class="line"><span style="color:#6F42C1">.globl</span><span style="color:#24292E"> start</span></span>
+<span class="line"><span style="color:#6F42C1">start:</span></span>
+<span class="line"><span style="color:#D73A49">  cli</span><span style="color:#6A737D">                         # BIOS enabled interrupts; disable</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  # Zero data segment registers DS, ES, and SS.</span></span>
+<span class="line"><span style="color:#24292E">  xorw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">,%</span><span style="color:#005CC5">ax</span><span style="color:#6A737D">             # Set %ax to zero</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">,%</span><span style="color:#005CC5">ds</span><span style="color:#6A737D">             # -> Data Segment</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">,%</span><span style="color:#005CC5">es</span><span style="color:#6A737D">             # -> Extra Segment</span></span>
+<span class="line"><span style="color:#24292E">  movw    %</span><span style="color:#005CC5">ax</span><span style="color:#24292E">,%</span><span style="color:#005CC5">ss</span><span style="color:#6A737D">             # -> Stack Segment</span></span></code></pre>
+</li>
+<li>
+<p>接下来是和IO端口做一些交互，因为一些历史原因，此时的CPU只能访问1M的地址空间，我们需要通过下面的操作打开A20地址线，才可以访问高于1M的物理空间。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="assembly"><code><span class="line"><span style="color:#6F42C1">seta20.1:</span></span>
+<span class="line"><span style="color:#24292E">  inb     $0x64,%</span><span style="color:#005CC5">al</span><span style="color:#6A737D">               # Wait for not busy</span></span>
+<span class="line"><span style="color:#24292E">  testb   $0x2,%</span><span style="color:#005CC5">al</span></span>
+<span class="line"><span style="color:#D73A49">  jnz</span><span style="color:#24292E">     seta20</span><span style="color:#D73A49">.</span><span style="color:#6F42C1">1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">  movb    $0xd1,%</span><span style="color:#005CC5">al</span><span style="color:#6A737D">               # 0xd1 -> port 0x64</span></span>
+<span class="line"><span style="color:#24292E">  outb    %</span><span style="color:#005CC5">al</span><span style="color:#24292E">,$0x64</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">seta20.2:</span></span>
+<span class="line"><span style="color:#24292E">  inb     $0x64,%</span><span style="color:#005CC5">al</span><span style="color:#6A737D">               # Wait for not busy</span></span>
+<span class="line"><span style="color:#24292E">  testb   $0x2,%</span><span style="color:#005CC5">al</span></span>
+<span class="line"><span style="color:#D73A49">  jnz</span><span style="color:#24292E">     seta20</span><span style="color:#D73A49">.</span><span style="color:#6F42C1">2</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">  movb    $0xdf,%</span><span style="color:#005CC5">al</span><span style="color:#6A737D">               # 0xdf -> port 0x60</span></span>
+<span class="line"><span style="color:#24292E">  outb    %</span><span style="color:#005CC5">al</span><span style="color:#24292E">,$0x60</span></span></code></pre>
+</li>
+<li>
+<p>下一步载入<code>GDT（全局表示符表）</code>并且开启保护模式，我简单介绍一下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230502211630082.png" alt="image-20230502211630082"></p>
+</li>
+</ol>
+<p>这是<code>CR0</code>寄存器，<code>第0位为1</code>是表示开启保护模式，下面这三行汇编将最低为置1，开始保护模式。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="assembly"><code><span class="line"><span style="color:#24292E">  movl    %</span><span style="color:#005CC5">cr0</span><span style="color:#24292E">, %</span><span style="color:#005CC5">eax</span></span>
+<span class="line"><span style="color:#24292E">  orl     $CR0_PE, %</span><span style="color:#005CC5">eax</span></span>
+<span class="line"><span style="color:#24292E">  movl    %</span><span style="color:#005CC5">eax</span><span style="color:#24292E">, %</span><span style="color:#005CC5">cr0</span></span></code></pre>
+<p>其中<code>$CR0_PE</code>在<code>mmu.h</code>中</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> CR0_PE</span><span style="color:#D73A49">          0x</span><span style="color:#005CC5">00000001</span><span style="color:#6A737D">      // Protection Enable</span></span></code></pre>
+<p>关于保护模式的具体细节请自己了解，下面继续分析GDT。</p>
+<p>可以看到下面一行汇编将GDT的信息装载到GDTR这个寄存器中，这个寄存器低16位存储段长，高32位存储GDT的起始地址。我们结合下面的gdtdesc，发现这一段内容首先定义了一个word，用两个字节表示段长，后面又定义了一个long，保存GDT的地址，即符号gdt所在的位置。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230502212421240.png" alt="image-20230502212421240"></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="assembly"><code><span class="line"><span style="color:#005CC5">gdt</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">  SEG_NULLASM                            </span><span style="color:#6A737D"> # null seg</span></span>
+<span class="line"><span style="color:#24292E">  SEG_ASM(STA_X|STA_R, </span><span style="color:#005CC5">0x0</span><span style="color:#24292E">, </span><span style="color:#005CC5">0xffffffff</span><span style="color:#24292E">)  </span><span style="color:#6A737D"> # code seg</span></span>
+<span class="line"><span style="color:#24292E">  SEG_ASM(STA_W, </span><span style="color:#005CC5">0x0</span><span style="color:#24292E">, </span><span style="color:#005CC5">0xffffffff</span><span style="color:#24292E">)        </span><span style="color:#6A737D"> # data seg</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">gdtdesc:</span></span>
+<span class="line"><span style="color:#24292E">  .</span><span style="color:#D73A49">word</span><span style="color:#24292E">   (gdtdesc - </span><span style="color:#005CC5">gdt</span><span style="color:#24292E"> - </span><span style="color:#005CC5">1</span><span style="color:#24292E">)            </span><span style="color:#6A737D"> # sizeof(gdt) - 1</span></span>
+<span class="line"><span style="color:#24292E">  .long   </span><span style="color:#005CC5">gdt</span><span style="color:#6A737D">                             # address gdt</span></span></code></pre>
+<p>我们再继续看SEG_NULLASM和下面的内容，从注释可以发现这一段内容定义了三个段描述符，第一个是空段，后面分别是代码段和数据段。上面用到的宏定义在<code>asm.h</code>中。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="assembly"><code><span class="line"><span style="color:#24292E">#</span><span style="color:#D73A49">define</span><span style="color:#24292E"> SEG_NULLASM                                             \</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#D73A49">word</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#6A737D">;                                             \</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#D73A49">byte</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">// The </span><span style="color:#005CC5">0xC0</span><span style="color:#24292E"> means the limit is </span><span style="color:#D73A49">in</span><span style="color:#005CC5"> 4096</span><span style="color:#24292E">-</span><span style="color:#D73A49">byte</span><span style="color:#24292E"> units</span></span>
+<span class="line"><span style="color:#24292E">// </span><span style="color:#D73A49">and</span><span style="color:#24292E"> (for executable segments) </span><span style="color:#005CC5">32</span><span style="color:#24292E">-bit mode.</span></span>
+<span class="line"><span style="color:#24292E">#</span><span style="color:#D73A49">define</span><span style="color:#24292E"> SEG_ASM(type,base,lim)                                  \</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#D73A49">word</span><span style="color:#24292E"> (((lim) >> </span><span style="color:#005CC5">12</span><span style="color:#24292E">) &#x26; </span><span style="color:#005CC5">0xffff</span><span style="color:#24292E">), ((base) &#x26; </span><span style="color:#005CC5">0xffff</span><span style="color:#24292E">)</span><span style="color:#6A737D">;      \</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#D73A49">byte</span><span style="color:#24292E"> (((base) >> </span><span style="color:#005CC5">16</span><span style="color:#24292E">) &#x26; </span><span style="color:#005CC5">0xff</span><span style="color:#24292E">), (</span><span style="color:#005CC5">0x90</span><span style="color:#24292E"> | (type)),         \</span></span>
+<span class="line"><span style="color:#24292E">                (</span><span style="color:#005CC5">0xC0</span><span style="color:#24292E"> | (((lim) >> </span><span style="color:#005CC5">28</span><span style="color:#24292E">) &#x26; </span><span style="color:#005CC5">0xf</span><span style="color:#24292E">)), (((base) >> </span><span style="color:#005CC5">24</span><span style="color:#24292E">) &#x26; </span><span style="color:#005CC5">0xff</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">                </span></span>
+<span class="line"><span style="color:#24292E">#</span><span style="color:#D73A49">define</span><span style="color:#24292E"> STA_X     0x8       // Executable segment</span></span>
+<span class="line"><span style="color:#24292E">#</span><span style="color:#D73A49">define</span><span style="color:#24292E"> STA_W     0x2       // Writeable (non-executable segments)</span></span>
+<span class="line"><span style="color:#24292E">#</span><span style="color:#D73A49">define</span><span style="color:#24292E"> STA_R     0x2       // Readable (executable segments)</span></span></code></pre>
+<p>在分析之前，我们先看看段描述符的结构：</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230502213642606.png" alt="image-20230502213642606"></p>
+<p>SEG_NULL很简单，定义了一个空段，内容都是0，我们再来看看SEG_ASM。首先后面跟着两个word的内容，可以发现分别对应着段描述符的低32位，分别是段限长的前16位（lim的高20位为段限长）和段基址的前16位。后面则分开定义了4个字节的内容，第一个字节是段基址的第二部分，第二个字节指定了type，并将P和S赋值为1，第三个字节指定段限长的高4位的同时将G和X赋值为1，这将启动大页模式，最后一个字节则指定剩余的段基址部分。</p>
+<ol start="4">
+<li>
+<p>下一步是一个跳转指令，也是完成了16位到32位的转换的一步，跳转指令的第一个部分指定段寄存器cs的值，第二个部分指定ip寄存器的值，其中<code>SEG_KCODE</code>定义在<code>mmu.h</code>，表示代码段,这里的值将作为GDT的索引，在使用时要将该值左移三位，因为段寄存器的低三位表示其它信息，后面的<code>start32</code>则是一个标号，在跳转指令下方。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#6A737D">// various segment selectors.</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> SEG_KCODE</span><span style="color:#005CC5"> 1</span><span style="color:#6A737D">  // kernel code</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> SEG_KDATA</span><span style="color:#005CC5"> 2</span><span style="color:#6A737D">  // kernel data+stack</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> SEG_UCODE</span><span style="color:#005CC5"> 3</span><span style="color:#6A737D">  // user code</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> SEG_UDATA</span><span style="color:#005CC5"> 4</span><span style="color:#6A737D">  // user data+stack</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> SEG_TSS</span><span style="color:#005CC5">   5</span><span style="color:#6A737D">  // this process's task state</span></span></code></pre>
+</li>
+<li>
+<p>接下来是在32位模式下设置各个段的值，其中<code>ds</code>，<code>es</code>，<code>ss</code>设置为数据段，<code>fs</code>和<code>gs</code>则设置为空段（它们的索引是0，在GDT中第0个段是空段），最后将栈基址寄存器<code>esp</code>设置为<code>start</code>，也就是bootasm.S装载的位置，即<code>0x7c00</code>，最后跳转到<code>bootmain.c</code>。</p>
+</li>
+</ol>
+<p>到现在<code>bootasm.S</code>的部分就完成了，现在内存中的情况如下图所示：</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230503075033430.png" alt="image-20230503075033430"></p>
+<h1 id="bootmainc">bootmain.c</h1>
+<p>相较于bootasm.S，bootmain.c所做的事并没有那么多，说的简单一点就是一节事——将内核载入到内存中。内核文件是一个elf文件，载入内核实际上就是载入elf文件，所以这一部分内容要求对ELF格式的文件有一定的了解，下面是完整的代码和ELF文件格式：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#6A737D">// Boot loader.</span></span>
+<span class="line"><span style="color:#6A737D">//</span></span>
+<span class="line"><span style="color:#6A737D">// Part of the boot block, along with bootasm.S, which calls bootmain().</span></span>
+<span class="line"><span style="color:#6A737D">// bootasm.S has put the processor into protected 32-bit mode.</span></span>
+<span class="line"><span style="color:#6A737D">// bootmain() loads an ELF kernel image from the disk starting at</span></span>
+<span class="line"><span style="color:#6A737D">// sector 1 and then jumps to the kernel entry routine.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> "types.h"</span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> "elf.h"</span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> "x86.h"</span></span>
+<span class="line"><span style="color:#D73A49">#include</span><span style="color:#032F62"> "memlayout.h"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> SECTSIZE</span><span style="color:#005CC5">  512</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">void</span><span style="color:#6F42C1"> readseg</span><span style="color:#24292E">(uchar</span><span style="color:#D73A49">*</span><span style="color:#24292E">, </span><span style="color:#D73A49">uint</span><span style="color:#24292E">, </span><span style="color:#D73A49">uint</span><span style="color:#24292E">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">void</span></span>
+<span class="line"><span style="color:#6F42C1">bootmain</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">  struct</span><span style="color:#24292E"> elfhdr </span><span style="color:#D73A49">*</span><span style="color:#24292E">elf;</span></span>
+<span class="line"><span style="color:#D73A49">  struct</span><span style="color:#24292E"> proghdr </span><span style="color:#D73A49">*</span><span style="color:#24292E">ph, </span><span style="color:#D73A49">*</span><span style="color:#24292E">eph;</span></span>
+<span class="line"><span style="color:#D73A49">  void</span><span style="color:#24292E"> (</span><span style="color:#D73A49">*</span><span style="color:#24292E">entry)(</span><span style="color:#D73A49">void</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">  uchar</span><span style="color:#D73A49">*</span><span style="color:#24292E"> pa;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">  elf </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (</span><span style="color:#D73A49">struct</span><span style="color:#24292E"> elfhdr</span><span style="color:#D73A49">*</span><span style="color:#24292E">)</span><span style="color:#D73A49">0x</span><span style="color:#005CC5">10000</span><span style="color:#24292E">;</span><span style="color:#6A737D">  // scratch space</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  // Read 1st page off disk</span></span>
+<span class="line"><span style="color:#6F42C1">  readseg</span><span style="color:#24292E">((uchar</span><span style="color:#D73A49">*</span><span style="color:#24292E">)elf, </span><span style="color:#005CC5">4096</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  // Is this an ELF executable?</span></span>
+<span class="line"><span style="color:#D73A49">  if</span><span style="color:#24292E">(elf->magic </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> ELF_MAGIC)</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E">;</span><span style="color:#6A737D">  // let bootasm.S handle error</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  // Load each program segment (ignores ph flags).</span></span>
+<span class="line"><span style="color:#24292E">  ph </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (</span><span style="color:#D73A49">struct</span><span style="color:#24292E"> proghdr</span><span style="color:#D73A49">*</span><span style="color:#24292E">)((uchar</span><span style="color:#D73A49">*</span><span style="color:#24292E">)elf </span><span style="color:#D73A49">+</span><span style="color:#24292E"> elf->phoff);</span></span>
+<span class="line"><span style="color:#24292E">  eph </span><span style="color:#D73A49">=</span><span style="color:#24292E"> ph </span><span style="color:#D73A49">+</span><span style="color:#24292E"> elf->phnum;</span></span>
+<span class="line"><span style="color:#D73A49">  for</span><span style="color:#24292E">(; ph </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> eph; ph</span><span style="color:#D73A49">++</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#24292E">    pa </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (uchar</span><span style="color:#D73A49">*</span><span style="color:#24292E">)ph->paddr;</span></span>
+<span class="line"><span style="color:#6F42C1">    readseg</span><span style="color:#24292E">(pa, ph->filesz, ph->off);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E">(ph->memsz </span><span style="color:#D73A49">></span><span style="color:#24292E"> ph->filesz)</span></span>
+<span class="line"><span style="color:#6F42C1">      stosb</span><span style="color:#24292E">(pa </span><span style="color:#D73A49">+</span><span style="color:#24292E"> ph->filesz, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, ph->memsz </span><span style="color:#D73A49">-</span><span style="color:#24292E"> ph->filesz);</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  // Call the entry point from the ELF header.</span></span>
+<span class="line"><span style="color:#6A737D">  // Does not return!</span></span>
+<span class="line"><span style="color:#24292E">  entry </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (</span><span style="color:#D73A49">void</span><span style="color:#24292E">(</span><span style="color:#D73A49">*</span><span style="color:#24292E">)(</span><span style="color:#D73A49">void</span><span style="color:#24292E">))(elf->entry);</span></span>
+<span class="line"><span style="color:#6F42C1">  entry</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">void</span></span>
+<span class="line"><span style="color:#6F42C1">waitdisk</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#6A737D">  // Wait for disk ready.</span></span>
+<span class="line"><span style="color:#D73A49">  while</span><span style="color:#24292E">((</span><span style="color:#6F42C1">inb</span><span style="color:#24292E">(</span><span style="color:#D73A49">0x</span><span style="color:#005CC5">1F7</span><span style="color:#24292E">) </span><span style="color:#D73A49">&#x26;</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">C0</span><span style="color:#24292E">) </span><span style="color:#D73A49">!=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">40</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    ;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Read a single sector at offset into dst.</span></span>
+<span class="line"><span style="color:#D73A49">void</span></span>
+<span class="line"><span style="color:#6F42C1">readsect</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#D73A49"> *</span><span style="color:#E36209">dst</span><span style="color:#24292E">, </span><span style="color:#D73A49">uint</span><span style="color:#E36209"> offset</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#6A737D">  // Issue command.</span></span>
+<span class="line"><span style="color:#6F42C1">  waitdisk</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#6F42C1">  outb</span><span style="color:#24292E">(</span><span style="color:#D73A49">0x</span><span style="color:#005CC5">1F2</span><span style="color:#24292E">, </span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span><span style="color:#6A737D">   // count = 1</span></span>
+<span class="line"><span style="color:#6F42C1">  outb</span><span style="color:#24292E">(</span><span style="color:#D73A49">0x</span><span style="color:#005CC5">1F3</span><span style="color:#24292E">, offset);</span></span>
+<span class="line"><span style="color:#6F42C1">  outb</span><span style="color:#24292E">(</span><span style="color:#D73A49">0x</span><span style="color:#005CC5">1F4</span><span style="color:#24292E">, offset </span><span style="color:#D73A49">>></span><span style="color:#005CC5"> 8</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">  outb</span><span style="color:#24292E">(</span><span style="color:#D73A49">0x</span><span style="color:#005CC5">1F5</span><span style="color:#24292E">, offset </span><span style="color:#D73A49">>></span><span style="color:#005CC5"> 16</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">  outb</span><span style="color:#24292E">(</span><span style="color:#D73A49">0x</span><span style="color:#005CC5">1F6</span><span style="color:#24292E">, (offset </span><span style="color:#D73A49">>></span><span style="color:#005CC5"> 24</span><span style="color:#24292E">) </span><span style="color:#D73A49">|</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">E0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">  outb</span><span style="color:#24292E">(</span><span style="color:#D73A49">0x</span><span style="color:#005CC5">1F7</span><span style="color:#24292E">, </span><span style="color:#D73A49">0x</span><span style="color:#005CC5">20</span><span style="color:#24292E">);</span><span style="color:#6A737D">  // cmd 0x20 - read sectors</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  // Read data.</span></span>
+<span class="line"><span style="color:#6F42C1">  waitdisk</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#6F42C1">  insl</span><span style="color:#24292E">(</span><span style="color:#D73A49">0x</span><span style="color:#005CC5">1F0</span><span style="color:#24292E">, dst, SECTSIZE</span><span style="color:#D73A49">/</span><span style="color:#005CC5">4</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Read 'count' bytes at 'offset' from kernel into physical address 'pa'.</span></span>
+<span class="line"><span style="color:#6A737D">// Might copy more than asked.</span></span>
+<span class="line"><span style="color:#D73A49">void</span></span>
+<span class="line"><span style="color:#6F42C1">readseg</span><span style="color:#24292E">(uchar</span><span style="color:#D73A49">*</span><span style="color:#E36209"> pa</span><span style="color:#24292E">, </span><span style="color:#D73A49">uint</span><span style="color:#E36209"> count</span><span style="color:#24292E">, </span><span style="color:#D73A49">uint</span><span style="color:#E36209"> offset</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">  uchar</span><span style="color:#D73A49">*</span><span style="color:#24292E"> epa;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">  epa </span><span style="color:#D73A49">=</span><span style="color:#24292E"> pa </span><span style="color:#D73A49">+</span><span style="color:#24292E"> count;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  // Round down to sector boundary.</span></span>
+<span class="line"><span style="color:#24292E">  pa </span><span style="color:#D73A49">-=</span><span style="color:#24292E"> offset </span><span style="color:#D73A49">%</span><span style="color:#24292E"> SECTSIZE;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  // Translate from bytes to sectors; kernel starts at sector 1.</span></span>
+<span class="line"><span style="color:#24292E">  offset </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (offset </span><span style="color:#D73A49">/</span><span style="color:#24292E"> SECTSIZE) </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  // If this is too slow, we could read lots of sectors at a time.</span></span>
+<span class="line"><span style="color:#6A737D">  // We'd write more to memory than asked, but it doesn't matter --</span></span>
+<span class="line"><span style="color:#6A737D">  // we load in increasing order.</span></span>
+<span class="line"><span style="color:#D73A49">  for</span><span style="color:#24292E">(; pa </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> epa; pa </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> SECTSIZE, offset</span><span style="color:#D73A49">++</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">    readsect</span><span style="color:#24292E">(pa, offset);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230503155720201.png" alt="image-20230503155720201"></p>
+<p>下面就主要介绍bootmain这个函数。</p>
+<ol>
+<li>先读入除了第一个扇区以外的前八个扇区。</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#6F42C1">readseg</span><span style="color:#24292E">((uchar</span><span style="color:#D73A49">*</span><span style="color:#24292E">)</span><span style="color:#E36209">elf</span><span style="color:#24292E">, </span><span style="color:#005CC5">4096</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span></code></pre>
+<ol start="2">
+<li>然后检查文件是否是elf格式。</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">  if</span><span style="color:#24292E">(elf</span><span style="color:#D73A49">-></span><span style="color:#24292E">magic </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> ELF_MAGIC)</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E">;</span><span style="color:#6A737D">  // let bootasm.S handle error</span></span></code></pre>
+<ol start="3">
+<li>然后找到程序头的位置，并根据程序头载入全部的段。</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#24292E">  ph </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (</span><span style="color:#D73A49">struct</span><span style="color:#24292E"> proghdr</span><span style="color:#D73A49">*</span><span style="color:#24292E">)((uchar</span><span style="color:#D73A49">*</span><span style="color:#24292E">)elf </span><span style="color:#D73A49">+</span><span style="color:#24292E"> elf</span><span style="color:#D73A49">-></span><span style="color:#24292E">phoff);</span></span>
+<span class="line"><span style="color:#24292E">  eph </span><span style="color:#D73A49">=</span><span style="color:#24292E"> ph </span><span style="color:#D73A49">+</span><span style="color:#24292E"> elf</span><span style="color:#D73A49">-></span><span style="color:#24292E">phnum;</span></span>
+<span class="line"><span style="color:#D73A49">  for</span><span style="color:#24292E">(; ph </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> eph; ph</span><span style="color:#D73A49">++</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#24292E">    pa </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (uchar</span><span style="color:#D73A49">*</span><span style="color:#24292E">)ph->paddr;</span></span>
+<span class="line"><span style="color:#6F42C1">    readseg</span><span style="color:#24292E">(pa, ph->filesz, ph->off);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E">(ph->memsz </span><span style="color:#D73A49">></span><span style="color:#24292E"> ph->filesz)</span></span>
+<span class="line"><span style="color:#6F42C1">      stosb</span><span style="color:#24292E">(pa </span><span style="color:#D73A49">+</span><span style="color:#24292E"> ph->filesz, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, ph->memsz </span><span style="color:#D73A49">-</span><span style="color:#24292E"> ph->filesz);</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<ol start="4">
+<li>最后找到入口函数，执行入口函数，自此开始，控制权交给内核。</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#24292E">  entry </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (</span><span style="color:#D73A49">void</span><span style="color:#24292E">(</span><span style="color:#D73A49">*</span><span style="color:#24292E">)(</span><span style="color:#D73A49">void</span><span style="color:#24292E">))(elf</span><span style="color:#D73A49">-></span><span style="color:#24292E">entry);</span></span>
+<span class="line"><span style="color:#6F42C1">  entry</span><span style="color:#24292E">();</span></span></code></pre>
+<p>bootloader的工作到这里就完成了，接下来就是kernel的天下了。</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2023/09/08/xv6%E4%B8%AD%E5%88%9B%E5%BB%BAsyscall/"><span>上一篇</span>xv6系统启动——bootloader</a></div><div><a href="/2023/09/09/Go%E5%88%87%E7%89%87%E6%89%A9%E5%AE%B9/"><span>下一篇</span>Go切片扩容</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

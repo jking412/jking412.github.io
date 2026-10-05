@@ -1,0 +1,127 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="什么是rss Really Simple Syndication，简易资讯聚合。 名字并不重要，你可以理解为这是一个软件，可以帮助你订阅互联网上各种各样的信息，就好像微博你订阅了博主，然后你就可以特别的收到它的消息一样。只不过现在你可以订阅的范围变成了所有支持rss的网站 下面我们就尝试着使用ttr"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/10/12/ttrss%E6%9E%81%E9%80%9F%E6%90%AD%E5%BB%BArss%E6%9C%8D%E5%8A%A1/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="『rss』ttrss极速搭建rss服务 · jking の 博客"><meta property="og:description" content="什么是rss Really Simple Syndication，简易资讯聚合。 名字并不重要，你可以理解为这是一个软件，可以帮助你订阅互联网上各种各样的信息，就好像微博你订阅了博主，然后你就可以特别的收到它的消息一样。只不过现在你可以订阅的范围变成了所有支持rss的网站 下面我们就尝试着使用ttr"><meta property="og:url" content="https://jking412.github.io/2022/10/12/ttrss%E6%9E%81%E9%80%9F%E6%90%AD%E5%BB%BArss%E6%9C%8D%E5%8A%A1/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-10-12T08:21:03.000Z"><title>『rss』ttrss极速搭建rss服务 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-10-12T08:21:03.000Z">2022.10.12</time><span>jking</span></div><h1>『rss』ttrss极速搭建rss服务</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/rss/">rss</a></li></ul></header><details class="toc"><summary>文章目录 <span>7 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#什么是rss">什么是rss</a></li><li><a href="#ttrss">ttrss</a></li><li><a href="#开始的准备">开始的准备</a></li><li><a href="#什么是ttrss">什么是ttrss</a></li><li><a href="#开始搭建">开始搭建</a></li><li><a href="#配置rss网站">配置rss网站</a></li><li><a href="#手机端rss阅读器">手机端RSS阅读器</a></li></ul></nav></details><div class="prose"><h1 id="什么是rss">什么是rss</h1>
+<p><code>Really Simple Syndication</code>，简易资讯聚合。</p>
+<p>名字并不重要，你可以理解为这是一个软件，可以帮助你订阅互联网上各种各样的信息，就好像微博你订阅了博主，然后你就可以特别的收到它的消息一样。只不过现在你可以订阅的范围变成了所有支持rss的网站</p>
+<p>下面我们就尝试着使用ttrss来订阅著名大佬阮一峰的博客</p>
+<h1 id="ttrss">ttrss</h1>
+<p>注意，以下的rss服务没有配置域名和https</p>
+<h2 id="开始的准备">开始的准备</h2>
+<p>在开始之前，你需有一些必要的工具</p>
+<ul>
+<li>docker</li>
+<li>云服务器</li>
+</ul>
+<h2 id="什么是ttrss">什么是ttrss</h2>
+<p>ttrss即<code>tiny tiny rss</code>，是一个基于php的免费开源的rss聚合阅读器，下面我们将使用<code>docker compose</code>来搭建服务</p>
+<h2 id="开始搭建">开始搭建</h2>
+<p>首先在任意的地方创建<code>docker-compose.yml</code>文件，内容如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#22863A">version</span><span style="color:#24292E">: </span><span style="color:#032F62">"3"</span></span>
+<span class="line"><span style="color:#22863A">services</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  service.rss</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">    image</span><span style="color:#24292E">: </span><span style="color:#032F62">wangqiru/ttrss:latest</span></span>
+<span class="line"><span style="color:#22863A">    container_name</span><span style="color:#24292E">: </span><span style="color:#032F62">ttrss</span></span>
+<span class="line"><span style="color:#22863A">    ports</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">181:80</span></span>
+<span class="line"><span style="color:#22863A">    environment</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">SELF_URL_PATH=http://localhost:181/</span><span style="color:#6A737D"> # please change to your own domain</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">DB_PASS=ttrss</span><span style="color:#6A737D"> # use the same password defined in `database.postgres`</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">PUID=1000</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">PGID=1000</span></span>
+<span class="line"><span style="color:#22863A">    volumes</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">feed-icons:/var/www/feed-icons/</span></span>
+<span class="line"><span style="color:#22863A">    networks</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">public_access</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">service_only</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">database_only</span></span>
+<span class="line"><span style="color:#22863A">    stdin_open</span><span style="color:#24292E">: </span><span style="color:#005CC5">true</span></span>
+<span class="line"><span style="color:#22863A">    tty</span><span style="color:#24292E">: </span><span style="color:#005CC5">true</span></span>
+<span class="line"><span style="color:#22863A">    restart</span><span style="color:#24292E">: </span><span style="color:#032F62">always</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">  service.mercury</span><span style="color:#24292E">: </span><span style="color:#6A737D"># set Mercury Parser API endpoint to `service.mercury:3000` on TTRSS plugin setting page</span></span>
+<span class="line"><span style="color:#22863A">    image</span><span style="color:#24292E">: </span><span style="color:#032F62">wangqiru/mercury-parser-api:latest</span></span>
+<span class="line"><span style="color:#22863A">    container_name</span><span style="color:#24292E">: </span><span style="color:#032F62">mercury</span></span>
+<span class="line"><span style="color:#22863A">    networks</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">public_access</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">service_only</span></span>
+<span class="line"><span style="color:#22863A">    restart</span><span style="color:#24292E">: </span><span style="color:#032F62">always</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">  service.opencc</span><span style="color:#24292E">: </span><span style="color:#6A737D"># set OpenCC API endpoint to `service.opencc:3000` on TTRSS plugin setting page</span></span>
+<span class="line"><span style="color:#22863A">    image</span><span style="color:#24292E">: </span><span style="color:#032F62">wangqiru/opencc-api-server:latest</span></span>
+<span class="line"><span style="color:#22863A">    container_name</span><span style="color:#24292E">: </span><span style="color:#032F62">opencc</span></span>
+<span class="line"><span style="color:#22863A">    environment</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">NODE_ENV=production</span></span>
+<span class="line"><span style="color:#22863A">    networks</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">service_only</span></span>
+<span class="line"><span style="color:#22863A">    restart</span><span style="color:#24292E">: </span><span style="color:#032F62">always</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">  database.postgres</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">    image</span><span style="color:#24292E">: </span><span style="color:#032F62">postgres:13-alpine</span></span>
+<span class="line"><span style="color:#22863A">    container_name</span><span style="color:#24292E">: </span><span style="color:#032F62">postgres</span></span>
+<span class="line"><span style="color:#22863A">    environment</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">POSTGRES_PASSWORD=ttrss</span><span style="color:#6A737D"> # feel free to change the password</span></span>
+<span class="line"><span style="color:#22863A">    volumes</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">~/postgres/data/:/var/lib/postgresql/data</span><span style="color:#6A737D"> # persist postgres data to ~/postgres/data/ on the host</span></span>
+<span class="line"><span style="color:#22863A">    networks</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#032F62">database_only</span></span>
+<span class="line"><span style="color:#22863A">    restart</span><span style="color:#24292E">: </span><span style="color:#032F62">always</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  # utility.watchtower:</span></span>
+<span class="line"><span style="color:#6A737D">  #   container_name: watchtower</span></span>
+<span class="line"><span style="color:#6A737D">  #   image: containrrr/watchtower:latest</span></span>
+<span class="line"><span style="color:#6A737D">  #   volumes:</span></span>
+<span class="line"><span style="color:#6A737D">  #     - /var/run/docker.sock:/var/run/docker.sock</span></span>
+<span class="line"><span style="color:#6A737D">  #   environment:</span></span>
+<span class="line"><span style="color:#6A737D">  #     - WATCHTOWER_CLEANUP=true</span></span>
+<span class="line"><span style="color:#6A737D">  #     - WATCHTOWER_POLL_INTERVAL=86400</span></span>
+<span class="line"><span style="color:#6A737D">  #   restart: always</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">volumes</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  feed-icons</span><span style="color:#24292E">:</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">networks</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  public_access</span><span style="color:#24292E">: </span><span style="color:#6A737D"># Provide the access for ttrss UI</span></span>
+<span class="line"><span style="color:#22863A">  service_only</span><span style="color:#24292E">: </span><span style="color:#6A737D"># Provide the communication network between services only</span></span>
+<span class="line"><span style="color:#22863A">    internal</span><span style="color:#24292E">: </span><span style="color:#005CC5">true</span></span>
+<span class="line"><span style="color:#22863A">  database_only</span><span style="color:#24292E">: </span><span style="color:#6A737D"># Provide the communication between ttrss and database only</span></span>
+<span class="line"><span style="color:#22863A">    internal</span><span style="color:#24292E">: </span><span style="color:#005CC5">true</span></span></code></pre>
+<blockquote>
+<p>修改docker-compose.yml文件</p>
+</blockquote>
+<p>将下面的url改成你访问该服务的url，在其它配置保持默认的情况下，把localhost改成服务器IP即可</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#24292E">- </span><span style="color:#032F62">SELF_URL_PATH=http://localhost:181/</span><span style="color:#6A737D"> # please change to your own domain</span></span></code></pre>
+<p>强烈建议你修改这两处的密码（虽然不修改依然可以运行，但是最好不要这样做），保持一致即可</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#24292E">- </span><span style="color:#032F62">DB_PASS=ttrss</span><span style="color:#6A737D"> # use the same password defined in `database.postgres`</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">environment</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">  - </span><span style="color:#032F62">POSTGRES_PASSWORD=ttrss</span><span style="color:#6A737D"> # feel free to change the password</span></span></code></pre>
+<p>然后再当前目录下执行命令</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> docker</span><span style="color:#032F62"> compose</span><span style="color:#032F62"> up</span><span style="color:#005CC5"> -d</span></span></code></pre>
+<p>等待一小段时间即可部署成功</p>
+<h2 id="配置rss网站">配置rss网站</h2>
+<blockquote>
+<p>修改默认密码</p>
+</blockquote>
+<p>访问<code>ip:181</code>，默认账号<code>admin</code>，默认密码<code>password</code>，</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/1%7BP(%609FLRYI3OCK)%7B6~%6045H.png" alt=""></p>
+<p>登录后在用户位置修改密码</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221006212555462.png" alt="image-20221006212555462"></p>
+<p>配置好密码以后我们开启API，为之后我们可以手机上阅读做准备</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221006213433683.png" alt="image-20221006213433683"></p>
+<p>再然后我们打开设置配置RSS源</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221006213607133.png" alt="image-20221006213607133"></p>
+<p>填入阮一峰大佬的RSS源</p>
+<p><a href="http://www.ruanyifeng.com/blog/atom.xml">http://www.ruanyifeng.com/blog/atom.xml</a></p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221006213642604.png" alt="image-20221006213642604"></p>
+<p>然后刷新一下就可以看到文章了（我这里在之前已经提前配置了RSS源，所以已经有了文章）</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221006213829694.png" alt="image-20221006213829694"></p>
+<p>如果你看到的文章是直接展开的，可以在一旁的设置中把它收起</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221006213916201.png" alt="image-20221006213916201"></p>
+<p>好了，至此我们就完成了RSS在PC端的配置，然后我们再去配置手机端</p>
+<h2 id="手机端rss阅读器">手机端RSS阅读器</h2>
+<p>首先下载阅读软件</p>
+<p><a href="https://go-aliyun-oss.oss-cn-hangzhou.aliyuncs.com/FeedMe.apk?Expires=1665134217&#x26;OSSAccessKeyId=TMP.3KggvUkN12e6GAYuXtqhEuEfwKroxoxX85jgQpYHMug975JjxjyJJxju6i6sEu6kwjhn1U162cqy9WvzMF7PKrWfhfneP9&#x26;Signature=JO2w1YW0ZkynaoF1BgkqPedSqZs%3D">FeedMe</a></p>
+<p>打开软件，我们在<code>tiny tiny RSS</code>的位置输入信息</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/Screenshot_2022-10-07-17-14-27-742_com.seazon.fee.jpg" alt="Screenshot_2022-10-07-17-14-27-742_com.seazon.fee"></p>
+<p>域名就是<code>http://ip:port</code></p>
+<p>登录之后按一下刷新按钮就可以看到文章了</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/Screenshot_2022-10-07-17-15-33-169_com.seazon.fee.jpg" alt="Screenshot_2022-10-07-17-15-33-169_com.seazon.fee"></p>
+<p>这样就完成了RSS的基本配置，开启你的RSS之旅吧</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/10/12/JavaWeb%E5%9F%BA%E6%9C%AC%E5%9D%8F%E5%A2%83%E9%85%8D%E7%BD%AE/"><span>上一篇</span>『JavaWeb』基本坏境配置</a></div><div><a href="/2022/10/15/git%E5%92%8Cgithub%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/"><span>下一篇</span>『git』git和github入门教程</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

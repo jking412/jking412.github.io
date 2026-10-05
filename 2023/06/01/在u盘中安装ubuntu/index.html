@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="你是否因为经常使用不同的电脑，但是编程环境不同而苦恼呢，今天的文章会教你把ubuntu装入移动固态中，现在SSD的价格已经很便宜了，这里我会用1T的移动固态为例，教会你如何将ubuntu装入移动其中（同时支持UEFI和BIOS）。 在开始之前，有几点需要提醒： 1. 操作不当可能会导致数据损失，严重"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2023/06/01/%E5%9C%A8u%E7%9B%98%E4%B8%AD%E5%AE%89%E8%A3%85ubuntu/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="在u盘中安装ubuntu · jking の 博客"><meta property="og:description" content="你是否因为经常使用不同的电脑，但是编程环境不同而苦恼呢，今天的文章会教你把ubuntu装入移动固态中，现在SSD的价格已经很便宜了，这里我会用1T的移动固态为例，教会你如何将ubuntu装入移动其中（同时支持UEFI和BIOS）。 在开始之前，有几点需要提醒： 1. 操作不当可能会导致数据损失，严重"><meta property="og:url" content="https://jking412.github.io/2023/06/01/%E5%9C%A8u%E7%9B%98%E4%B8%AD%E5%AE%89%E8%A3%85ubuntu/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2023-06-01T12:41:56.000Z"><title>在u盘中安装ubuntu · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2023-06-01T12:41:56.000Z">2023.06.01</time><span>jking</span></div><h1>在u盘中安装ubuntu</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/ubuntu/">ubuntu</a></li><li><a href="/tags/%E8%A3%85%E6%9C%BA/">装机</a></li></ul></header><details class="toc"><summary>文章目录 <span>3 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#使用vmware">使用Vmware</a></li><li><a href="#安装ubuntu">安装ubuntu</a></li><li><a href="#bios启动">BIOS启动</a></li></ul></nav></details><div class="prose"><p>你是否因为经常使用不同的电脑，但是编程环境不同而苦恼呢，今天的文章会教你把ubuntu装入移动固态中，现在SSD的价格已经很便宜了，这里我会用1T的移动固态为例，教会你如何将ubuntu装入移动其中（同时支持UEFI和BIOS）。</p>
+<p>在开始之前，有几点需要提醒：</p>
+<ol>
+<li>操作不当可能会导致数据损失，严重的操作失误甚至可能破坏你的电脑，所以要慎重操作。</li>
+<li>每一步都要经可能谨慎的操作，一个粗心可能就会导致前功尽弃。</li>
+<li>建议有一定基础的人来完成。</li>
+</ol>
+<h1 id="使用vmware">使用Vmware</h1>
+<p>首先安装vmware，<a href="https://www.vmware.com/cn/products/workstation-pro/workstation-pro-evaluation.html">https://www.vmware.com/cn/products/workstation-pro/workstation-pro-evaluation.html</a></p>
+<p>虽然是收费的，但是网上激活码简直不要太多，这里自己搜索解决。</p>
+<p>（如果之前没有使用虚拟机或者安装系统的经验接下来操作要更加小心）</p>
+<p>在安装完成之后，我们用管理员权限打开vmware（在左下角的搜索栏中找到vmware，右键点击后用管理员打开），创建虚拟机，除了下面出现的内容，其他的都选择默认即可。</p>
+<ol>
+<li>选择稍后安装操作系统，我们需要后面自定义的配置</li>
+</ol>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531205214087.png" alt="image-20230531205214087"></p>
+<ol start="2">
+<li>使用物理磁盘，也就是u盘，这里一定要有管理员权限</li>
+</ol>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531205235908.png" alt=""></p>
+<ol start="3">
+<li>
+<p>选择物理磁盘，选择你u盘的盘符，注意，这里一定不要选错，一般是最后一个。</p>
+<p>实在不确定通过这里的教程查看<a href="https://jingyan.baidu.com/article/0f5fb09923fde06d8334ea35.html">https://jingyan.baidu.com/article/0f5fb09923fde06d8334ea35.html</a></p>
+</li>
+</ol>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531205330556.png" alt="image-20230531205235908"></p>
+<ol start="4">
+<li>在虚拟机设置中选择UEFI</li>
+</ol>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531205417235.png" alt=""></p>
+<ol start="5">
+<li>
+<p>选择提前下好磁盘印象文件</p>
+<p>下载url：<a href="https://cn.ubuntu.com/">https://cn.ubuntu.com/</a></p>
+</li>
+</ol>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531210821564.png" alt="image-20230531210821564"></p>
+<ol start="6">
+<li>配置好之后启动虚拟机，静静的等待，默认方式启动之后选择try ubuntu，我们先不要下载</li>
+</ol>
+<p>​	进入ubuntu之后下载gparted分区工具</p>
+<p>​	（如果启动失败报错u盘被占用，尝试关闭各类应用，重启，格式化u盘等操作）</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531211732495.png" alt="image-20230531211732495"></p>
+<ol start="7">
+<li>接下来的操作操作会格式化u盘，请确保你的u盘的重要文件都被备份，创建gpt表</li>
+</ol>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531212108850.png" alt="image-20230531212108850"></p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531212125193.png" alt="image-20230531212125193"></p>
+<ol start="8">
+<li>
+<p>分区，下面是分区的结果，我的空间比较大，分的奢侈了一点，我说明一下下面的分区</p>
+<ul>
+<li>/dev/sda1: 依然作为u盘的空间，不想要当作u盘使用可以不要</li>
+<li>/dev/sda2: linux主要空间，决定了你的linux操作系统占用的空间</li>
+<li>/dev/sda3:  efi分区，100MB以上即可</li>
+<li>/dev/sda4: 交换空间，这块区域在内存不足时会被用作虚拟内存，如果u盘空间小可以不要</li>
+<li>最后的空间安装grub，预留1M以上即可（所以说我分的比较随意，空间小的尽量不要浪费）</li>
+</ul>
+<p>分配好之后确认即可</p>
+</li>
+</ol>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531212901951.png" alt="image-20230531212901951"></p>
+<ol start="9">
+<li>
+<p>安装grub，按顺序输入以下内容</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">sudo</span><span style="color:#032F62"> gdisk</span><span style="color:#032F62"> /dev/sdb</span></span>
+<span class="line"><span style="color:#6F42C1">n</span></span>
+<span class="line"><span style="color:#6A737D"># 默认编号，回车就行</span></span>
+<span class="line"><span style="color:#6A737D"># 默认开始位置，回车</span></span>
+<span class="line"><span style="color:#6A737D"># 默认结束位置，回车</span></span>
+<span class="line"><span style="color:#6F42C1">EF02</span><span style="color:#6A737D"> # EF02 就是 bios_grub</span></span>
+<span class="line"><span style="color:#6F42C1">p</span><span style="color:#6A737D"> # 看到 Name 有 BIOS boot partition 就可以了</span></span>
+<span class="line"><span style="color:#6F42C1">w</span></span>
+<span class="line"><span style="color:#6F42C1">y</span></span></code></pre>
+</li>
+</ol>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531213039722.png" alt="image-20230531213039722"></p>
+<p>安装之后结果如下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531213104971.png" alt="image-20230531213104971"></p>
+<h1 id="安装ubuntu">安装ubuntu</h1>
+<p>接下来点击桌面上的ubuntu install，在安装类型这一步选择其它选项</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531213250935.png" alt="image-20230531213250935"></p>
+<p>在进入到安装类型之后，要做三件事：</p>
+<ol>
+<li>将/dev/sda2挂载到<code>/</code>，选择格式化这个分区</li>
+<li>将/dev/sda3改为efi</li>
+<li>确认<code>安装启动引导器的设备为你的u盘</code></li>
+</ol>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/img/image-20230531213429677.png" alt="image-20230531213429677"></p>
+<p>完成后等待继续安装默认配置继续，等待ubuntu安装即可。</p>
+<p>在安装完成之后，你的ubuntu就可以通过UEFI启动了（现在的计算机基本上是UEFI，所以如果你不想再折腾到这里就结束了），但是我们接下来还是支持一下BIOS启动。</p>
+<h1 id="bios启动">BIOS启动</h1>
+<p>我们将虚拟机关闭，将启动方式改为BIOS（与上面相同），启动之后还是选择try ubuntu</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6A737D"># 将你安装linux的分区挂载（在本博客中是sda2）</span></span>
+<span class="line"><span style="color:#6F42C1">sudo</span><span style="color:#032F62"> mount</span><span style="color:#032F62"> /dev/sdaX</span><span style="color:#032F62"> /mnt</span></span>
+<span class="line"><span style="color:#6A737D"># 这里是你u盘的分区</span></span>
+<span class="line"><span style="color:#6F42C1">sudo</span><span style="color:#032F62"> grub-install</span><span style="color:#005CC5"> --target=i386-pc</span><span style="color:#005CC5"> --recheck</span><span style="color:#005CC5"> --boot-directory=/mnt/boot</span><span style="color:#032F62"> /dev/sda</span></span></code></pre>
+<p>如果没有错误报出，那么应该就成功了，用虚拟机尝试BIOS和UEFI启动看看是不是都可以正常启动。</p>
+<p>如果都正常启动了，就大功告成了！</p>
+<p>重启你的计算机，选择U盘启动就可以进入你安装的ubuntu了。</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2023/01/25/%E5%A6%82%E4%BD%95%E9%98%85%E8%AF%BB%E4%B8%80%E6%9C%AC%E4%B9%A6/"><span>上一篇</span>如何阅读一本书</a></div><div><a href="/2023/06/02/%E7%BC%96%E8%AF%91x86_64%20linux%E5%B9%B6%E8%BF%90%E8%A1%8C%E5%9C%A8qemu%E4%B8%8A/"><span>下一篇</span>编译x86_64 linux并运行在qemu上</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

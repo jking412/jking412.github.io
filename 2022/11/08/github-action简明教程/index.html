@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="Github Actions是什么 GitHub Actions 是一种持续集成和持续交付 (CI/CD) 平台，可用于自动执行生成、测试和部署管道。简单地说，就是通过编写符合Github Actions要求的&quot;脚本&quot;，让Github来执行这一的&quot;脚本&quot;。 在开始之前，还是有必要简单的介绍一下持续集"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/11/08/github-action%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="github-action简明教程 · jking の 博客"><meta property="og:description" content="Github Actions是什么 GitHub Actions 是一种持续集成和持续交付 (CI/CD) 平台，可用于自动执行生成、测试和部署管道。简单地说，就是通过编写符合Github Actions要求的&quot;脚本&quot;，让Github来执行这一的&quot;脚本&quot;。 在开始之前，还是有必要简单的介绍一下持续集"><meta property="og:url" content="https://jking412.github.io/2022/11/08/github-action%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-11-08T15:18:52.000Z"><title>github-action简明教程 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-11-08T15:18:52.000Z">2022.11.08</time><span>jking</span></div><h1>github-action简明教程</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/github%20action/">github action</a></li></ul></header><details class="toc"><summary>文章目录 <span>10 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#github-actions是什么">Github Actions是什么</a></li><li><a href="#理解github-actions工作流">理解Github Actions工作流</a></li><li><a href="#github-actions组成">Github Actions组成</a></li><li class="nested"><a href="#workflows工作流">Workflows——工作流</a></li><li class="nested"><a href="#events事件">Events——事件</a></li><li class="nested"><a href="#jobs工作和steps步骤">Jobs——工作和Steps——步骤</a></li><li class="nested"><a href="#actions">Actions</a></li><li class="nested"><a href="#runners">Runners</a></li><li class="nested"><a href="#环境变量和上下文">环境变量和上下文</a></li><li class="nested"><a href="#github-actions初步使用">Github Actions初步使用</a></li></ul></nav></details><div class="prose"><h1 id="github-actions是什么">Github Actions是什么</h1>
+<p>GitHub Actions 是一种持续集成和持续交付 (CI/CD) 平台，可用于自动执行生成、测试和部署管道。简单地说，就是通过编写符合Github Actions要求的<code>"脚本"</code>，让Github来执行这一的<code>"脚本"</code>。</p>
+<p>在开始之前，还是有必要简单的介绍一下持续集成。</p>
+<p><strong>持续集成指的是，频繁地（一天多次）将代码集成到主干。</strong></p>
+<p>它的好处主要有两个。</p>
+<blockquote>
+<p>**（1）快速发现错误。**每完成一点更新，就集成到主干，可以快速发现错误，定位错误也比较容易。</p>
+<p>**（2）防止分支大幅偏离主干。**如果不是经常集成，主干又在不断更新，会导致以后集成的难度变大，甚至难以集成。</p>
+</blockquote>
+<p>**持续集成的目的，就是让产品可以快速迭代，同时还能保持高质量。**它的核心措施是，代码集成到主干之前，必须通过自动化测试。只要有一个测试用例失败，就不能集成。</p>
+<h1 id="理解github-actions工作流">理解Github Actions工作流</h1>
+<p>上文中我们提到的脚本在具体的实现中就是一个工作流文件，该文件采用yaml编写，文件的命名没有要求，放置在代码仓库的<code>.github/workflows</code>文件夹下。下面我们通过一个最简单的工作流文件来理解工作流的组成，然后我们尝试让Github帮助我们完成下面的工作。</p>
+<p><code>example.yaml</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#22863A">name</span><span style="color:#24292E">: </span><span style="color:#032F62">GitHub Actions Demo</span></span>
+<span class="line"><span style="color:#22863A">run-name</span><span style="color:#24292E">: </span><span style="color:#032F62">${{ github.actor }} is testing out GitHub Actions 🚀</span></span>
+<span class="line"><span style="color:#005CC5">on</span><span style="color:#24292E">: [</span><span style="color:#032F62">push</span><span style="color:#24292E">]</span></span>
+<span class="line"><span style="color:#22863A">jobs</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6A737D">  # 工作名字，没有要求  </span></span>
+<span class="line"><span style="color:#22863A">  Explore-GitHub-Actions</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">    runs-on</span><span style="color:#24292E">: </span><span style="color:#032F62">ubuntu-latest</span></span>
+<span class="line"><span style="color:#22863A">    steps</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">run</span><span style="color:#24292E">: </span><span style="color:#032F62">echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">run</span><span style="color:#24292E">: </span><span style="color:#032F62">echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">run</span><span style="color:#24292E">: </span><span style="color:#032F62">echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">name</span><span style="color:#24292E">: </span><span style="color:#032F62">Check out repository code</span></span>
+<span class="line"><span style="color:#22863A">        uses</span><span style="color:#24292E">: </span><span style="color:#032F62">actions/checkout@v3</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">run</span><span style="color:#24292E">: </span><span style="color:#032F62">echo "💡 The ${{ github.repository }} repository has been cloned to the runner."</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">run</span><span style="color:#24292E">: </span><span style="color:#032F62">echo "🖥️ The workflow is now ready to test your code on the runner."</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">name</span><span style="color:#24292E">: </span><span style="color:#032F62">List files in the repository</span></span>
+<span class="line"><span style="color:#22863A">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">|</span></span>
+<span class="line"><span style="color:#032F62">          ls ${{ github.workspace }}</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">run</span><span style="color:#24292E">: </span><span style="color:#032F62">echo "🍏 This job's status is ${{ job.status }}."</span></span></code></pre>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221108214958201.png" alt="image-20221108214958201"></p>
+<h2 id="github-actions组成">Github Actions组成</h2>
+<h3 id="workflows工作流">Workflows——工作流</h3>
+<p>工作流是一个可配置的自动化过程，它将运行一个或多个作业。说得具体一点，工作流是对工作流程及其各操作步骤之间业务规则的抽象和概括描述。比如说你要做一件事，完成这件事要有很多的步骤，而这些步骤之间相互的关系和逻辑就是一个工作流。</p>
+<p>在Github Actions中，工作流由签入到存储库的 YAML 文件定义，并在存储库中的事件触发时运行，也可以手动触发，或按定义的时间表触发，在上面这个例子中，由<code>on</code>标签定义触发事件，表示当你把代码push到仓库时触发这个工作流。</p>
+<p>简单来说，一个yaml文件就代表了一个工作流。一个仓库可以配置多个工作流文件，它们将独立执行。</p>
+<p><code>name: GitHub Actions Demo</code>：定义了这个工作流的名字</p>
+<p><code>run-name</code>：当前正在运行的工作流名称</p>
+<h3 id="events事件">Events——事件</h3>
+<p>一个具体的活动，用于触发工作流执行。</p>
+<p><code>on</code>：触发工作流的事件，在这个案例中表示向这个仓库中push就会执行这个工作流</p>
+<h3 id="jobs工作和steps步骤">Jobs——工作和Steps——步骤</h3>
+<p>一个工作是一系列执行在同一个服务器上的步骤的集合。每个步骤都是一个Shell脚本或者一个actions（一系列由他人已经完成的脚本）。这些步骤会在同一台机器上运行，它们共享上下文和依赖，步骤之间按照顺序执行。</p>
+<p><code>name</code>：定义了步骤的名字</p>
+<p><code>run</code>：一个步骤具体要执行的内容</p>
+<h3 id="actions">Actions</h3>
+<p>一系列由他人写好的脚本，这些脚本在Github的<code>Marketplace</code>中可以找到，使用Actions可以大大减少我们需要编写的代码量，避免执行重复的操作，比如着这个示例文件中使用的<code>actions/checkout@v3</code>就是一个actions，它的作用是把当前仓库的文件转移到服务器中，如果工作流中需要执行脚本就必须包含这个actions，所以几乎大部分的工作流都会包含这个actions。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221108230338604.png" alt="image-20221108230338604"></p>
+<p><code>use</code>：声明要使用的actions</p>
+<p><code>with</code>：配置actions参数</p>
+<h3 id="runners">Runners</h3>
+<p>运行工作流的服务器，这个服务器可以由Github免费提供，也可以运行在你自己的服务器上，目前Github提供三种操作系统</p>
+<ul>
+<li>Microsoft Windows</li>
+<li>Ubuntu Linux</li>
+<li>macOS</li>
+</ul>
+<p>由Github提供的服务器每次运行都是一个全新的，未配置过的新服务器。</p>
+<p><code>runs-on</code>：定义了该工作使用的服务器</p>
+<h3 id="环境变量和上下文">环境变量和上下文</h3>
+<p>即便没有学过，很明显<code>${{}}</code>语法是一种取出变量的用法，这里不具体介绍。</p>
+<h3 id="github-actions初步使用">Github Actions初步使用</h3>
+<p>介绍完了基础概念，下面我们来用上面的工作流文件来第一次使用Github Actions</p>
+<p>首先我们创建一个文件夹，将<code>example.yaml</code>放在<code>.github/workflows</code>文件夹下。然后我们将这个文件夹连接一个Github仓库，把这个仓库推送到Github上，我们找到仓库中的<code>Actions</code>选项，就可以看到我们编写的Github Actions工作流被执行了（正常来说只有一个，我的仓库之前已经执行过一些别的工作流了）。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221108222144851.png" alt="image-20221108222144851"></p>
+<p>点开查看这个工作流，我们可以查看到工作流的详细信息。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221108222553490.png" alt="image-20221108222553490"></p>
+<p>这里的每一行都代表一个步骤，点开这些步骤你可以看到运行这些步骤产生的日志结果。比如我们设置的第一个步骤<code>🎉 The job was automatically triggered by a ${{ github.event_name }} event.</code>，我们可以看到运行结果<code>🎉 The job was automatically triggered by a push event.</code>，很明显触发这个工作流的事件名是<code>push</code>，其它的类似。</p>
+<p>我们再来看看这个步骤</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#22863A">name</span><span style="color:#24292E">: </span><span style="color:#032F62">List files in the repository</span></span>
+<span class="line"><span style="color:#22863A">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">|</span></span>
+<span class="line"><span style="color:#032F62">          ls ${{ github.workspace }}</span></span></code></pre>
+<p>这个步骤要求列出工作空间中的文件，我们点开这个步骤可以看到运行的结果</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221108223659524.png" alt="image-20221108223659524"></p>
+<p>现在我们完成了Github Actions的一个简单使用，如果想要更加深入的理解，可以自己动手去实践一下或者阅读我的博客</p>
+<p>传送门：<a href="/2022/11/22/%E4%BB%8Egithub-page%E5%88%B0github-action/">从github page到github action</a></p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/11/07/%E5%A4%A7%E5%AD%A6%E7%89%A9%E7%90%86%E5%85%89%E5%AD%A6%E7%AC%94%E8%AE%B0/"><span>上一篇</span>大学物理光学笔记</a></div><div><a href="/2022/11/09/hexo%E9%83%A8%E7%BD%B2%E5%88%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8/"><span>下一篇</span>hexo部署到自己的云服务器</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

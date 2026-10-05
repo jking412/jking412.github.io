@@ -1,0 +1,564 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="Exercise 3 1. At what point does the processor start executing 32-bit code? What exactly causes the switch from 16- to 32-bit mode? 从这一行开始执行32行代码 开启保护"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2023/07/15/lab-1-mit-6-828/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="lab-1(mit-6.828) · jking の 博客"><meta property="og:description" content="Exercise 3 1. At what point does the processor start executing 32-bit code? What exactly causes the switch from 16- to 32-bit mode? 从这一行开始执行32行代码 开启保护"><meta property="og:url" content="https://jking412.github.io/2023/07/15/lab-1-mit-6-828/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2023-07-14T22:33:21.000Z"><title>lab-1(mit-6.828) · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2023-07-14T22:33:21.000Z">2023.07.15</time><span>jking</span></div><h1>lab-1(mit-6.828)</h1></header><details class="toc"><summary>文章目录 <span>13 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#exercise-3">Exercise 3</a></li><li><a href="#exercise-7">Exercise 7</a></li><li><a href="#exercise-8">Exercise 8</a></li><li><a href="#challenge">Challenge</a></li><li><a href="#控制命令">控制命令</a></li><li><a href="#printf属性代码">printf属性代码</a></li><li class="nested"><a href="#通用格式控制">通用格式控制</a></li><li class="nested"><a href="#前景色">前景色</a></li><li class="nested"><a href="#背景色">背景色</a></li><li><a href="#exercise-9">Exercise 9</a></li><li><a href="#exercise-10">Exercise 10</a></li><li><a href="#exercise-11">Exercise 11</a></li><li><a href="#exercise-12">Exercise 12</a></li></ul></nav></details><div class="prose"><h1 id="exercise-3">Exercise 3</h1>
+<ol>
+<li>At what point does the processor start executing 32-bit code? What exactly causes the switch from 16- to 32-bit mode?</li>
+</ol>
+<p>从这一行开始执行32行代码</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715070948942.png" alt="image-20230715070948942"></p>
+<p>开启保护模式，开启32位模式</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715071443430.png" alt="image-20230715071443430"></p>
+<ol start="2">
+<li>What is the <em>last</em> instruction of the boot loader executed, and what is the <em>first</em> instruction of the kernel it just loaded?</li>
+</ol>
+<p>bootloader执行的最后一行代码</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715071644168.png" alt="image-20230715071644168"></p>
+<p>kernel的第一条指令</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715071742600.png" alt="image-20230715071742600"></p>
+<ol start="3">
+<li><em>Where</em> is the first instruction of the kernel?</li>
+</ol>
+<p>同上</p>
+<ol start="4">
+<li>How does the boot loader decide how many sectors it must read in order to fetch the entire kernel from disk? Where does it find this information?</li>
+</ol>
+<p>bootloader首先读取除了启动扇区（第0扇区）之外的前8个扇区</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715073251117.png" alt="image-20230715073251117"></p>
+<p>这次读取的大小已经足够了，足够读入内核的ELF header到内存中，有了ELF header之后，可以通过ELF header的信息获取Program header，Program header记录了要读入部分的信息，根据这个信息，bootloader将整个内核装载进入内核</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715073638805.png" alt="image-20230715073638805"></p>
+<h1 id="exercise-7">Exercise 7</h1>
+<p>目前，还没有开启分页，无法访问<code>0xf0100000</code></p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715075107352.png" alt="image-20230715075107352"></p>
+<p>接下来，我们开启分页，可以看到这两个地址实际映射的内存是一样的</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715075330528.png" alt="image-20230715075330528"></p>
+<h1 id="exercise-8">Exercise 8</h1>
+<p>这个部分参照其他16进制的实现，我们可以得到以下代码</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715080543059.png" alt="image-20230715080543059"></p>
+<p>following question:</p>
+<ol>
+<li>Explain the interface between <code>printf.c</code> and <code>console.c</code>. Specifically, what function does <code>console.c</code> export? How is this function used by <code>printf.c</code>?</li>
+</ol>
+<p><code>console.c</code>导出了 <code>putch</code> 这个函数</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715081240430.png" alt="image-20230715081240430"></p>
+<p><code>printf.c</code>中通过函数指针的方式调用这个函数</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715081507658.png" alt="image-20230715081507658"></p>
+<ol start="2">
+<li>Explain the following from<code>console.c</code></li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#005CC5">1</span><span style="color:#D73A49">      if</span><span style="color:#24292E"> (crt_pos </span><span style="color:#D73A49">>=</span><span style="color:#24292E"> CRT_SIZE) {</span></span>
+<span class="line"><span style="color:#005CC5">2</span><span style="color:#D73A49">              int</span><span style="color:#24292E"> i;</span></span>
+<span class="line"><span style="color:#005CC5">3</span><span style="color:#6F42C1">              memmove</span><span style="color:#24292E">(crt_buf, crt_buf </span><span style="color:#D73A49">+</span><span style="color:#24292E"> CRT_COLS, (CRT_SIZE </span><span style="color:#D73A49">-</span><span style="color:#24292E"> CRT_COLS) </span><span style="color:#D73A49">*</span><span style="color:#D73A49"> sizeof</span><span style="color:#24292E">(</span><span style="color:#D73A49">uint16_t</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#005CC5">4</span><span style="color:#D73A49">              for</span><span style="color:#24292E"> (i </span><span style="color:#D73A49">=</span><span style="color:#24292E"> CRT_SIZE </span><span style="color:#D73A49">-</span><span style="color:#24292E"> CRT_COLS; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> CRT_SIZE; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">5</span><span style="color:#E36209">                      crt_buf</span><span style="color:#24292E">[i] </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0700</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> ' '</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">6</span><span style="color:#24292E">              crt_pos </span><span style="color:#D73A49">-=</span><span style="color:#24292E"> CRT_COLS;</span></span>
+<span class="line"><span style="color:#005CC5">7</span><span style="color:#24292E">      }</span></span></code></pre>
+<p>简单来说，这里的代码的作用是当需要显示的内容超过屏幕时，将整体的内容上移一行</p>
+<h2 id="challenge">Challenge</h2>
+<h2 id="控制命令">控制命令</h2>
+<p>我们常用的<code>printf</code>函数输出来的颜色是终端的配色。如果想要输出不同的颜色进行区分，就需要用到<code>printf</code>的控制命令：<code>\033[m</code>。</p>
+<p>控制命令以<code>\033[</code>开头，以<code>m</code>结尾，而中间则是属性码，属性代码之间使用<code>;</code>分隔，如<code>\033[1;34;42m</code>。而属性代码的含义见下面的表格。</p>
+<h2 id="printf属性代码">printf属性代码</h2>
+<p>这里列举了三类属性代码，当然这只是一部分。</p>
+<h3 id="通用格式控制">通用格式控制</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>属性代码</th><th>功能</th></tr></thead><tbody><tr><td>0</td><td>重置所有属性</td></tr><tr><td>1</td><td>高亮/加粗</td></tr><tr><td>2</td><td>暗淡</td></tr><tr><td>4</td><td>下划线</td></tr><tr><td>5</td><td>闪烁</td></tr><tr><td>7</td><td>反转</td></tr><tr><td>8</td><td>隐藏</td></tr></tbody></table>
+<h3 id="前景色">前景色</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>属性代码</th><th>颜色</th></tr></thead><tbody><tr><td>30</td><td>黑色</td></tr><tr><td>31</td><td>红色</td></tr><tr><td>32</td><td>绿色</td></tr><tr><td>33</td><td>黄色</td></tr><tr><td>34</td><td>蓝色</td></tr><tr><td>35</td><td>品红</td></tr><tr><td>36</td><td>青色</td></tr></tbody></table>
+<h3 id="背景色">背景色</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>属性代码</th><th>颜色</th></tr></thead><tbody><tr><td>40</td><td>黑色</td></tr><tr><td>41</td><td>红色</td></tr><tr><td>42</td><td>绿色</td></tr><tr><td>43</td><td>黄色</td></tr><tr><td>44</td><td>蓝色</td></tr><tr><td>45</td><td>品红</td></tr><tr><td>46</td><td>青色</td></tr></tbody></table>
+<p>根据如上ANSI转义序列的标准，我实现了部分颜色，修改部分的代码如下</p>
+<p><code>printfmt.c</code>中的<code>vprintfmt</code>函数修改如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> RESET</span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> BOLD</span><span style="color:#005CC5"> 1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> FBLACK</span><span style="color:#005CC5"> 30</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> FRED</span><span style="color:#005CC5">  31</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> FGREEN</span><span style="color:#005CC5">  32</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> FYELLOW</span><span style="color:#005CC5">  33</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> FBLUE</span><span style="color:#005CC5"> 34</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> FDEFAULT</span><span style="color:#005CC5"> 39</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> BBLACK</span><span style="color:#005CC5"> 40</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> BRED</span><span style="color:#005CC5">  41</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> BGREEN</span><span style="color:#005CC5"> 42</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> BYELLOW</span><span style="color:#005CC5"> 43</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> BBLUE</span><span style="color:#005CC5"> 44</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> BDEFAULT</span><span style="color:#005CC5"> 49</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> ESC</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\033</span><span style="color:#032F62">'</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> START</span><span style="color:#032F62"> '['</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> END</span><span style="color:#032F62"> 'm'</span></span>
+<span class="line"><span style="color:#D73A49">#define</span><span style="color:#6F42C1"> DELIMITER</span><span style="color:#032F62"> ';'</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// default black background, white foreground</span></span>
+<span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> int</span><span style="color:#24292E"> color </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0700</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">int</span></span>
+<span class="line"><span style="color:#6F42C1">parse_str2int</span><span style="color:#24292E">(</span><span style="color:#D73A49">const</span><span style="color:#D73A49"> char</span><span style="color:#D73A49"> *</span><span style="color:#E36209">s</span><span style="color:#24292E">, </span><span style="color:#D73A49">int</span><span style="color:#E36209"> start</span><span style="color:#24292E">, </span><span style="color:#D73A49">int</span><span style="color:#E36209"> end</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#D73A49">	int</span><span style="color:#24292E"> result </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#24292E"> i </span><span style="color:#D73A49">=</span><span style="color:#24292E"> start ; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> end ; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#24292E">		result </span><span style="color:#D73A49">*=</span><span style="color:#005CC5"> 10</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">		result </span><span style="color:#D73A49">+=</span><span style="color:#E36209"> s</span><span style="color:#24292E">[i] </span><span style="color:#D73A49">-</span><span style="color:#032F62"> '0'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> result;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">void</span><span style="color:#6F42C1"> set_color</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#E36209"> r</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#6A737D">	// cprintf("r : %d\n", r);</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E">(r </span><span style="color:#D73A49">/</span><span style="color:#005CC5"> 10</span><span style="color:#D73A49"> ==</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">&#x26;=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">f0ff</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">	}</span><span style="color:#D73A49">else</span><span style="color:#D73A49"> if</span><span style="color:#24292E">(r </span><span style="color:#D73A49">/</span><span style="color:#005CC5"> 10</span><span style="color:#D73A49"> ==</span><span style="color:#005CC5"> 4</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">&#x26;=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0fff</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	switch</span><span style="color:#24292E"> (r){</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> RESET:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0700</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> BOLD:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0800</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> FBLACK:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> FBLUE:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0100</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> FGREEN:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0200</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> FRED:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0400</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> FYELLOW:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0600</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> FDEFAULT:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0700</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> BBLACK:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> BBLUE:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">1000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> BGREEN:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">2000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> BRED:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">4000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> BYELLOW:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">6000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#24292E"> BDEFAULT:</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">|=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">7000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	default</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#6A737D">	// cprintf("color : %x\n", color);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">void</span></span>
+<span class="line"><span style="color:#6F42C1">vprintfmt</span><span style="color:#24292E">(</span><span style="color:#D73A49">void</span><span style="color:#24292E"> (</span><span style="color:#D73A49">*</span><span style="color:#24292E">putch)(</span><span style="color:#D73A49">int</span><span style="color:#24292E">, </span><span style="color:#D73A49">void*</span><span style="color:#24292E">), </span><span style="color:#D73A49">void</span><span style="color:#D73A49"> *</span><span style="color:#E36209">putdat</span><span style="color:#24292E">, </span><span style="color:#D73A49">const</span><span style="color:#D73A49"> char</span><span style="color:#D73A49"> *</span><span style="color:#E36209">fmt</span><span style="color:#24292E">, va_list </span><span style="color:#E36209">ap</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">	register</span><span style="color:#D73A49"> const</span><span style="color:#D73A49"> char</span><span style="color:#D73A49"> *</span><span style="color:#24292E">p;</span></span>
+<span class="line"><span style="color:#D73A49">	register</span><span style="color:#D73A49"> int</span><span style="color:#24292E"> ch, err;</span></span>
+<span class="line"><span style="color:#D73A49">	unsigned</span><span style="color:#D73A49"> long</span><span style="color:#D73A49"> long</span><span style="color:#24292E"> num;</span></span>
+<span class="line"><span style="color:#D73A49">	int</span><span style="color:#24292E"> base, lflag, width, precision, altflag;</span></span>
+<span class="line"><span style="color:#D73A49">	char</span><span style="color:#24292E"> padc;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	while</span><span style="color:#24292E"> (</span><span style="color:#005CC5">1</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">		while</span><span style="color:#24292E"> ((ch </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> *</span><span style="color:#24292E">(</span><span style="color:#D73A49">unsigned</span><span style="color:#D73A49"> char</span><span style="color:#D73A49"> *</span><span style="color:#24292E">) fmt</span><span style="color:#D73A49">++</span><span style="color:#24292E">) </span><span style="color:#D73A49">!=</span><span style="color:#032F62"> '%'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> (ch </span><span style="color:#D73A49">==</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\0</span><span style="color:#032F62">'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">				return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> (ch </span><span style="color:#D73A49">==</span><span style="color:#24292E"> ESC) {</span></span>
+<span class="line"><span style="color:#D73A49">				if</span><span style="color:#24292E">(</span><span style="color:#D73A49">*</span><span style="color:#24292E">fmt</span><span style="color:#D73A49">++</span><span style="color:#D73A49"> !=</span><span style="color:#24292E"> START)</span></span>
+<span class="line"><span style="color:#D73A49">					continue</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">				const</span><span style="color:#D73A49"> char</span><span style="color:#D73A49"> *</span><span style="color:#24292E"> str </span><span style="color:#D73A49">=</span><span style="color:#24292E"> fmt;</span></span>
+<span class="line"><span style="color:#D73A49">				int</span><span style="color:#24292E"> startidx </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">				while</span><span style="color:#24292E"> ((ch </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> *</span><span style="color:#24292E">(</span><span style="color:#D73A49">unsigned</span><span style="color:#D73A49"> char</span><span style="color:#D73A49"> *</span><span style="color:#24292E">) fmt</span><span style="color:#D73A49">++</span><span style="color:#24292E">) </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> END){	</span></span>
+<span class="line"><span style="color:#D73A49">					if</span><span style="color:#24292E">(ch </span><span style="color:#D73A49">==</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\0</span><span style="color:#032F62">'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">						return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">				}</span></span>
+<span class="line"><span style="color:#24292E">				</span></span>
+<span class="line"><span style="color:#D73A49">				int</span><span style="color:#24292E"> endidx </span><span style="color:#D73A49">=</span><span style="color:#24292E"> fmt </span><span style="color:#D73A49">-</span><span style="color:#24292E"> str </span><span style="color:#D73A49">-</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">				int</span><span style="color:#24292E"> s </span><span style="color:#D73A49">=</span><span style="color:#24292E"> startidx;</span></span>
+<span class="line"><span style="color:#D73A49">				int</span><span style="color:#24292E"> e </span><span style="color:#D73A49">=</span><span style="color:#24292E"> endidx;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">				for</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#24292E"> i </span><span style="color:#D73A49">=</span><span style="color:#24292E"> startidx ; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> endidx ; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#D73A49">					if</span><span style="color:#24292E">(</span><span style="color:#E36209">str</span><span style="color:#24292E">[i] </span><span style="color:#D73A49">==</span><span style="color:#24292E"> DELIMITER){</span></span>
+<span class="line"><span style="color:#24292E">						e </span><span style="color:#D73A49">=</span><span style="color:#24292E"> i;</span></span>
+<span class="line"><span style="color:#D73A49">						int</span><span style="color:#24292E"> result </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> parse_str2int</span><span style="color:#24292E">(str, s, e);</span></span>
+<span class="line"><span style="color:#24292E">						s </span><span style="color:#D73A49">=</span><span style="color:#24292E"> i </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">						set_color</span><span style="color:#24292E">(result);</span></span>
+<span class="line"><span style="color:#24292E">					}					</span></span>
+<span class="line"><span style="color:#24292E">				}</span></span>
+<span class="line"><span style="color:#D73A49">				int</span><span style="color:#24292E"> result </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> parse_str2int</span><span style="color:#24292E">(str, s, endidx);</span></span>
+<span class="line"><span style="color:#6F42C1">				set_color</span><span style="color:#24292E">(result);</span></span>
+<span class="line"><span style="color:#6F42C1">				putch</span><span style="color:#24292E">(color, putdat);</span></span>
+<span class="line"><span style="color:#D73A49">				continue</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#6F42C1">			putch</span><span style="color:#24292E">(ch, putdat);</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// Process a %-escape sequence</span></span>
+<span class="line"><span style="color:#24292E">		padc </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ' '</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">		width </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> -</span><span style="color:#005CC5">1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">		precision </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> -</span><span style="color:#005CC5">1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">		lflag </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">		altflag </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">	reswitch:</span></span>
+<span class="line"><span style="color:#D73A49">		switch</span><span style="color:#24292E"> (ch </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> *</span><span style="color:#24292E">(</span><span style="color:#D73A49">unsigned</span><span style="color:#D73A49"> char</span><span style="color:#D73A49"> *</span><span style="color:#24292E">) fmt</span><span style="color:#D73A49">++</span><span style="color:#24292E">) {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// flag to pad on the right</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '-'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">			padc </span><span style="color:#D73A49">=</span><span style="color:#032F62"> '-'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> reswitch;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// flag to pad with 0's instead of spaces</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '0'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">			padc </span><span style="color:#D73A49">=</span><span style="color:#032F62"> '0'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> reswitch;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// width field</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '1'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '2'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '3'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '4'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '5'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '6'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '7'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '8'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '9'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">			for</span><span style="color:#24292E"> (precision </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; ; </span><span style="color:#D73A49">++</span><span style="color:#24292E">fmt) {</span></span>
+<span class="line"><span style="color:#24292E">				precision </span><span style="color:#D73A49">=</span><span style="color:#24292E"> precision </span><span style="color:#D73A49">*</span><span style="color:#005CC5"> 10</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> ch </span><span style="color:#D73A49">-</span><span style="color:#032F62"> '0'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">				ch </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> *</span><span style="color:#24292E">fmt;</span></span>
+<span class="line"><span style="color:#D73A49">				if</span><span style="color:#24292E"> (ch </span><span style="color:#D73A49">&#x3C;</span><span style="color:#032F62"> '0'</span><span style="color:#D73A49"> ||</span><span style="color:#24292E"> ch </span><span style="color:#D73A49">></span><span style="color:#032F62"> '9'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">					break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> process_precision;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '*'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">			precision </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> va_arg</span><span style="color:#24292E">(ap, </span><span style="color:#D73A49">int</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> process_precision;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '.'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> (width </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">				width </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> reswitch;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '#'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">			altflag </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> reswitch;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">		process_precision:</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> (width </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">				width </span><span style="color:#D73A49">=</span><span style="color:#24292E"> precision, precision </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> -</span><span style="color:#005CC5">1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> reswitch;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// long flag (doubled for long long)</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> 'l'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">			lflag</span><span style="color:#D73A49">++</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> reswitch;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// character</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> 'c'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">			putch</span><span style="color:#24292E">(</span><span style="color:#6F42C1">va_arg</span><span style="color:#24292E">(ap, </span><span style="color:#D73A49">int</span><span style="color:#24292E">), putdat);</span></span>
+<span class="line"><span style="color:#D73A49">			break</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// error message</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> 'e'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">			err </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> va_arg</span><span style="color:#24292E">(ap, </span><span style="color:#D73A49">int</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> (err </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">				err </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> -</span><span style="color:#24292E">err;</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> (err </span><span style="color:#D73A49">>=</span><span style="color:#24292E"> MAXERROR </span><span style="color:#D73A49">||</span><span style="color:#24292E"> (p </span><span style="color:#D73A49">=</span><span style="color:#E36209"> error_string</span><span style="color:#24292E">[err]) </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> NULL</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">				printfmt</span><span style="color:#24292E">(putch, putdat, </span><span style="color:#032F62">"error </span><span style="color:#005CC5">%d</span><span style="color:#032F62">"</span><span style="color:#24292E">, err);</span></span>
+<span class="line"><span style="color:#D73A49">			else</span></span>
+<span class="line"><span style="color:#6F42C1">				printfmt</span><span style="color:#24292E">(putch, putdat, </span><span style="color:#032F62">"</span><span style="color:#005CC5">%s</span><span style="color:#032F62">"</span><span style="color:#24292E">, p);</span></span>
+<span class="line"><span style="color:#D73A49">			break</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// string</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> 's'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> ((p </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> va_arg</span><span style="color:#24292E">(ap, </span><span style="color:#D73A49">char</span><span style="color:#D73A49"> *</span><span style="color:#24292E">)) </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> NULL</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">				p </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "(null)"</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> (width </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> padc </span><span style="color:#D73A49">!=</span><span style="color:#032F62"> '-'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">				for</span><span style="color:#24292E"> (width </span><span style="color:#D73A49">-=</span><span style="color:#6F42C1"> strnlen</span><span style="color:#24292E">(p, precision); width </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; width</span><span style="color:#D73A49">--</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">					putch</span><span style="color:#24292E">(padc, putdat);</span></span>
+<span class="line"><span style="color:#D73A49">			for</span><span style="color:#24292E"> (; (ch </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> *</span><span style="color:#24292E">p</span><span style="color:#D73A49">++</span><span style="color:#24292E">) </span><span style="color:#D73A49">!=</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\0</span><span style="color:#032F62">'</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> (precision </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> ||</span><span style="color:#D73A49"> --</span><span style="color:#24292E">precision </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">); width</span><span style="color:#D73A49">--</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">				if</span><span style="color:#24292E"> (altflag </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#24292E"> (ch </span><span style="color:#D73A49">&#x3C;</span><span style="color:#032F62"> ' '</span><span style="color:#D73A49"> ||</span><span style="color:#24292E"> ch </span><span style="color:#D73A49">></span><span style="color:#032F62"> '~'</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#6F42C1">					putch</span><span style="color:#24292E">(</span><span style="color:#032F62">'?'</span><span style="color:#24292E">, putdat);</span></span>
+<span class="line"><span style="color:#D73A49">				else</span></span>
+<span class="line"><span style="color:#6F42C1">					putch</span><span style="color:#24292E">(ch, putdat);</span></span>
+<span class="line"><span style="color:#D73A49">			for</span><span style="color:#24292E"> (; width </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; width</span><span style="color:#D73A49">--</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">				putch</span><span style="color:#24292E">(</span><span style="color:#032F62">' '</span><span style="color:#24292E">, putdat);</span></span>
+<span class="line"><span style="color:#D73A49">			break</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// (signed) decimal</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> 'd'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">			num </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> getint</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#E36209">ap</span><span style="color:#24292E">, lflag);</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> ((</span><span style="color:#D73A49">long</span><span style="color:#D73A49"> long</span><span style="color:#24292E">) num </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#6F42C1">				putch</span><span style="color:#24292E">(</span><span style="color:#032F62">'-'</span><span style="color:#24292E">, putdat);</span></span>
+<span class="line"><span style="color:#24292E">				num </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> -</span><span style="color:#24292E">(</span><span style="color:#D73A49">long</span><span style="color:#D73A49"> long</span><span style="color:#24292E">) num;</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#24292E">			base </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> number;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// unsigned decimal</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> 'u'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">			num </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> getuint</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#E36209">ap</span><span style="color:#24292E">, lflag);</span></span>
+<span class="line"><span style="color:#24292E">			base </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> number;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// (unsigned) octal</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> 'o'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6A737D">			// Replace this with your code.</span></span>
+<span class="line"><span style="color:#24292E">			num </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> getuint</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#E36209">ap</span><span style="color:#24292E">, lflag);</span></span>
+<span class="line"><span style="color:#24292E">			base </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 8</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			break</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// pointer</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> 'p'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">			putch</span><span style="color:#24292E">(</span><span style="color:#032F62">'0'</span><span style="color:#24292E">, putdat);</span></span>
+<span class="line"><span style="color:#6F42C1">			putch</span><span style="color:#24292E">(</span><span style="color:#032F62">'x'</span><span style="color:#24292E">, putdat);</span></span>
+<span class="line"><span style="color:#24292E">			num </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (</span><span style="color:#D73A49">unsigned</span><span style="color:#D73A49"> long</span><span style="color:#D73A49"> long</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">				(</span><span style="color:#D73A49">uintptr_t</span><span style="color:#24292E">) </span><span style="color:#6F42C1">va_arg</span><span style="color:#24292E">(ap, </span><span style="color:#D73A49">void</span><span style="color:#D73A49"> *</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">			base </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 16</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			goto</span><span style="color:#24292E"> number;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// (unsigned) hexadecimal</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> 'x'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">			num </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> getuint</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#E36209">ap</span><span style="color:#24292E">, lflag);</span></span>
+<span class="line"><span style="color:#24292E">			base </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 16</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">		number:</span></span>
+<span class="line"><span style="color:#6F42C1">			printnum</span><span style="color:#24292E">(putch, putdat, num, base, width, padc);</span></span>
+<span class="line"><span style="color:#D73A49">			break</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// escaped '%' character</span></span>
+<span class="line"><span style="color:#D73A49">		case</span><span style="color:#032F62"> '%'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">			putch</span><span style="color:#24292E">(ch, putdat);</span></span>
+<span class="line"><span style="color:#D73A49">			break</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">		// unrecognized escape sequence - just print it literally</span></span>
+<span class="line"><span style="color:#D73A49">		default</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">			putch</span><span style="color:#24292E">(</span><span style="color:#032F62">'%'</span><span style="color:#24292E">, putdat);</span></span>
+<span class="line"><span style="color:#D73A49">			for</span><span style="color:#24292E"> (fmt</span><span style="color:#D73A49">--</span><span style="color:#24292E">; </span><span style="color:#E36209">fmt</span><span style="color:#24292E">[</span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">] </span><span style="color:#D73A49">!=</span><span style="color:#032F62"> '%'</span><span style="color:#24292E">; fmt</span><span style="color:#D73A49">--</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6A737D">				/* do nothing */</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">			break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>console.c</code>的<code>cga_putc</code>函数修改如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> int</span><span style="color:#24292E"> color </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0700</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">static</span><span style="color:#D73A49"> void</span></span>
+<span class="line"><span style="color:#6F42C1">cga_putc</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#E36209"> c</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#6A737D">	// if no attribute given, then use black on white</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">(c </span><span style="color:#D73A49">&#x26;</span><span style="color:#D73A49"> ~0x</span><span style="color:#005CC5">FF</span><span style="color:#24292E">)){</span></span>
+<span class="line"><span style="color:#24292E">		c </span><span style="color:#D73A49">|=</span><span style="color:#24292E"> color;</span></span>
+<span class="line"><span style="color:#24292E">	}</span><span style="color:#D73A49">else</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">		color </span><span style="color:#D73A49">=</span><span style="color:#24292E"> c;</span></span>
+<span class="line"><span style="color:#D73A49">		return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	switch</span><span style="color:#24292E"> (c </span><span style="color:#D73A49">&#x26;</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">ff</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\b</span><span style="color:#032F62">'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">		if</span><span style="color:#24292E"> (crt_pos </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">			crt_pos</span><span style="color:#D73A49">--</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">			crt_buf</span><span style="color:#24292E">[crt_pos] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (c </span><span style="color:#D73A49">&#x26;</span><span style="color:#D73A49"> ~0x</span><span style="color:#005CC5">ff</span><span style="color:#24292E">) </span><span style="color:#D73A49">|</span><span style="color:#032F62"> ' '</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">		crt_pos </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> CRT_COLS;</span></span>
+<span class="line"><span style="color:#6A737D">		/* fallthru */</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\r</span><span style="color:#032F62">'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">		crt_pos </span><span style="color:#D73A49">-=</span><span style="color:#24292E"> (crt_pos </span><span style="color:#D73A49">%</span><span style="color:#24292E"> CRT_COLS);</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	case</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\t</span><span style="color:#032F62">'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">		cons_putc</span><span style="color:#24292E">(</span><span style="color:#032F62">' '</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">		cons_putc</span><span style="color:#24292E">(</span><span style="color:#032F62">' '</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">		cons_putc</span><span style="color:#24292E">(</span><span style="color:#032F62">' '</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">		cons_putc</span><span style="color:#24292E">(</span><span style="color:#032F62">' '</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">		cons_putc</span><span style="color:#24292E">(</span><span style="color:#032F62">' '</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">	default</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#E36209">		crt_buf</span><span style="color:#24292E">[crt_pos</span><span style="color:#D73A49">++</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> c;</span><span style="color:#6A737D">		/* write the character */</span></span>
+<span class="line"><span style="color:#D73A49">		break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">	// What is the purpose of this?</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> (crt_pos </span><span style="color:#D73A49">>=</span><span style="color:#24292E"> CRT_SIZE) {</span></span>
+<span class="line"><span style="color:#D73A49">		int</span><span style="color:#24292E"> i;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">		memmove</span><span style="color:#24292E">(crt_buf, crt_buf </span><span style="color:#D73A49">+</span><span style="color:#24292E"> CRT_COLS, (CRT_SIZE </span><span style="color:#D73A49">-</span><span style="color:#24292E"> CRT_COLS) </span><span style="color:#D73A49">*</span><span style="color:#D73A49"> sizeof</span><span style="color:#24292E">(</span><span style="color:#D73A49">uint16_t</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#D73A49">		for</span><span style="color:#24292E"> (i </span><span style="color:#D73A49">=</span><span style="color:#24292E"> CRT_SIZE </span><span style="color:#D73A49">-</span><span style="color:#24292E"> CRT_COLS; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> CRT_SIZE; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#E36209">			crt_buf</span><span style="color:#24292E">[i] </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> 0x</span><span style="color:#005CC5">0700</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> ' '</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">		crt_pos </span><span style="color:#D73A49">-=</span><span style="color:#24292E"> CRT_COLS;</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">	/* move that little blinky thing */</span></span>
+<span class="line"><span style="color:#6F42C1">	outb</span><span style="color:#24292E">(addr_6845, </span><span style="color:#005CC5">14</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">	outb</span><span style="color:#24292E">(addr_6845 </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">, crt_pos </span><span style="color:#D73A49">>></span><span style="color:#005CC5"> 8</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">	outb</span><span style="color:#24292E">(addr_6845, </span><span style="color:#005CC5">15</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">	outb</span><span style="color:#24292E">(addr_6845 </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">, crt_pos);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>最后测试部分代码和实现效果如下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715125445351.png" alt="image-20230715125445351"></p>
+<p>打印出红色前景+绿色背景+高亮</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715125504804.png" alt="image-20230715125504804"></p>
+<h1 id="exercise-9">Exercise 9</h1>
+<p>栈的结束地址是data段的开始，大小为8个页，32KB</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715154242652.png" alt="image-20230715154242652"></p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715154459904.png" alt="image-20230715154459904"></p>
+<h1 id="exercise-10">Exercise 10</h1>
+<p>下面是C语言函数调用时栈的内存图</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/v2-88c6f207393b2d475335ebe11a32994b.png" alt="v2-88c6f207393b2d475335ebe11a32994b"></p>
+<h1 id="exercise-11">Exercise 11</h1>
+<p>在<code>entry.S</code>中将ebp初始化为0,说明当ebp为0时栈帧就结束了，根据练习10的模型，可以遍历所有的栈帧</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">int</span></span>
+<span class="line"><span style="color:#6F42C1">mon_backtrace</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#E36209"> argc</span><span style="color:#24292E">, </span><span style="color:#D73A49">char</span><span style="color:#D73A49"> **</span><span style="color:#E36209">argv</span><span style="color:#24292E">, </span><span style="color:#D73A49">struct</span><span style="color:#24292E"> Trapframe </span><span style="color:#D73A49">*</span><span style="color:#E36209">tf</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#6A737D">	// Your code here.</span></span>
+<span class="line"><span style="color:#D73A49">	uint32_t</span><span style="color:#24292E"> ebp,eip;</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E">(ebp </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> read_ebp</span><span style="color:#24292E">();ebp </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E"> ; ebp </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> *</span><span style="color:#24292E">((</span><span style="color:#D73A49">uint32_t*</span><span style="color:#24292E">)ebp)){</span></span>
+<span class="line"><span style="color:#24292E">		eip </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> *</span><span style="color:#24292E">(</span><span style="color:#D73A49">uint32_t*</span><span style="color:#24292E">)(ebp </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 4</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">		cprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"ebp </span><span style="color:#005CC5">%x</span><span style="color:#032F62"> eip </span><span style="color:#005CC5">%x</span><span style="color:#032F62"> args "</span><span style="color:#24292E">,ebp,eip);</span></span>
+<span class="line"><span style="color:#D73A49">		for</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#24292E"> i </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span><span style="color:#24292E"> ; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 7</span><span style="color:#24292E"> ; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#6F42C1">			cprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%08x</span><span style="color:#032F62"> "</span><span style="color:#24292E">,</span><span style="color:#D73A49">*</span><span style="color:#24292E">((</span><span style="color:#D73A49">uint32_t*</span><span style="color:#24292E">)(ebp </span><span style="color:#D73A49">+</span><span style="color:#24292E"> i </span><span style="color:#D73A49">*</span><span style="color:#005CC5"> 4</span><span style="color:#24292E">)));</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#6F42C1">		cprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">\n</span><span style="color:#032F62">"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>可以得到输出如下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230715173226989.png" alt="image-20230715173226989"></p>
+<h1 id="exercise-12">Exercise 12</h1>
+<p>这个练习只需要添加调试信息的打印即可</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">int</span></span>
+<span class="line"><span style="color:#6F42C1">mon_backtrace</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#E36209"> argc</span><span style="color:#24292E">, </span><span style="color:#D73A49">char</span><span style="color:#D73A49"> **</span><span style="color:#E36209">argv</span><span style="color:#24292E">, </span><span style="color:#D73A49">struct</span><span style="color:#24292E"> Trapframe </span><span style="color:#D73A49">*</span><span style="color:#E36209">tf</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#6A737D">	// Your code here.</span></span>
+<span class="line"><span style="color:#D73A49">	uint32_t</span><span style="color:#24292E"> ebp,eip;</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E">(ebp </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> read_ebp</span><span style="color:#24292E">();ebp </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E"> ; ebp </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> *</span><span style="color:#24292E">((</span><span style="color:#D73A49">uint32_t*</span><span style="color:#24292E">)ebp)){</span></span>
+<span class="line"><span style="color:#24292E">		eip </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> *</span><span style="color:#24292E">(</span><span style="color:#D73A49">uint32_t*</span><span style="color:#24292E">)(ebp </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 4</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">		cprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"ebp </span><span style="color:#005CC5">%x</span><span style="color:#032F62"> eip </span><span style="color:#005CC5">%x</span><span style="color:#032F62"> args "</span><span style="color:#24292E">,ebp,eip);</span></span>
+<span class="line"><span style="color:#D73A49">		for</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#24292E"> i </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span><span style="color:#24292E"> ; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 7</span><span style="color:#24292E"> ; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#6F42C1">			cprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%08x</span><span style="color:#032F62"> "</span><span style="color:#24292E">,</span><span style="color:#D73A49">*</span><span style="color:#24292E">((</span><span style="color:#D73A49">uint32_t*</span><span style="color:#24292E">)(ebp </span><span style="color:#D73A49">+</span><span style="color:#24292E"> i </span><span style="color:#D73A49">*</span><span style="color:#005CC5"> 4</span><span style="color:#24292E">)));</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#6F42C1">		cprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">\n</span><span style="color:#032F62">"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">		struct</span><span style="color:#24292E"> Eipdebuginfo info;</span></span>
+<span class="line"><span style="color:#6F42C1">		debuginfo_eip</span><span style="color:#24292E">(eip,</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">info);</span></span>
+<span class="line"><span style="color:#6F42C1">		cprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">\t%s</span><span style="color:#032F62">:</span><span style="color:#005CC5">%d</span><span style="color:#032F62">: </span><span style="color:#005CC5">%.*s</span><span style="color:#032F62">+</span><span style="color:#005CC5">%d\n</span><span style="color:#032F62">"</span><span style="color:#24292E">,info.eip_file,info.eip_line,info.eip_fn_namelen,info.eip_fn_name,info.eip_fn_addr);</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2023/06/29/linux%E6%90%AD%E5%BB%BAdosbox%E7%8E%AF%E5%A2%83/"><span>上一篇</span>linux搭建dosbox环境</a></div><div><a href="/2023/07/16/lab-2-mit-6-828/"><span>下一篇</span>lab-2(mit-6.828)</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

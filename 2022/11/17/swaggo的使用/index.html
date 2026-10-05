@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="swag是一个为Go语言生成文档的框架，主要有两个部分组成 - swag命令行工具，用于把Go注释生成为对应的Swagger2.0文档 - 为多种流行框架准备的插件，可以帮助我们快速嵌入Swag 快速开始(以gin为例) 下载和使用swag命令行工具 如果不能使用记得检查一下你的${GOPATH}/"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/11/17/swaggo%E7%9A%84%E4%BD%BF%E7%94%A8/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="swaggo的使用 · jking の 博客"><meta property="og:description" content="swag是一个为Go语言生成文档的框架，主要有两个部分组成 - swag命令行工具，用于把Go注释生成为对应的Swagger2.0文档 - 为多种流行框架准备的插件，可以帮助我们快速嵌入Swag 快速开始(以gin为例) 下载和使用swag命令行工具 如果不能使用记得检查一下你的${GOPATH}/"><meta property="og:url" content="https://jking412.github.io/2022/11/17/swaggo%E7%9A%84%E4%BD%BF%E7%94%A8/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-11-17T12:34:59.000Z"><title>swaggo的使用 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-11-17T12:34:59.000Z">2022.11.17</time><span>jking</span></div><h1>swaggo的使用</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/swaggo/">swaggo</a></li><li><a href="/tags/go/">go</a></li></ul></header><details class="toc"><summary>文章目录 <span>4 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#快速开始以gin为例">快速开始(以gin为例)</a></li><li><a href="#下载和使用swag命令行工具">下载和使用swag命令行工具</a></li><li><a href="#整合gin">整合gin</a></li><li><a href="#给api添加注释">给API添加注释</a></li></ul></nav></details><div class="prose"><p>swag是一个为Go语言生成文档的框架，主要有两个部分组成</p>
+<ul>
+<li>swag命令行工具，用于把Go注释生成为对应的Swagger2.0文档</li>
+<li>为多种流行框架准备的插件，可以帮助我们快速嵌入Swag</li>
+</ul>
+<h1 id="快速开始以gin为例">快速开始(以gin为例)</h1>
+<h2 id="下载和使用swag命令行工具">下载和使用swag命令行工具</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> install</span><span style="color:#032F62"> github.com/swaggo/swag/cmd/swag@latest</span></span></code></pre>
+<p>如果不能使用记得检查一下你的<code>${GOPATH}/bin</code>目录是否加入了环境变量，接下来我们加上Go注释，main()函数中的内容我们暂且不需要管，在你的main.go中加入上面的注释部分就可以了，如果你不想把注释放在main.go的位置，后面使用swag命令行工具的过程中需要带上相关的参数</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// @title           Swagger Example API</span></span>
+<span class="line"><span style="color:#6A737D">// @version         1.0</span></span>
+<span class="line"><span style="color:#6A737D">// @description     This is a sample server celler server.</span></span>
+<span class="line"><span style="color:#6A737D">// @termsOfService  http://swagger.io/terms/</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// @contact.name   API Support</span></span>
+<span class="line"><span style="color:#6A737D">// @contact.url    http://www.swagger.io/support</span></span>
+<span class="line"><span style="color:#6A737D">// @contact.email  support@swagger.io</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// @license.name  Apache 2.0</span></span>
+<span class="line"><span style="color:#6A737D">// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// @host      localhost:8080</span></span>
+<span class="line"><span style="color:#6A737D">// @BasePath  /api/v1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// @securityDefinitions.basic  BasicAuth</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">    r </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> gin.</span><span style="color:#6F42C1">Default</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    c </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> controller.</span><span style="color:#6F42C1">NewController</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    v1 </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> r.</span><span style="color:#6F42C1">Group</span><span style="color:#24292E">(</span><span style="color:#032F62">"/api/v1"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#24292E">        accounts </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> v1.</span><span style="color:#6F42C1">Group</span><span style="color:#24292E">(</span><span style="color:#032F62">"/accounts"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            accounts.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">":id"</span><span style="color:#24292E">, c.ShowAccount)</span></span>
+<span class="line"><span style="color:#24292E">            accounts.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">""</span><span style="color:#24292E">, c.ListAccounts)</span></span>
+<span class="line"><span style="color:#24292E">            accounts.</span><span style="color:#6F42C1">POST</span><span style="color:#24292E">(</span><span style="color:#032F62">""</span><span style="color:#24292E">, c.AddAccount)</span></span>
+<span class="line"><span style="color:#24292E">            accounts.</span><span style="color:#6F42C1">DELETE</span><span style="color:#24292E">(</span><span style="color:#032F62">":id"</span><span style="color:#24292E">, c.DeleteAccount)</span></span>
+<span class="line"><span style="color:#24292E">            accounts.</span><span style="color:#6F42C1">PATCH</span><span style="color:#24292E">(</span><span style="color:#032F62">":id"</span><span style="color:#24292E">, c.UpdateAccount)</span></span>
+<span class="line"><span style="color:#24292E">            accounts.</span><span style="color:#6F42C1">POST</span><span style="color:#24292E">(</span><span style="color:#032F62">":id/images"</span><span style="color:#24292E">, c.UploadAccountImage)</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#6A737D">    //...</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">    r.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">"/swagger/*any"</span><span style="color:#24292E">, ginSwagger.</span><span style="color:#6F42C1">WrapHandler</span><span style="color:#24292E">(swaggerFiles.Handler))</span></span>
+<span class="line"><span style="color:#24292E">    r.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">(</span><span style="color:#032F62">":8080"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#6A737D">//...</span></span></code></pre>
+<p>生成swag的docs目录，目录中包含了swag文档中的所有信息</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> swag</span><span style="color:#032F62"> init</span></span></code></pre>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221117204850694.png" alt="image-20221117204850694"></p>
+<p>如果你的注释在其它地方，加上-g参数</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> swag</span><span style="color:#032F62"> init</span><span style="color:#005CC5"> -g</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#032F62">filepat</span><span style="color:#24292E">h</span><span style="color:#D73A49">></span></span></code></pre>
+<p>然后我们可以使用swag的fmt命令来格式化我们的注释，当然，这不是必须的</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> swag</span><span style="color:#032F62"> fmt</span></span></code></pre>
+<h2 id="整合gin">整合gin</h2>
+<p>下载相关包</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> get</span><span style="color:#005CC5"> -u</span><span style="color:#032F62"> github.com/swaggo/swag/cmd/swag</span></span></code></pre>
+<p>然后，在给swagger分配路由的文件中加上对应的包，分配路由的代码如下所示</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">r.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">"/swagger/*any"</span><span style="color:#24292E">, ginSwagger.</span><span style="color:#6F42C1">WrapHandler</span><span style="color:#24292E">(swaggerFiles.Handler))</span></span></code></pre>
+<p>就是你想把这行代码放在什么位置，就把对应的包引入。这里切记，一定要导入的docs文件，否则swagger将会找不到数据！</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> "</span><span style="color:#6F42C1">github.com/swaggo/gin-swagger</span><span style="color:#032F62">"</span><span style="color:#6A737D"> // gin-swagger middleware</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> "</span><span style="color:#6F42C1">github.com/swaggo/files</span><span style="color:#032F62">"</span><span style="color:#6A737D"> // swagger embed files</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> _</span><span style="color:#032F62">"</span><span style="color:#6F42C1">project-name/docs</span><span style="color:#032F62">"</span><span style="color:#6A737D"> // 导入你的docs文件</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 通过下面这个方式给swagger文档分配路由</span></span>
+<span class="line"><span style="color:#6A737D">// 访问/swagger/index.html</span></span>
+<span class="line"><span style="color:#24292E">r.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">"/swagger/*any"</span><span style="color:#24292E">, ginSwagger.</span><span style="color:#6F42C1">WrapHandler</span><span style="color:#24292E">(swaggerFiles.Handler))</span></span></code></pre>
+<p>最后访问<code>/swagger/index.html</code>就可以生效了</p>
+<h2 id="给api添加注释">给API添加注释</h2>
+<p>我们简单看个例子</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// ListAccounts godoc</span></span>
+<span class="line"><span style="color:#6A737D">// @Summary      List accounts</span></span>
+<span class="line"><span style="color:#6A737D">// @Description  get accounts</span></span>
+<span class="line"><span style="color:#6A737D">// @Tags         accounts</span></span>
+<span class="line"><span style="color:#6A737D">// @Accept       json</span></span>
+<span class="line"><span style="color:#6A737D">// @Produce      json</span></span>
+<span class="line"><span style="color:#6A737D">// @Param        q    query     string  false  "name search by q"  Format(email)</span></span>
+<span class="line"><span style="color:#6A737D">// @Success      200  {array}   model.Account</span></span>
+<span class="line"><span style="color:#6A737D">// @Failure      400  {object}  httputil.HTTPError</span></span>
+<span class="line"><span style="color:#6A737D">// @Failure      404  {object}  httputil.HTTPError</span></span>
+<span class="line"><span style="color:#6A737D">// @Failure      500  {object}  httputil.HTTPError</span></span>
+<span class="line"><span style="color:#6A737D">// @Router       /accounts [get]</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">c </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Controller</span><span style="color:#24292E">) </span><span style="color:#6F42C1">ListAccounts</span><span style="color:#24292E">(</span><span style="color:#E36209">ctx</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">  q </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> ctx.Request.URL.</span><span style="color:#6F42C1">Query</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"q"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  accounts, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> model.</span><span style="color:#6F42C1">AccountsAll</span><span style="color:#24292E">(q)</span></span>
+<span class="line"><span style="color:#D73A49">  if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    httputil.</span><span style="color:#6F42C1">NewError</span><span style="color:#24292E">(ctx, http.StatusNotFound, err)</span></span>
+<span class="line"><span style="color:#D73A49">    return</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">  ctx.</span><span style="color:#6F42C1">JSON</span><span style="color:#24292E">(http.StatusOK, accounts)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>更多的例子大家自己去读官方文档，我就不具体介绍了，这里要提一句，注释和对应的函数之间不能有空行，否则不会给这个函数生成文档</p>
+<p><a href="https://github.com/swaggo/swag">swaggo/swag</a></p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/11/09/hexo%E9%83%A8%E7%BD%B2%E5%88%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8/"><span>上一篇</span>hexo部署到自己的云服务器</a></div><div><a href="/2022/11/18/cas%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E7%AE%80%E4%BB%8B/"><span>下一篇</span>cas认证流程简介</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

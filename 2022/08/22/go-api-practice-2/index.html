@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="开始前的准备 - gin go get github.com/gin-gonic/gin 编码 构建main函数 main.go 我们会在bootstrap包中的SetupRoute()中初始化router，下面我们去完成这个函数 初始化router bootstrap/route.go regis"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/08/22/go-api-practice-2/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="(二)集成gin · jking の 博客"><meta property="og:description" content="开始前的准备 - gin go get github.com/gin-gonic/gin 编码 构建main函数 main.go 我们会在bootstrap包中的SetupRoute()中初始化router，下面我们去完成这个函数 初始化router bootstrap/route.go regis"><meta property="og:url" content="https://jking412.github.io/2022/08/22/go-api-practice-2/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-08-21T23:32:36.000Z"><title>(二)集成gin · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-08-21T23:32:36.000Z">2022.08.22</time><span>jking</span></div><h1>(二)集成gin</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/go/">go</a></li></ul></header><details class="toc"><summary>文章目录 <span>6 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#开始前的准备">开始前的准备</a></li><li><a href="#编码">编码</a></li><li class="nested"><a href="#构建main函数">构建main函数</a></li><li class="nested"><a href="#初始化router">初始化router</a></li><li class="nested"><a href="#注册路由">注册路由</a></li><li class="nested"><a href="#测试">测试</a></li></ul></nav></details><div class="prose"><h1 id="开始前的准备">开始前的准备</h1>
+<ul>
+<li>gin</li>
+</ul>
+<p><code>go get github.com/gin-gonic/gin</code></p>
+<h1 id="编码">编码</h1>
+<h3 id="构建main函数">构建main函数</h3>
+<p><code>main.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">fmt</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">github.com/gin-gonic/gin</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">   router </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> gin.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   bootstrap.</span><span style="color:#6F42C1">SetupRoute</span><span style="color:#24292E">(router)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> router.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">(</span><span style="color:#032F62">":3000"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(err)</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>我们会在<code>bootstrap</code>包中的<code>SetupRoute()</code>中初始化<code>router</code>，下面我们去完成这个函数</p>
+<h3 id="初始化router">初始化router</h3>
+<p><code>bootstrap/route.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> bootstrap</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">github.com/gin-gonic/gin</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/routes</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">net/http</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> SetupRoute</span><span style="color:#24292E">(</span><span style="color:#E36209">router</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Engine</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#6F42C1">   registerGlobalMiddleware</span><span style="color:#24292E">(router)</span></span>
+<span class="line"><span style="color:#24292E">   routes.</span><span style="color:#6F42C1">RegisterAPIRoutes</span><span style="color:#24292E">(router)</span></span>
+<span class="line"><span style="color:#6F42C1">   setup404Handler</span><span style="color:#24292E">(router)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> registerGlobalMiddleware</span><span style="color:#24292E">(</span><span style="color:#E36209">router</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Engine</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   router.</span><span style="color:#6F42C1">Use</span><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#24292E">      gin.</span><span style="color:#6F42C1">Recovery</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#24292E">      gin.</span><span style="color:#6F42C1">Logger</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#24292E">   )</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> setup404Handler</span><span style="color:#24292E">(</span><span style="color:#E36209">router</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Engine</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   router.</span><span style="color:#6F42C1">NoRoute</span><span style="color:#24292E">(</span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">      c.</span><span style="color:#6F42C1">JSON</span><span style="color:#24292E">(http.StatusNotFound, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "error_code"</span><span style="color:#24292E">:    </span><span style="color:#005CC5">404</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">         "error_message"</span><span style="color:#24292E">: </span><span style="color:#032F62">"页面不存在"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">      })</span></span>
+<span class="line"><span style="color:#24292E">   })</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<blockquote>
+<p>registerGlobalMiddleware()</p>
+</blockquote>
+<p><code>registerGlobalMiddleware(router *gin.Engine)</code>，在这个函数中我们去注册需要使用的中间件，这里我们使用gin自带的中间件即可，此外<code>setup404Handler(router *gin.Engine)</code>设置了<code>404</code>时的返回结果。</p>
+<blockquote>
+<p>gin.H</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> H</span><span style="color:#D73A49"> map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#6F42C1">any</span></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> any</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> interface</span><span style="color:#24292E">{}</span></span></code></pre>
+<p>可以看到<code>gin.H</code>是一个<code>map[string]interface{}</code>类型，借助于<code>gin.H</code>我们可以快速的构建想要返回的JSON数据</p>
+<p>到这里我们就配置好了我们的<code>gin.Engine</code>，接下来我们在<code>routes</code>包下的<code>api.go</code>中注册路由</p>
+<h3 id="注册路由">注册路由</h3>
+<p><code>routes/api.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> routes</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">github.com/gin-gonic/gin</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">net/http</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> RegisterAPIRoutes</span><span style="color:#24292E">(</span><span style="color:#E36209">router</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Engine</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   v1 </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> router.</span><span style="color:#6F42C1">Group</span><span style="color:#24292E">(</span><span style="color:#032F62">"/v1"</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   v1.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">"/"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">      c.</span><span style="color:#6F42C1">JSON</span><span style="color:#24292E">(http.StatusOK, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "hello"</span><span style="color:#24292E">: </span><span style="color:#032F62">"world"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">      })</span></span>
+<span class="line"><span style="color:#24292E">   })</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>在这里我们通过路由组的形式去控制API的版本，我们可以通过这种方式来很方便的管理不同版本的API</p>
+<h3 id="测试">测试</h3>
+<p>通过Apifox来测试一下这两个API</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20220821221623020.png" alt=""></p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20220821221648095.png" alt=""></p>
+<p>设置好之后运行，如果结果和我们预期一致，那么就成功了</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20220821221946788.png" alt=""></p>
+<p>如果你测试失败了，可能是默认的环境端口错了，你可以在测试环境中进行配置</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20220821222149668.png" alt=""></p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/08/21/go-api-practice-1/"><span>上一篇</span>(一)项目基础信息和说明</a></div><div><a href="/2022/08/22/go-api-practice-3/"><span>下一篇</span>(三)集成viper</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

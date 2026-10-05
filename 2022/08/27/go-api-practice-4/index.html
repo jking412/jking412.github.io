@@ -1,0 +1,171 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="开始前的准备 我们将使用gorm来使用数据库，项目中我们使用mysql数据库 集成gorm 配置信息 config/database.go .env 先用前面的配置配置好数据库相关的参数 连接数据库工具类 pkg/database/database.go 启动连接 和前面启动gin的思路类似，我们在"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/08/27/go-api-practice-4/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="(四)集成gorm · jking の 博客"><meta property="og:description" content="开始前的准备 我们将使用gorm来使用数据库，项目中我们使用mysql数据库 集成gorm 配置信息 config/database.go .env 先用前面的配置配置好数据库相关的参数 连接数据库工具类 pkg/database/database.go 启动连接 和前面启动gin的思路类似，我们在"><meta property="og:url" content="https://jking412.github.io/2022/08/27/go-api-practice-4/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-08-27T01:57:54.000Z"><title>(四)集成gorm · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-08-27T01:57:54.000Z">2022.08.27</time><span>jking</span></div><h1>(四)集成gorm</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/go/">go</a></li></ul></header><details class="toc"><summary>文章目录 <span>6 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#开始前的准备">开始前的准备</a></li><li><a href="#集成gorm">集成gorm</a></li><li class="nested"><a href="#配置信息">配置信息</a></li><li class="nested"><a href="#连接数据库工具类">连接数据库工具类</a></li><li class="nested"><a href="#启动连接">启动连接</a></li><li><a href="#创建用户模型">创建用户模型</a></li></ul></nav></details><div class="prose"><h1 id="开始前的准备">开始前的准备</h1>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> get</span><span style="color:#032F62"> gorm.io/gorm</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> get</span><span style="color:#032F62"> gorm.io/driver/mysql</span></span></code></pre>
+<p>我们将使用gorm来使用数据库，项目中我们使用mysql数据库</p>
+<h1 id="集成gorm">集成gorm</h1>
+<h3 id="配置信息">配置信息</h3>
+<p><code>config/database.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> init</span><span style="color:#24292E">() {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	config.</span><span style="color:#6F42C1">Add</span><span style="color:#24292E">(</span><span style="color:#032F62">"database"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">() </span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">interface</span><span style="color:#24292E">{} {</span></span>
+<span class="line"><span style="color:#D73A49">		return</span><span style="color:#D73A49"> map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">interface</span><span style="color:#24292E">{}{</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">			// 默认数据库</span></span>
+<span class="line"><span style="color:#032F62">			"connection"</span><span style="color:#24292E">: config.</span><span style="color:#6F42C1">Env</span><span style="color:#24292E">(</span><span style="color:#032F62">"DB_CONNECTION"</span><span style="color:#24292E">, </span><span style="color:#032F62">"mysql"</span><span style="color:#24292E">),</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#032F62">			"mysql"</span><span style="color:#24292E">: </span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">interface</span><span style="color:#24292E">{}{</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">				// 数据库连接信息</span></span>
+<span class="line"><span style="color:#032F62">				"host"</span><span style="color:#24292E">:     config.</span><span style="color:#6F42C1">Env</span><span style="color:#24292E">(</span><span style="color:#032F62">"DB_HOST"</span><span style="color:#24292E">, </span><span style="color:#032F62">"127.0.0.1"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#032F62">				"port"</span><span style="color:#24292E">:     config.</span><span style="color:#6F42C1">Env</span><span style="color:#24292E">(</span><span style="color:#032F62">"DB_PORT"</span><span style="color:#24292E">, </span><span style="color:#032F62">"3306"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#032F62">				"database"</span><span style="color:#24292E">: config.</span><span style="color:#6F42C1">Env</span><span style="color:#24292E">(</span><span style="color:#032F62">"DB_DATABASE"</span><span style="color:#24292E">, </span><span style="color:#032F62">"go_api_practice"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#032F62">				"username"</span><span style="color:#24292E">: config.</span><span style="color:#6F42C1">Env</span><span style="color:#24292E">(</span><span style="color:#032F62">"DB_USERNAME"</span><span style="color:#24292E">, </span><span style="color:#032F62">""</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#032F62">				"password"</span><span style="color:#24292E">: config.</span><span style="color:#6F42C1">Env</span><span style="color:#24292E">(</span><span style="color:#032F62">"DB_PASSWORD"</span><span style="color:#24292E">, </span><span style="color:#032F62">""</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#032F62">				"charset"</span><span style="color:#24292E">:  </span><span style="color:#032F62">"utf8mb4"</span><span style="color:#24292E">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">				// 连接池配置</span></span>
+<span class="line"><span style="color:#032F62">				"max_idle_connections"</span><span style="color:#24292E">: config.</span><span style="color:#6F42C1">Env</span><span style="color:#24292E">(</span><span style="color:#032F62">"DB_MAX_IDLE_CONNECTIONS"</span><span style="color:#24292E">, </span><span style="color:#005CC5">100</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#032F62">				"max_open_connections"</span><span style="color:#24292E">: config.</span><span style="color:#6F42C1">Env</span><span style="color:#24292E">(</span><span style="color:#032F62">"DB_MAX_OPEN_CONNECTIONS"</span><span style="color:#24292E">, </span><span style="color:#005CC5">25</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#032F62">				"max_life_seconds"</span><span style="color:#24292E">:     config.</span><span style="color:#6F42C1">Env</span><span style="color:#24292E">(</span><span style="color:#032F62">"DB_MAX_LIFE_SECONDS"</span><span style="color:#24292E">, </span><span style="color:#005CC5">5</span><span style="color:#D73A49">*</span><span style="color:#005CC5">60</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">			},</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>.env</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="properties"><code><span class="line"><span style="color:#24292E">.</span></span>
+<span class="line"><span style="color:#24292E">.</span></span>
+<span class="line"><span style="color:#24292E">.</span></span>
+<span class="line"><span style="color:#D73A49">DB_CONNECTION</span><span style="color:#24292E">=mysql</span></span>
+<span class="line"><span style="color:#D73A49">DB_HOST</span><span style="color:#24292E">=127.0.0.1</span></span>
+<span class="line"><span style="color:#D73A49">DB_PORT</span><span style="color:#24292E">=3306</span></span>
+<span class="line"><span style="color:#D73A49">DB_DATABASE</span><span style="color:#24292E">=go_api_practice</span></span>
+<span class="line"><span style="color:#D73A49">DB_USERNAME</span><span style="color:#24292E">=root</span></span>
+<span class="line"><span style="color:#D73A49">DB_PASSWORD</span><span style="color:#24292E">=123456</span></span>
+<span class="line"><span style="color:#D73A49">DB_DEBUG</span><span style="color:#24292E">=2</span></span></code></pre>
+<p>先用前面的配置配置好数据库相关的参数</p>
+<h3 id="连接数据库工具类">连接数据库工具类</h3>
+<p><code>pkg/database/database.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> DB </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">gorm</span><span style="color:#24292E">.</span><span style="color:#6F42C1">DB</span></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> SQLDB </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">sql</span><span style="color:#24292E">.</span><span style="color:#6F42C1">DB</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Connect</span><span style="color:#24292E">(</span><span style="color:#E36209">dbConfig</span><span style="color:#6F42C1"> gorm</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Dialector</span><span style="color:#24292E">, </span><span style="color:#E36209">_logger</span><span style="color:#6F42C1"> gormlogger</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Interface</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">   var</span><span style="color:#24292E"> err </span><span style="color:#D73A49">error</span></span>
+<span class="line"><span style="color:#24292E">   DB, err </span><span style="color:#D73A49">=</span><span style="color:#24292E"> gorm.</span><span style="color:#6F42C1">Open</span><span style="color:#24292E">(dbConfig, </span><span style="color:#D73A49">&#x26;</span><span style="color:#6F42C1">gorm</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Config</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">      Logger: _logger,</span></span>
+<span class="line"><span style="color:#24292E">   })</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(err.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   SQLDB, err </span><span style="color:#D73A49">=</span><span style="color:#24292E"> DB.</span><span style="color:#6F42C1">DB</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(err.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h3 id="启动连接">启动连接</h3>
+<p>和前面启动gin的思路类似，我们在<code>bootstrap</code>包中编写启动类</p>
+<p><code>bootstrap/database.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> SetupDB</span><span style="color:#24292E">() {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   var</span><span style="color:#24292E"> dbConfig </span><span style="color:#6F42C1">gorm</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Dialector</span></span>
+<span class="line"><span style="color:#D73A49">   switch</span><span style="color:#24292E"> config.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.connection"</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">   case</span><span style="color:#032F62"> "mysql"</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6A737D">      // 构建 DSN 信息</span></span>
+<span class="line"><span style="color:#24292E">      dsn </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> fmt.</span><span style="color:#6F42C1">Sprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%v</span><span style="color:#032F62">:</span><span style="color:#005CC5">%v</span><span style="color:#032F62">@tcp(</span><span style="color:#005CC5">%v</span><span style="color:#032F62">:</span><span style="color:#005CC5">%v</span><span style="color:#032F62">)/</span><span style="color:#005CC5">%v</span><span style="color:#032F62">?charset=</span><span style="color:#005CC5">%v</span><span style="color:#032F62">&#x26;parseTime=True&#x26;multiStatements=true&#x26;loc=Local"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">         config.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.mysql.username"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">         config.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.mysql.password"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">         config.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.mysql.host"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">         config.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.mysql.port"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">         config.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.mysql.database"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">         config.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.mysql.charset"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">      )</span></span>
+<span class="line"><span style="color:#24292E">      dbConfig </span><span style="color:#D73A49">=</span><span style="color:#24292E"> mysql.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(</span><span style="color:#6F42C1">mysql</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Config</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">         DSN: dsn,</span></span>
+<span class="line"><span style="color:#24292E">      })</span></span>
+<span class="line"><span style="color:#D73A49">   default</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">      panic</span><span style="color:#24292E">(errors.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(</span><span style="color:#032F62">"database connection not supported"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 连接数据库，并设置 GORM 的日志模式</span></span>
+<span class="line"><span style="color:#24292E">   database.</span><span style="color:#6F42C1">Connect</span><span style="color:#24292E">(dbConfig, logger.Default.</span><span style="color:#6F42C1">LogMode</span><span style="color:#24292E">(logger.Info))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 设置最大连接数</span></span>
+<span class="line"><span style="color:#24292E">   database.SQLDB.</span><span style="color:#6F42C1">SetMaxOpenConns</span><span style="color:#24292E">(config.</span><span style="color:#6F42C1">GetInt</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.mysql.max_open_connections"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#6A737D">   // 设置最大空闲连接数</span></span>
+<span class="line"><span style="color:#24292E">   database.SQLDB.</span><span style="color:#6F42C1">SetMaxIdleConns</span><span style="color:#24292E">(config.</span><span style="color:#6F42C1">GetInt</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.mysql.max_idle_connections"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#6A737D">   // 设置每个链接的过期时间</span></span>
+<span class="line"><span style="color:#24292E">   database.SQLDB.</span><span style="color:#6F42C1">SetConnMaxLifetime</span><span style="color:#24292E">(time.</span><span style="color:#6F42C1">Duration</span><span style="color:#24292E">(config.</span><span style="color:#6F42C1">GetInt</span><span style="color:#24292E">(</span><span style="color:#032F62">"database.mysql.max_life_seconds"</span><span style="color:#24292E">)) </span><span style="color:#D73A49">*</span><span style="color:#24292E"> time.Second)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>使用上前面的配置信息，连接数据库，最后我们在<code>main</code>中调用这个函数即可</p>
+<p><code>main.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">   var</span><span style="color:#24292E"> env </span><span style="color:#D73A49">string</span></span>
+<span class="line"><span style="color:#24292E">   flag.</span><span style="color:#6F42C1">StringVar</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">env, </span><span style="color:#032F62">"env"</span><span style="color:#24292E">, </span><span style="color:#032F62">""</span><span style="color:#24292E">, </span><span style="color:#032F62">""</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">   flag.</span><span style="color:#6F42C1">Parse</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">   config.</span><span style="color:#6F42C1">InitConfig</span><span style="color:#24292E">(env)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   router </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> gin.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   bootstrap.</span><span style="color:#6F42C1">SetupDB</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   bootstrap.</span><span style="color:#6F42C1">SetupRoute</span><span style="color:#24292E">(router)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> router.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">(</span><span style="color:#032F62">":"</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> config.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"app.port"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(err)</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这一部分的内容无非是配置一些基本信息，总体上没有什么难度，下面我们来创建用户模型</p>
+<h1 id="创建用户模型">创建用户模型</h1>
+<p><code>app/models/model.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// BaseModel 模型基类</span></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> BaseModel</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   ID </span><span style="color:#D73A49">uint64</span><span style="color:#032F62"> `gorm:"column:id;primaryKey;autoIncrement;" json:"id,omitempty"`</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// CommonTimestampsField 时间戳</span></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> CommonTimestampsField</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   CreatedAt </span><span style="color:#6F42C1">time</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Time</span><span style="color:#032F62"> `gorm:"column:created_at;index;" json:"created_at,omitempty"`</span></span>
+<span class="line"><span style="color:#24292E">   UpdatedAt </span><span style="color:#6F42C1">time</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Time</span><span style="color:#032F62"> `gorm:"column:updated_at;index;" json:"updated_at,omitempty"`</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>我们先创建一些基本的字段以供将来的模型重复使用</p>
+<p><code>app/models/user/user_model.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// User 用户模型</span></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> User</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">   models</span><span style="color:#24292E">.</span><span style="color:#6F42C1">BaseModel</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   Name     </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"name,omitempty"`</span></span>
+<span class="line"><span style="color:#24292E">   Email    </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"-"`</span></span>
+<span class="line"><span style="color:#24292E">   Phone    </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"-"`</span></span>
+<span class="line"><span style="color:#24292E">   Password </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"-"`</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">   models</span><span style="color:#24292E">.</span><span style="color:#6F42C1">CommonTimestampsField</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这里我们创建了用户模型，我们顺便为这个模型创建一些必要的工具函数</p>
+<p><code>app/models/user/user_util.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> IsEmailExist</span><span style="color:#24292E">(</span><span style="color:#E36209">email</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">   var</span><span style="color:#24292E"> count </span><span style="color:#D73A49">int64</span></span>
+<span class="line"><span style="color:#24292E">   database.DB.</span><span style="color:#6F42C1">Model</span><span style="color:#24292E">(</span><span style="color:#6F42C1">User</span><span style="color:#24292E">{}).</span><span style="color:#6F42C1">Where</span><span style="color:#24292E">(</span><span style="color:#032F62">"email = ?"</span><span style="color:#24292E">, email).</span><span style="color:#6F42C1">Count</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">count)</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> count </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> IsPhoneExist</span><span style="color:#24292E">(</span><span style="color:#E36209">phone</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">   var</span><span style="color:#24292E"> count </span><span style="color:#D73A49">int64</span></span>
+<span class="line"><span style="color:#24292E">   database.DB.</span><span style="color:#6F42C1">Model</span><span style="color:#24292E">(</span><span style="color:#6F42C1">User</span><span style="color:#24292E">{}).</span><span style="color:#6F42C1">Where</span><span style="color:#24292E">(</span><span style="color:#032F62">"phone = ?"</span><span style="color:#24292E">, phone).</span><span style="color:#6F42C1">Count</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">count)</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> count </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这样，我们就完成了现阶段的数据库集成，我们此时还没有在数据库中建立数据表，我们可以使用<code>gorm</code>中的自动迁移功能来帮助我们自动创建数据库表</p>
+<blockquote>
+<p>数据库自动迁移</p>
+</blockquote>
+<p><code>bootstrap/database.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> SetupDB</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	.</span></span>
+<span class="line"><span style="color:#24292E">    .</span></span>
+<span class="line"><span style="color:#24292E">    .</span></span>
+<span class="line"><span style="color:#24292E">   database.DB.</span><span style="color:#6F42C1">AutoMigrate</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#6F42C1">user</span><span style="color:#24292E">.</span><span style="color:#6F42C1">User</span><span style="color:#24292E">{})</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>gorm</code>会根据<code>User</code>结构体的字段来自动创建数据表，但是不会覆盖已经创建的字段，如果你已经自己创建了自己的数据表，你可以删除后重试。</p>
+<p>本节的内容并不难，主要是完成了一些基本信息的创建。</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/08/22/go-api-practice-3/"><span>上一篇</span>(三)集成viper</a></div><div><a href="/2022/08/27/go-api-practice-5/"><span>下一篇</span>(五)完成验证手机和邮箱是否存在接口</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

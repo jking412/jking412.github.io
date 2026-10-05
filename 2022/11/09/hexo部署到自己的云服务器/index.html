@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="开始之前 本文不会涉及hexo的使用，请先去了解hexo的基本使用和部署，也可以参考我的文章 。 本教程基于Centos7.6，如果是其它linux发行版请自行修改相应命令。 构建服务器环境 安装git和nginx 配置git仓库 下面的用户和目录都可以自己定义，但注意要保持上下文统一 然后我们添加"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/11/09/hexo%E9%83%A8%E7%BD%B2%E5%88%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="hexo部署到自己的云服务器 · jking の 博客"><meta property="og:description" content="开始之前 本文不会涉及hexo的使用，请先去了解hexo的基本使用和部署，也可以参考我的文章 。 本教程基于Centos7.6，如果是其它linux发行版请自行修改相应命令。 构建服务器环境 安装git和nginx 配置git仓库 下面的用户和目录都可以自己定义，但注意要保持上下文统一 然后我们添加"><meta property="og:url" content="https://jking412.github.io/2022/11/09/hexo%E9%83%A8%E7%BD%B2%E5%88%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-11-09T07:45:11.000Z"><title>hexo部署到自己的云服务器 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-11-09T07:45:11.000Z">2022.11.09</time><span>jking</span></div><h1>hexo部署到自己的云服务器</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/hexo/">hexo</a></li></ul></header><details class="toc"><summary>文章目录 <span>7 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#开始之前">开始之前</a></li><li><a href="#构建服务器环境">构建服务器环境</a></li><li><a href="#安装git和nginx">安装git和nginx</a></li><li><a href="#配置git仓库">配置git仓库</a></li><li><a href="#配置ssh">配置ssh</a></li><li><a href="#将本地hexo博客上传到服务器">将本地hexo博客上传到服务器</a></li><li><a href="#配置nginx">配置nginx</a></li></ul></nav></details><div class="prose"><h1 id="开始之前">开始之前</h1>
+<p>本文不会涉及hexo的使用，请先去了解hexo的基本使用和部署，也可以参考我的文章<a href="/2022/11/05/hexo%E5%BB%BA%E7%AB%99%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/">hexo建站简明教程</a>。</p>
+<p>本教程基于Centos7.6，如果是其它linux发行版请自行修改相应命令。</p>
+<h1 id="构建服务器环境">构建服务器环境</h1>
+<h2 id="安装git和nginx">安装git和nginx</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">yum</span><span style="color:#032F62"> install</span><span style="color:#032F62"> git</span></span>
+<span class="line"><span style="color:#6F42C1">yum</span><span style="color:#032F62"> install</span><span style="color:#032F62"> nginx</span></span>
+<span class="line"><span style="color:#6A737D"># ubuntu</span></span>
+<span class="line"><span style="color:#6F42C1">apt</span><span style="color:#032F62"> install</span><span style="color:#032F62"> git</span></span>
+<span class="line"><span style="color:#6F42C1">apt</span><span style="color:#032F62"> install</span><span style="color:#032F62"> nginx</span></span></code></pre>
+<h2 id="配置git仓库">配置git仓库</h2>
+<p>下面的用户和目录都可以自己定义，但注意要保持上下文统一</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">useradd</span><span style="color:#032F62"> hexo</span><span style="color:#6A737D"> # 添加一个用户，其实也不是必须的</span></span>
+<span class="line"><span style="color:#6F42C1">chown</span><span style="color:#005CC5"> -R</span><span style="color:#032F62"> hexo:hexo</span><span style="color:#032F62"> /home/hexo</span><span style="color:#6A737D"> # 把目录的归属权交给hexo用户</span></span>
+<span class="line"><span style="color:#005CC5">cd</span><span style="color:#032F62"> home</span></span>
+<span class="line"><span style="color:#6F42C1">chmod</span><span style="color:#032F62"> o+x</span><span style="color:#032F62"> hexo</span><span style="color:#6A737D"> # 默认创建的hexo文件夹只有hexo有执行权限，nginx用户没有执行权限，将会导致403</span></span>
+<span class="line"><span style="color:#005CC5">cd</span><span style="color:#032F62"> hexo</span></span>
+<span class="line"><span style="color:#6F42C1">mkdir</span><span style="color:#005CC5"> -p</span><span style="color:#032F62"> /home/hexo/www/blog</span><span style="color:#6A737D"> # 创建博客部署目录</span></span>
+<span class="line"><span style="color:#6F42C1">git</span><span style="color:#032F62"> init</span><span style="color:#005CC5"> --bare</span><span style="color:#032F62"> blog.git</span><span style="color:#6A737D"> # 裸仓库，没有工作空间</span></span>
+<span class="line"><span style="color:#005CC5">cd</span><span style="color:#032F62"> /home/hexo/blog.git/hooks</span></span>
+<span class="line"><span style="color:#6F42C1">vim</span><span style="color:#032F62"> post-receive</span><span style="color:#6A737D"> # 创建钩子文件</span></span></code></pre>
+<p>然后我们添加如下内容</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6A737D">#!/bin/sh</span></span>
+<span class="line"><span style="color:#6F42C1">git</span><span style="color:#005CC5"> --work-tree=/home/hexo/www/blog</span><span style="color:#005CC5"> --git-dir=/home/hexo/blog.git</span><span style="color:#032F62"> checkout</span><span style="color:#005CC5"> -f</span></span></code></pre>
+<p>注意<code>#!/bin/sh</code>不要漏了，这里声明了下面脚本执行器的位置。</p>
+<p><code>work-tree</code>：工作目录</p>
+<p><code>git-dir</code>：git仓库目录</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">chmod</span><span style="color:#032F62"> +x</span><span style="color:#032F62"> post-receive</span><span style="color:#6A737D"> # 给与执行权限</span></span></code></pre>
+<p>远程的git仓库大致配置就是如此</p>
+<h2 id="配置ssh">配置ssh</h2>
+<p>在你的windows电脑上生成ssh公钥密钥（需要安装git）</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">ssh-keygen</span></span></code></pre>
+<p>下面会让你输入公钥和密钥的保存位置和密码等，如果不想输入可以按回车，这将使用默认的存放位置和空的密码。</p>
+<p>默认存在在你的<code>C:\Users\用户名\.ssh</code>目录下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221109162309901.png" alt="image-20221109162309901"></p>
+<p>这里建议用支持ftp的第三方工具直接操作。</p>
+<p>把<code>id_rsa.pub</code>放到服务器的<code>/home/hexo/.ssh/authorized_keys</code>文件中（如果文件中已经存在公钥，追加在文件下面即可）。</p>
+<p>如果不使用第三方工具，使用powershell用root登录到服务器上（hexo用户目前没有设置密码），然后上传到服务器中。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">ssh</span><span style="color:#032F62"> root@ip</span><span style="color:#6A737D"> # 这里的ip要换成你的服务器ip</span></span>
+<span class="line"><span style="color:#6F42C1">scp</span><span style="color:#032F62"> 本地文件位置</span><span style="color:#032F62"> root@ip:/home/hexo/.ssh/authorized_keys</span></span></code></pre>
+<p>配置完可以测试一下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">ssh</span><span style="color:#032F62"> hexo@ip</span></span></code></pre>
+<p>配置成功应该可以直接登录</p>
+<h2 id="将本地hexo博客上传到服务器">将本地hexo博客上传到服务器</h2>
+<p>修改博客目录下的<code>_config.yaml</code>文件</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#22863A">deploy</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  type</span><span style="color:#24292E">: </span><span style="color:#032F62">git</span></span>
+<span class="line"><span style="color:#22863A">  repository</span><span style="color:#24292E">: </span><span style="color:#032F62">hexo@ip:/home/hexo/blog.git</span></span>
+<span class="line"><span style="color:#22863A">  branch</span><span style="color:#24292E">: </span><span style="color:#032F62">master</span></span></code></pre>
+<p>将deploy部分修改如上，然后使用部署命令</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> g</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> d</span></span></code></pre>
+<p>现在我们可以在<code>/home/hexo/www/blog</code>目录下看到上传的文件</p>
+<h2 id="配置nginx">配置nginx</h2>
+<p>最后使用nginx反向代理就可以实现访问了。</p>
+<p>使用http</p>
+<p><code>/etc/nginx/nginx.conf</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#6A737D"># For more information on configuration, see:</span></span>
+<span class="line"><span style="color:#6A737D">#   * Official English Documentation: http://nginx.org/en/docs/</span></span>
+<span class="line"><span style="color:#6A737D">#   * Official Russian Documentation: http://nginx.org/ru/docs/</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">user </span><span style="color:#24292E">nginx;</span></span>
+<span class="line"><span style="color:#D73A49">worker_processes </span><span style="color:#24292E">auto;</span></span>
+<span class="line"><span style="color:#D73A49">error_log </span><span style="color:#24292E">/var/log/nginx/error.log;</span></span>
+<span class="line"><span style="color:#D73A49">pid </span><span style="color:#24292E">/run/nginx.pid;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">events</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    worker_connections </span><span style="color:#005CC5">1024</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">http</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    log_format </span><span style="color:#005CC5"> main</span><span style="color:#032F62">  '$</span><span style="color:#24292E">remote_addr</span><span style="color:#032F62"> - $</span><span style="color:#24292E">remote_user</span><span style="color:#032F62"> [$</span><span style="color:#24292E">time_local</span><span style="color:#032F62">] "$</span><span style="color:#24292E">request</span><span style="color:#032F62">" '</span></span>
+<span class="line"><span style="color:#032F62">                      '$</span><span style="color:#24292E">status</span><span style="color:#032F62"> $</span><span style="color:#24292E">body_bytes_sent</span><span style="color:#032F62"> "$</span><span style="color:#24292E">http_referer</span><span style="color:#032F62">" '</span></span>
+<span class="line"><span style="color:#032F62">                      '"$</span><span style="color:#24292E">http_user_agent</span><span style="color:#032F62">" "$</span><span style="color:#24292E">http_x_forwarded_for</span><span style="color:#032F62">"'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    access_log </span><span style="color:#24292E"> /var/log/nginx/access.log  </span><span style="color:#005CC5">main</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    sendfile </span><span style="color:#005CC5">           on</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    tcp_nopush </span><span style="color:#005CC5">         on</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    tcp_nodelay </span><span style="color:#005CC5">        on</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    keepalive_timeout </span><span style="color:#005CC5">  65</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    types_hash_max_size </span><span style="color:#005CC5">4096</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    include </span><span style="color:#24292E">            /etc/nginx/mime.types;</span></span>
+<span class="line"><span style="color:#D73A49">    default_type </span><span style="color:#24292E">       application/octet-stream;</span></span>
+<span class="line"><span style="color:#6A737D">    # Load modular configuration files from the /etc/nginx/conf.d directory.</span></span>
+<span class="line"><span style="color:#6A737D">    # See http://nginx.org/en/docs/ngx_core_module.html#include</span></span>
+<span class="line"><span style="color:#6A737D">    # for more information.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    server</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        listen </span><span style="color:#005CC5">      80</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        listen </span><span style="color:#24292E">      [::]:80;</span></span>
+<span class="line"><span style="color:#D73A49">        server_name </span><span style="color:#24292E"> _;</span></span>
+<span class="line"><span style="color:#D73A49">        root </span><span style="color:#24292E">        /home/hexo/www/blog;</span></span>
+<span class="line"><span style="color:#D73A49">        charset </span><span style="color:#24292E">utf8;</span></span>
+<span class="line"><span style="color:#D73A49">        location</span><span style="color:#6F42C1"> / </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">        error_page </span><span style="color:#005CC5">404</span><span style="color:#24292E"> /404.html;</span></span>
+<span class="line"><span style="color:#D73A49">        location</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> /404.html </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">        error_page </span><span style="color:#005CC5">500</span><span style="color:#005CC5"> 502</span><span style="color:#005CC5"> 503</span><span style="color:#005CC5"> 504</span><span style="color:#24292E"> /50x.html;</span></span>
+<span class="line"><span style="color:#D73A49">        location</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> /50x.html </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>如果要配置https</p>
+<p><code>/etc/nginx/nginx.conf</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#6A737D"># For more information on configuration, see:</span></span>
+<span class="line"><span style="color:#6A737D">#   * Official English Documentation: http://nginx.org/en/docs/</span></span>
+<span class="line"><span style="color:#6A737D">#   * Official Russian Documentation: http://nginx.org/ru/docs/</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">user </span><span style="color:#24292E">nginx;</span></span>
+<span class="line"><span style="color:#D73A49">worker_processes </span><span style="color:#24292E">auto;</span></span>
+<span class="line"><span style="color:#D73A49">error_log </span><span style="color:#24292E">/var/log/nginx/error.log;</span></span>
+<span class="line"><span style="color:#D73A49">pid </span><span style="color:#24292E">/run/nginx.pid;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">events</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    worker_connections </span><span style="color:#005CC5">1024</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">http</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    log_format </span><span style="color:#005CC5"> main</span><span style="color:#032F62">  '$</span><span style="color:#24292E">remote_addr</span><span style="color:#032F62"> - $</span><span style="color:#24292E">remote_user</span><span style="color:#032F62"> [$</span><span style="color:#24292E">time_local</span><span style="color:#032F62">] "$</span><span style="color:#24292E">request</span><span style="color:#032F62">" '</span></span>
+<span class="line"><span style="color:#032F62">                      '$</span><span style="color:#24292E">status</span><span style="color:#032F62"> $</span><span style="color:#24292E">body_bytes_sent</span><span style="color:#032F62"> "$</span><span style="color:#24292E">http_referer</span><span style="color:#032F62">" '</span></span>
+<span class="line"><span style="color:#032F62">                      '"$</span><span style="color:#24292E">http_user_agent</span><span style="color:#032F62">" "$</span><span style="color:#24292E">http_x_forwarded_for</span><span style="color:#032F62">"'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    access_log </span><span style="color:#24292E"> /var/log/nginx/access.log  </span><span style="color:#005CC5">main</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    sendfile </span><span style="color:#005CC5">           on</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    tcp_nopush </span><span style="color:#005CC5">         on</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    tcp_nodelay </span><span style="color:#005CC5">        on</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    keepalive_timeout </span><span style="color:#005CC5">  65</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    types_hash_max_size </span><span style="color:#005CC5">4096</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    include </span><span style="color:#24292E">            /etc/nginx/mime.types;</span></span>
+<span class="line"><span style="color:#D73A49">    default_type </span><span style="color:#24292E">       application/octet-stream;</span></span>
+<span class="line"><span style="color:#6A737D">    # Load modular configuration files from the /etc/nginx/conf.d directory.</span></span>
+<span class="line"><span style="color:#6A737D">    # See http://nginx.org/en/docs/ngx_core_module.html#include</span></span>
+<span class="line"><span style="color:#6A737D">    # for more information.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    server</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        listen </span><span style="color:#005CC5">      443</span><span style="color:#24292E"> ssl http2;</span></span>
+<span class="line"><span style="color:#D73A49">        listen </span><span style="color:#24292E">      [::]:443 ssl http2;</span></span>
+<span class="line"><span style="color:#D73A49">        server_name </span><span style="color:#24292E"> _;</span></span>
+<span class="line"><span style="color:#D73A49">        root </span><span style="color:#24292E">        /home/hexo/www/blog;</span></span>
+<span class="line"><span style="color:#D73A49">        charset </span><span style="color:#24292E">utf8;</span></span>
+<span class="line"><span style="color:#D73A49">        ssl_certificate </span><span style="color:#24292E">    证书所在位置;</span></span>
+<span class="line"><span style="color:#D73A49">        ssl_certificate_key </span><span style="color:#24292E">证书的密钥所在位置;</span></span>
+<span class="line"><span style="color:#D73A49">        ssl_session_cache </span><span style="color:#24292E">shared:SSL:1m;</span></span>
+<span class="line"><span style="color:#D73A49">        ssl_session_timeout </span><span style="color:#005CC5"> 10m</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        ssl_ciphers </span><span style="color:#24292E">HIGH:!aNULL:!MD5;</span></span>
+<span class="line"><span style="color:#D73A49">        ssl_prefer_server_ciphers </span><span style="color:#005CC5">on</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        location</span><span style="color:#6F42C1"> / </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">        error_page </span><span style="color:#005CC5">404</span><span style="color:#24292E"> /404.html;</span></span>
+<span class="line"><span style="color:#D73A49">        location</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> /404.html </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">        error_page </span><span style="color:#005CC5">500</span><span style="color:#005CC5"> 502</span><span style="color:#005CC5"> 503</span><span style="color:#005CC5"> 504</span><span style="color:#24292E"> /50x.html;</span></span>
+<span class="line"><span style="color:#D73A49">        location</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> /50x.html </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>配置好后我们重新加载一下nginx</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">nginx</span><span style="color:#005CC5"> -t</span><span style="color:#6A737D"> # 检查nginx配置文件语法是否正确</span></span>
+<span class="line"><span style="color:#6F42C1">systemctl</span><span style="color:#032F62"> start</span><span style="color:#032F62"> nginx</span><span style="color:#6A737D"> # 如果没有启动nginx</span></span>
+<span class="line"><span style="color:#6F42C1">systemctl</span><span style="color:#032F62"> reload</span><span style="color:#032F62"> nginx</span><span style="color:#6A737D"> # 重新加载配置文件</span></span></code></pre>
+<p>最后测试一下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6A737D"># http</span></span>
+<span class="line"><span style="color:#6F42C1">curl</span><span style="color:#032F62"> localhost</span></span>
+<span class="line"><span style="color:#6A737D"># https</span></span>
+<span class="line"><span style="color:#6F42C1">curl</span><span style="color:#032F62"> https://域名</span></span></code></pre></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/11/08/github-action%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/"><span>上一篇</span>github-action简明教程</a></div><div><a href="/2022/11/17/swaggo%E7%9A%84%E4%BD%BF%E7%94%A8/"><span>下一篇</span>swaggo的使用</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

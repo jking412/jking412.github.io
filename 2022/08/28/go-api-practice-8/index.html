@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="开始前的准备 gin整合zap 还记得我们在gin中自定义中间件的函数吗，我们将自定义中间件并整合zap来代替原来的中间件 bootstrap/route.go 接下来的内容涉及到的内容很多，只需要理解大概即可，所以这一部分的讲解只会介绍大概的思路。 logger中间件 app/http/middl"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/08/28/go-api-practice-8/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="(八)在gin和gorm中使用zap · jking の 博客"><meta property="og:description" content="开始前的准备 gin整合zap 还记得我们在gin中自定义中间件的函数吗，我们将自定义中间件并整合zap来代替原来的中间件 bootstrap/route.go 接下来的内容涉及到的内容很多，只需要理解大概即可，所以这一部分的讲解只会介绍大概的思路。 logger中间件 app/http/middl"><meta property="og:url" content="https://jking412.github.io/2022/08/28/go-api-practice-8/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-08-28T12:41:16.000Z"><title>(八)在gin和gorm中使用zap · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-08-28T12:41:16.000Z">2022.08.28</time><span>jking</span></div><h1>(八)在gin和gorm中使用zap</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/go/">go</a></li></ul></header><details class="toc"><summary>文章目录 <span>3 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#开始前的准备">开始前的准备</a></li><li><a href="#gin整合zap">gin整合zap</a></li><li><a href="#gorm整合zap">gorm整合zap</a></li></ul></nav></details><div class="prose"><h1 id="开始前的准备">开始前的准备</h1>
+<h1 id="gin整合zap">gin整合zap</h1>
+<p>还记得我们在<code>gin</code>中自定义中间件的函数吗，我们将自定义中间件并整合zap来代替原来的中间件</p>
+<p><code>bootstrap/route.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> registerGlobalMiddleware</span><span style="color:#24292E">(</span><span style="color:#E36209">router</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Engine</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   router.</span><span style="color:#6F42C1">Use</span><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#24292E">      middlewares.</span><span style="color:#6F42C1">Recovery</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#24292E">      middlewares.</span><span style="color:#6F42C1">Logger</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#24292E">   )</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>接下来的内容涉及到的内容很多，只需要理解大概即可，所以这一部分的讲解只会介绍大概的思路。</p>
+<blockquote>
+<p>logger中间件</p>
+</blockquote>
+<p><code>app/http/middlewares/logger.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> middlewares</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">bytes</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">github.com/gin-gonic/gin</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">github.com/spf13/cast</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/helpers</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/logger</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go.uber.org/zap</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">io</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">time</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> responseBodyWriter</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">   gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ResponseWriter</span></span>
+<span class="line"><span style="color:#24292E">   body </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">bytes</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Buffer</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">w </span><span style="color:#6F42C1">responseBodyWriter</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Write</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#24292E"> []</span><span style="color:#D73A49">byte</span><span style="color:#24292E">) (</span><span style="color:#D73A49">int</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   w.body.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">(b)</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> w.ResponseWriter.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">(b)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Logger 记录请求日志</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Logger</span><span style="color:#24292E">() </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">HandlerFunc</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#D73A49"> func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">      // 获取 response 内容</span></span>
+<span class="line"><span style="color:#24292E">      w </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">responseBodyWriter</span><span style="color:#24292E">{body: </span><span style="color:#D73A49">&#x26;</span><span style="color:#6F42C1">bytes</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Buffer</span><span style="color:#24292E">{}, ResponseWriter: c.Writer}</span></span>
+<span class="line"><span style="color:#24292E">      c.Writer </span><span style="color:#D73A49">=</span><span style="color:#24292E"> w</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">      // 获取请求数据</span></span>
+<span class="line"><span style="color:#D73A49">      var</span><span style="color:#24292E"> requestBody []</span><span style="color:#D73A49">byte</span></span>
+<span class="line"><span style="color:#D73A49">      if</span><span style="color:#24292E"> c.Request.Body </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">         // c.Request.Body 是一个 buffer 对象，只能读取一次</span></span>
+<span class="line"><span style="color:#24292E">         requestBody, _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> io.</span><span style="color:#6F42C1">ReadAll</span><span style="color:#24292E">(c.Request.Body)</span></span>
+<span class="line"><span style="color:#6A737D">         // 读取后，重新赋值 c.Request.Body ，以供后续的其他操作</span></span>
+<span class="line"><span style="color:#24292E">         c.Request.Body </span><span style="color:#D73A49">=</span><span style="color:#24292E"> io.</span><span style="color:#6F42C1">NopCloser</span><span style="color:#24292E">(bytes.</span><span style="color:#6F42C1">NewBuffer</span><span style="color:#24292E">(requestBody))</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">      // 设置开始时间</span></span>
+<span class="line"><span style="color:#24292E">      start </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> time.</span><span style="color:#6F42C1">Now</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">      c.</span><span style="color:#6F42C1">Next</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">      // 开始记录日志的逻辑</span></span>
+<span class="line"><span style="color:#24292E">      cost </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> time.</span><span style="color:#6F42C1">Since</span><span style="color:#24292E">(start)</span></span>
+<span class="line"><span style="color:#24292E">      responStatus </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> c.Writer.</span><span style="color:#6F42C1">Status</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">      logFields </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> []</span><span style="color:#6F42C1">zap</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">         zap.</span><span style="color:#6F42C1">Int</span><span style="color:#24292E">(</span><span style="color:#032F62">"status"</span><span style="color:#24292E">, responStatus),</span></span>
+<span class="line"><span style="color:#24292E">         zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"request"</span><span style="color:#24292E">, c.Request.Method</span><span style="color:#D73A49">+</span><span style="color:#032F62">" "</span><span style="color:#D73A49">+</span><span style="color:#24292E">c.Request.URL.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">()),</span></span>
+<span class="line"><span style="color:#24292E">         zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"query"</span><span style="color:#24292E">, c.Request.URL.RawQuery),</span></span>
+<span class="line"><span style="color:#24292E">         zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"ip"</span><span style="color:#24292E">, c.</span><span style="color:#6F42C1">ClientIP</span><span style="color:#24292E">()),</span></span>
+<span class="line"><span style="color:#24292E">         zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"user-agent"</span><span style="color:#24292E">, c.Request.</span><span style="color:#6F42C1">UserAgent</span><span style="color:#24292E">()),</span></span>
+<span class="line"><span style="color:#24292E">         zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"errors"</span><span style="color:#24292E">, c.Errors.</span><span style="color:#6F42C1">ByType</span><span style="color:#24292E">(gin.ErrorTypePrivate).</span><span style="color:#6F42C1">String</span><span style="color:#24292E">()),</span></span>
+<span class="line"><span style="color:#24292E">         zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"time"</span><span style="color:#24292E">, helpers.</span><span style="color:#6F42C1">MicrosecondsStr</span><span style="color:#24292E">(cost)),</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"><span style="color:#D73A49">      if</span><span style="color:#24292E"> c.Request.Method </span><span style="color:#D73A49">==</span><span style="color:#032F62"> "POST"</span><span style="color:#D73A49"> ||</span><span style="color:#24292E"> c.Request.Method </span><span style="color:#D73A49">==</span><span style="color:#032F62"> "PUT"</span><span style="color:#D73A49"> ||</span><span style="color:#24292E"> c.Request.Method </span><span style="color:#D73A49">==</span><span style="color:#032F62"> "DELETE"</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">         // 请求的内容</span></span>
+<span class="line"><span style="color:#24292E">         logFields </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(logFields, zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"Request Body"</span><span style="color:#24292E">, </span><span style="color:#D73A49">string</span><span style="color:#24292E">(requestBody)))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">         // 响应的内容</span></span>
+<span class="line"><span style="color:#24292E">         logFields </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(logFields, zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"Response Body"</span><span style="color:#24292E">, w.body.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">()))</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">      if</span><span style="color:#24292E"> responStatus </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 400</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> responStatus </span><span style="color:#D73A49">&#x3C;=</span><span style="color:#005CC5"> 499</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">         // 除了 StatusBadRequest 以外，warning 提示一下，常见的有 403 404，开发时都要注意</span></span>
+<span class="line"><span style="color:#24292E">         logger.</span><span style="color:#6F42C1">Warn</span><span style="color:#24292E">(</span><span style="color:#032F62">"HTTP Warning "</span><span style="color:#D73A49">+</span><span style="color:#24292E">cast.</span><span style="color:#6F42C1">ToString</span><span style="color:#24292E">(responStatus), logFields</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">      } </span><span style="color:#D73A49">else</span><span style="color:#D73A49"> if</span><span style="color:#24292E"> responStatus </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 500</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> responStatus </span><span style="color:#D73A49">&#x3C;=</span><span style="color:#005CC5"> 599</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">         // 除了内部错误，记录 error</span></span>
+<span class="line"><span style="color:#24292E">         logger.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(</span><span style="color:#032F62">"HTTP Error "</span><span style="color:#D73A49">+</span><span style="color:#24292E">cast.</span><span style="color:#6F42C1">ToString</span><span style="color:#24292E">(responStatus), logFields</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">      } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">         logger.</span><span style="color:#6F42C1">Debug</span><span style="color:#24292E">(</span><span style="color:#032F62">"HTTP Access Log"</span><span style="color:#24292E">, logFields</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>函数思路如下：</p>
+<ol>
+<li>读取request.body</li>
+<li>把请求参数封装到<code>zap.Field</code></li>
+<li>根据响应码来打印不同的日志</li>
+</ol>
+<blockquote>
+<p>recovery中间件</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> middlewares</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">github.com/gin-gonic/gin</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/logger</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go.uber.org/zap</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">net</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">net/http</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">net/http/httputil</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">os</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">strings</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">time</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Recovery 使用 zap.Error() 来记录 Panic 和 call stack</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Recovery</span><span style="color:#24292E">() </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">HandlerFunc</span><span style="color:#24292E"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#D73A49"> func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">      defer</span><span style="color:#D73A49"> func</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">         if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> recover</span><span style="color:#24292E">(); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            // 获取用户的请求信息</span></span>
+<span class="line"><span style="color:#24292E">            httpRequest, _ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> httputil.</span><span style="color:#6F42C1">DumpRequest</span><span style="color:#24292E">(c.Request, </span><span style="color:#005CC5">true</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            // 链接中断，客户端中断连接为正常行为，不需要记录堆栈信息</span></span>
+<span class="line"><span style="color:#D73A49">            var</span><span style="color:#24292E"> brokenPipe </span><span style="color:#D73A49">bool</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> ne, ok </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> err.(</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">net</span><span style="color:#24292E">.</span><span style="color:#6F42C1">OpError</span><span style="color:#24292E">); ok {</span></span>
+<span class="line"><span style="color:#D73A49">               if</span><span style="color:#24292E"> se, ok </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> ne.Err.(</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">os</span><span style="color:#24292E">.</span><span style="color:#6F42C1">SyscallError</span><span style="color:#24292E">); ok {</span></span>
+<span class="line"><span style="color:#24292E">                  errStr </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> strings.</span><span style="color:#6F42C1">ToLower</span><span style="color:#24292E">(se.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#D73A49">                  if</span><span style="color:#24292E"> strings.</span><span style="color:#6F42C1">Contains</span><span style="color:#24292E">(errStr, </span><span style="color:#032F62">"broken pipe"</span><span style="color:#24292E">) </span><span style="color:#D73A49">||</span><span style="color:#24292E"> strings.</span><span style="color:#6F42C1">Contains</span><span style="color:#24292E">(errStr, </span><span style="color:#032F62">"connection reset by peer"</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">                     brokenPipe </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span></span>
+<span class="line"><span style="color:#24292E">                  }</span></span>
+<span class="line"><span style="color:#24292E">               }</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#6A737D">            // 链接中断的情况</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> brokenPipe {</span></span>
+<span class="line"><span style="color:#24292E">               logger.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(c.Request.URL.Path,</span></span>
+<span class="line"><span style="color:#24292E">                  zap.</span><span style="color:#6F42C1">Time</span><span style="color:#24292E">(</span><span style="color:#032F62">"time"</span><span style="color:#24292E">, time.</span><span style="color:#6F42C1">Now</span><span style="color:#24292E">()),</span></span>
+<span class="line"><span style="color:#24292E">                  zap.</span><span style="color:#6F42C1">Any</span><span style="color:#24292E">(</span><span style="color:#032F62">"error"</span><span style="color:#24292E">, err),</span></span>
+<span class="line"><span style="color:#24292E">                  zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"request"</span><span style="color:#24292E">, </span><span style="color:#D73A49">string</span><span style="color:#24292E">(httpRequest)),</span></span>
+<span class="line"><span style="color:#24292E">               )</span></span>
+<span class="line"><span style="color:#24292E">               c.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(err.(</span><span style="color:#D73A49">error</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">               c.</span><span style="color:#6F42C1">Abort</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#6A737D">               // 链接已断开，无法写状态码</span></span>
+<span class="line"><span style="color:#D73A49">               return</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            // 如果不是链接中断，就开始记录堆栈信息</span></span>
+<span class="line"><span style="color:#24292E">            logger.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(</span><span style="color:#032F62">"recovery from panic"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">               zap.</span><span style="color:#6F42C1">Time</span><span style="color:#24292E">(</span><span style="color:#032F62">"time"</span><span style="color:#24292E">, time.</span><span style="color:#6F42C1">Now</span><span style="color:#24292E">()),               </span><span style="color:#6A737D">// 记录时间</span></span>
+<span class="line"><span style="color:#24292E">               zap.</span><span style="color:#6F42C1">Any</span><span style="color:#24292E">(</span><span style="color:#032F62">"error"</span><span style="color:#24292E">, err),                      </span><span style="color:#6A737D">// 记录错误信息</span></span>
+<span class="line"><span style="color:#24292E">               zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"request"</span><span style="color:#24292E">, </span><span style="color:#D73A49">string</span><span style="color:#24292E">(httpRequest)), </span><span style="color:#6A737D">// 请求信息</span></span>
+<span class="line"><span style="color:#24292E">               zap.</span><span style="color:#6F42C1">Stack</span><span style="color:#24292E">(</span><span style="color:#032F62">"stacktrace"</span><span style="color:#24292E">),                    </span><span style="color:#6A737D">// 调用堆栈信息</span></span>
+<span class="line"><span style="color:#24292E">            )</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            // 返回 500 状态码</span></span>
+<span class="line"><span style="color:#24292E">            c.</span><span style="color:#6F42C1">AbortWithStatusJSON</span><span style="color:#24292E">(http.StatusInternalServerError, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">               "message"</span><span style="color:#24292E">: </span><span style="color:#032F62">"服务器内部错误，请稍后再试"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            })</span></span>
+<span class="line"><span style="color:#24292E">         }</span></span>
+<span class="line"><span style="color:#24292E">      }()</span></span>
+<span class="line"><span style="color:#24292E">      c.</span><span style="color:#6F42C1">Next</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这里已经有了详解的注释，不做解释了</p>
+<h1 id="gorm整合zap">gorm整合zap</h1>
+<p><code>pkg/logger/gorm_logger.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> logger</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">context</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">errors</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/helpers</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go.uber.org/zap</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">gorm.io/gorm</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">   gormlogger </span><span style="color:#032F62">"</span><span style="color:#6F42C1">gorm.io/gorm/logger</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">path/filepath</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">runtime</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">strings</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">time</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> GormLogger</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   ZapLogger     </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">zap</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Logger</span></span>
+<span class="line"><span style="color:#24292E">   SlowThreshold </span><span style="color:#6F42C1">time</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Duration</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> NewGormLogger</span><span style="color:#24292E">() </span><span style="color:#6F42C1">GormLogger</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#6F42C1"> GormLogger</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">      ZapLogger:     Logger,</span></span>
+<span class="line"><span style="color:#24292E">      SlowThreshold: </span><span style="color:#005CC5">200</span><span style="color:#D73A49"> *</span><span style="color:#24292E"> time.Millisecond,</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// LogMode 实现 gormlogger.Interface 的 LogMode 方法</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">l </span><span style="color:#6F42C1">GormLogger</span><span style="color:#24292E">) </span><span style="color:#6F42C1">LogMode</span><span style="color:#24292E">(</span><span style="color:#E36209">level</span><span style="color:#6F42C1"> gormlogger</span><span style="color:#24292E">.</span><span style="color:#6F42C1">LogLevel</span><span style="color:#24292E">) </span><span style="color:#6F42C1">gormlogger</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Interface</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#6F42C1"> GormLogger</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">      ZapLogger:     l.ZapLogger,</span></span>
+<span class="line"><span style="color:#24292E">      SlowThreshold: l.SlowThreshold,</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Info 实现 gormlogger.Interface 的 Info 方法</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">l </span><span style="color:#6F42C1">GormLogger</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Info</span><span style="color:#24292E">(</span><span style="color:#E36209">ctx</span><span style="color:#6F42C1"> context</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">, </span><span style="color:#E36209">str</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">args</span><span style="color:#D73A49"> ...interface</span><span style="color:#24292E">{}) {</span></span>
+<span class="line"><span style="color:#24292E">   l.</span><span style="color:#6F42C1">logger</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Sugar</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Debugf</span><span style="color:#24292E">(str, args</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Warn 实现 gormlogger.Interface 的 Warn 方法</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">l </span><span style="color:#6F42C1">GormLogger</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Warn</span><span style="color:#24292E">(</span><span style="color:#E36209">ctx</span><span style="color:#6F42C1"> context</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">, </span><span style="color:#E36209">str</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">args</span><span style="color:#D73A49"> ...interface</span><span style="color:#24292E">{}) {</span></span>
+<span class="line"><span style="color:#24292E">   l.</span><span style="color:#6F42C1">logger</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Sugar</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Warnf</span><span style="color:#24292E">(str, args</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Error 实现 gormlogger.Interface 的 Error 方法</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">l </span><span style="color:#6F42C1">GormLogger</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(</span><span style="color:#E36209">ctx</span><span style="color:#6F42C1"> context</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">, </span><span style="color:#E36209">str</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">args</span><span style="color:#D73A49"> ...interface</span><span style="color:#24292E">{}) {</span></span>
+<span class="line"><span style="color:#24292E">   l.</span><span style="color:#6F42C1">logger</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Sugar</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Errorf</span><span style="color:#24292E">(str, args</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Trace 实现 gormlogger.Interface 的 Trace 方法</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">l </span><span style="color:#6F42C1">GormLogger</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Trace</span><span style="color:#24292E">(</span><span style="color:#E36209">ctx</span><span style="color:#6F42C1"> context</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">, </span><span style="color:#E36209">begin</span><span style="color:#6F42C1"> time</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Time</span><span style="color:#24292E">, </span><span style="color:#E36209">fc</span><span style="color:#D73A49"> func</span><span style="color:#24292E">() (</span><span style="color:#D73A49">string</span><span style="color:#24292E">, </span><span style="color:#D73A49">int64</span><span style="color:#24292E">), </span><span style="color:#E36209">err</span><span style="color:#D73A49"> error</span><span style="color:#24292E">) {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 获取运行时间</span></span>
+<span class="line"><span style="color:#24292E">   elapsed </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> time.</span><span style="color:#6F42C1">Since</span><span style="color:#24292E">(begin)</span></span>
+<span class="line"><span style="color:#6A737D">   // 获取 SQL 请求和返回条数</span></span>
+<span class="line"><span style="color:#24292E">   sql, rows </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> fc</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 通用字段</span></span>
+<span class="line"><span style="color:#24292E">   logFields </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> []</span><span style="color:#6F42C1">zap</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">      zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"sql"</span><span style="color:#24292E">, sql),</span></span>
+<span class="line"><span style="color:#24292E">      zap.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(</span><span style="color:#032F62">"time"</span><span style="color:#24292E">, helpers.</span><span style="color:#6F42C1">MicrosecondsStr</span><span style="color:#24292E">(elapsed)),</span></span>
+<span class="line"><span style="color:#24292E">      zap.</span><span style="color:#6F42C1">Int64</span><span style="color:#24292E">(</span><span style="color:#032F62">"rows"</span><span style="color:#24292E">, rows),</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // Gorm 错误</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">      // 记录未找到的错误使用 warning 等级</span></span>
+<span class="line"><span style="color:#D73A49">      if</span><span style="color:#24292E"> errors.</span><span style="color:#6F42C1">Is</span><span style="color:#24292E">(err, gorm.ErrRecordNotFound) {</span></span>
+<span class="line"><span style="color:#24292E">         l.</span><span style="color:#6F42C1">logger</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Warn</span><span style="color:#24292E">(</span><span style="color:#032F62">"Database ErrRecordNotFound"</span><span style="color:#24292E">, logFields</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">      } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">         // 其他错误使用 error 等级</span></span>
+<span class="line"><span style="color:#24292E">         logFields </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(logFields, zap.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(err))</span></span>
+<span class="line"><span style="color:#24292E">         l.</span><span style="color:#6F42C1">logger</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(</span><span style="color:#032F62">"Database Error"</span><span style="color:#24292E">, logFields</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 慢查询日志</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> l.SlowThreshold </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> elapsed </span><span style="color:#D73A49">></span><span style="color:#24292E"> l.SlowThreshold {</span></span>
+<span class="line"><span style="color:#24292E">      l.</span><span style="color:#6F42C1">logger</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Warn</span><span style="color:#24292E">(</span><span style="color:#032F62">"Database Slow Log"</span><span style="color:#24292E">, logFields</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 记录所有 SQL 请求</span></span>
+<span class="line"><span style="color:#24292E">   l.</span><span style="color:#6F42C1">logger</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Debug</span><span style="color:#24292E">(</span><span style="color:#032F62">"Database Query"</span><span style="color:#24292E">, logFields</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// logger 内用的辅助方法，确保 Zap 内置信息 Caller 的准确性（如 paginator/paginator.go:148）</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">l </span><span style="color:#6F42C1">GormLogger</span><span style="color:#24292E">) </span><span style="color:#6F42C1">logger</span><span style="color:#24292E">() </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">zap</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Logger</span><span style="color:#24292E"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 跳过 gorm 内置的调用</span></span>
+<span class="line"><span style="color:#D73A49">   var</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#24292E">      gormPackage    </span><span style="color:#D73A49">=</span><span style="color:#24292E"> filepath.</span><span style="color:#6F42C1">Join</span><span style="color:#24292E">(</span><span style="color:#032F62">"gorm.io"</span><span style="color:#24292E">, </span><span style="color:#032F62">"gorm"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">      zapgormPackage </span><span style="color:#D73A49">=</span><span style="color:#24292E"> filepath.</span><span style="color:#6F42C1">Join</span><span style="color:#24292E">(</span><span style="color:#032F62">"moul.io"</span><span style="color:#24292E">, </span><span style="color:#032F62">"zapgorm2"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">   )</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 减去一次封装，以及一次在 logger 初始化里添加 zap.AddCallerSkip(1)</span></span>
+<span class="line"><span style="color:#24292E">   clone </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> l.ZapLogger.</span><span style="color:#6F42C1">WithOptions</span><span style="color:#24292E">(zap.</span><span style="color:#6F42C1">AddCallerSkip</span><span style="color:#24292E">(</span><span style="color:#D73A49">-</span><span style="color:#005CC5">2</span><span style="color:#24292E">))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 15</span><span style="color:#24292E">; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      _, file, _, ok </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> runtime.</span><span style="color:#6F42C1">Caller</span><span style="color:#24292E">(i)</span></span>
+<span class="line"><span style="color:#D73A49">      switch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">      case</span><span style="color:#D73A49"> !</span><span style="color:#24292E">ok:</span></span>
+<span class="line"><span style="color:#D73A49">      case</span><span style="color:#24292E"> strings.</span><span style="color:#6F42C1">HasSuffix</span><span style="color:#24292E">(file, </span><span style="color:#032F62">"_test.go"</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#D73A49">      case</span><span style="color:#24292E"> strings.</span><span style="color:#6F42C1">Contains</span><span style="color:#24292E">(file, gormPackage):</span></span>
+<span class="line"><span style="color:#D73A49">      case</span><span style="color:#24292E"> strings.</span><span style="color:#6F42C1">Contains</span><span style="color:#24292E">(file, zapgormPackage):</span></span>
+<span class="line"><span style="color:#D73A49">      default</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6A737D">         // 返回一个附带跳过行号的新的 zap logger</span></span>
+<span class="line"><span style="color:#D73A49">         return</span><span style="color:#24292E"> clone.</span><span style="color:#6F42C1">WithOptions</span><span style="color:#24292E">(zap.</span><span style="color:#6F42C1">AddCallerSkip</span><span style="color:#24292E">(i))</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> l.ZapLogger</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这里已经有了详解的注释，不做解释了，这一部分内容能看懂多少看多少就行了，不必要在刚开始学习时拘泥于细节，等以后有了更多的经验再来搞懂也不迟</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/08/28/go-api-practice-7/"><span>上一篇</span>(七)集成zap</a></div><div><a href="/2022/09/08/go-api-practice-9/"><span>下一篇</span>(九)使用redis和captcha</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

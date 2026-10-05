@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="在我们初学C语言时，我们会有这样一个认知或者感觉：指针和数组是相同的。我们也经常干着这样的事情，比如下面这样代码。 这样看起来两者似乎确实没有差别，指针可以像数组一样使用[]，而数组名也可以解引用，而且它们的结果是一致的。 或者在我们定义函数时，也可能会把两者当成一种处理。 一切看起来都是那么自然。"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/12/27/%E6%8C%87%E9%92%88%E5%92%8C%E6%95%B0%E7%BB%84%E5%B9%B6%E4%B8%8D%E7%9B%B8%E5%90%8C%E2%80%94%E2%80%94C%E8%AF%AD%E8%A8%80/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="指针和数组并不相同——C语言 · jking の 博客"><meta property="og:description" content="在我们初学C语言时，我们会有这样一个认知或者感觉：指针和数组是相同的。我们也经常干着这样的事情，比如下面这样代码。 这样看起来两者似乎确实没有差别，指针可以像数组一样使用[]，而数组名也可以解引用，而且它们的结果是一致的。 或者在我们定义函数时，也可能会把两者当成一种处理。 一切看起来都是那么自然。"><meta property="og:url" content="https://jking412.github.io/2022/12/27/%E6%8C%87%E9%92%88%E5%92%8C%E6%95%B0%E7%BB%84%E5%B9%B6%E4%B8%8D%E7%9B%B8%E5%90%8C%E2%80%94%E2%80%94C%E8%AF%AD%E8%A8%80/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-12-27T12:33:02.000Z"><title>指针和数组并不相同——C语言 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-12-27T12:33:02.000Z">2022.12.27</time><span>jking</span></div><h1>指针和数组并不相同——C语言</h1></header><div class="prose"><p>在我们初学C语言时，我们会有这样一个认知或者感觉：指针和数组是相同的。我们也经常干着这样的事情，比如下面这样代码。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">int</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    int</span><span style="color:#E36209"> a</span><span style="color:#24292E">[</span><span style="color:#005CC5">3</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">};</span></span>
+<span class="line"><span style="color:#D73A49">    int</span><span style="color:#D73A49"> *</span><span style="color:#24292E">p </span><span style="color:#D73A49">=</span><span style="color:#24292E"> a;</span></span>
+<span class="line"><span style="color:#6F42C1">    printf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%d\n</span><span style="color:#032F62">"</span><span style="color:#24292E">, </span><span style="color:#E36209">p</span><span style="color:#24292E">[</span><span style="color:#005CC5">0</span><span style="color:#24292E">]);</span></span>
+<span class="line"><span style="color:#6F42C1">    printf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%d</span><span style="color:#032F62">"</span><span style="color:#24292E">,</span><span style="color:#D73A49">*</span><span style="color:#24292E">(a</span><span style="color:#D73A49">+</span><span style="color:#005CC5">1</span><span style="color:#24292E">));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这样看起来两者似乎确实没有差别，指针可以像数组一样使用<code>[]</code>，而数组名也可以<code>解引用</code>，而且它们的结果是一致的。</p>
+<p>或者在我们定义函数时，也可能会把两者当成一种处理。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">void</span><span style="color:#6F42C1"> foo</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#D73A49"> *</span><span style="color:#E36209">p</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#6F42C1">    printf</span><span style="color:#24292E">(</span><span style="color:#032F62">"foo: </span><span style="color:#005CC5">%d</span><span style="color:#032F62">"</span><span style="color:#24292E">, </span><span style="color:#E36209">p</span><span style="color:#24292E">[</span><span style="color:#005CC5">1</span><span style="color:#24292E">]);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">int</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    int</span><span style="color:#E36209"> a</span><span style="color:#24292E">[</span><span style="color:#005CC5">3</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">};</span></span>
+<span class="line"><span style="color:#6F42C1">    foo</span><span style="color:#24292E">(a);</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>一切看起来都是那么自然。</p>
+<p>首先我们要肯定，两者之前确实有相似之处，但是如果我们直接把两者划上一个等号，那就大错特错了，接下来我们就来看看两者之间到底有哪些区别。</p>
+<h1 id="数组中到底存了什么">数组中到底存了什么</h1>
+<p>这个问题似乎很简单</p>
+<p>比如下面这个数组，只要学过C语言的数组，你几乎可以不假思索的回答出来，存了<code>1,2和3</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">int</span><span style="color:#E36209"> a</span><span style="color:#24292E">[</span><span style="color:#005CC5">3</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">};</span></span></code></pre>
+<p>ok，那么继续来回答一个简单的问题，下面这个指针p中存了什么，这个问题也很简单，储存了<code>a的地址</code>。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">int</span><span style="color:#D73A49"> *</span><span style="color:#24292E">p </span><span style="color:#D73A49">=</span><span style="color:#24292E"> a;</span></span></code></pre>
+<p>如果对上面的问题没有异议，那么我们可以画出这样的内存图</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/NGW.png" alt="NGW"></p>
+<p>ok，我们再回来看前面的赋值，那么问题来了，我们直接把<code>a</code>的值赋给了<code>p</code>，那么<code>a</code>的值是存放在哪里的呢，也就是<code>0x10000</code>这个值原来是存放在了什么地方呢？</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">int</span><span style="color:#D73A49"> *</span><span style="color:#24292E">p </span><span style="color:#D73A49">=</span><span style="color:#24292E"> a;</span></span></code></pre>
+<p>我们似乎找不到<code>0x10000</code>的所在位置，而在<code>a</code>这个位置上储存的是<code>1</code>，我们再来看这个赋值语句，是不是突然又困惑起来了，好像<code>=</code>这个操作符也不是那么自然了，按照我们对于<code>=</code>的理解，应该是把<code>1</code>赋值给<code>p</code>。</p>
+<p>那么问题出在哪里呢，我记得我们初学C语言时，教科书上对于数组名的说明是：<code>数组名代表的是该数组首元素的地址</code>，我们要注意这个<code>代表</code>，也就说这个<code>a</code>所储存的地址在内存中并没有分配空间，<code>a也仅仅只是代表了一个地址</code>。具体为什么会这样，这是C语言内部要做的，就不用我们操心了，我们只需要知道数组名代表了数组首元素的地址，但是并没有给这个地址的存储分配一个空间。</p>
+<p>从一点上来看，数组和指针已经有了明显的不同了，而数组名实际上没有用空间来存下地址，所以数组名也是不能够作为左值的，比如下面就是一个错误的例子。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#D73A49">int</span><span style="color:#E36209"> a</span><span style="color:#24292E">[</span><span style="color:#005CC5">3</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">};</span></span>
+<span class="line"><span style="color:#6A737D">// 1.</span></span>
+<span class="line"><span style="color:#D73A49">int</span><span style="color:#E36209"> b</span><span style="color:#24292E">[</span><span style="color:#005CC5">3</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {</span><span style="color:#005CC5">4</span><span style="color:#24292E">, </span><span style="color:#005CC5">5</span><span style="color:#24292E">, </span><span style="color:#005CC5">6</span><span style="color:#24292E">};</span></span>
+<span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">=</span><span style="color:#24292E"> b;</span></span>
+<span class="line"><span style="color:#6A737D">// 2.</span></span>
+<span class="line"><span style="color:#D73A49">int</span><span style="color:#24292E"> b </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">int</span><span style="color:#D73A49"> *</span><span style="color:#24292E">p </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#24292E">b;</span></span>
+<span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">=</span><span style="color:#24292E"> p;</span></span>
+<span class="line"><span style="color:#6A737D">// 数组名不可被赋值</span></span></code></pre>
+<h1 id="数组和指针分别是如何工作的">数组和指针分别是如何工作的</h1>
+<p>我们再从一个简单的例子来说明如果把数组名和指针等同会闹出怎么样的笑话。</p>
+<p>我们先来思考一下，指针是如何工作的</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#6F42C1">printf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%d</span><span style="color:#032F62">"</span><span style="color:#24292E">,</span><span style="color:#D73A49">*</span><span style="color:#E36209">p</span><span style="color:#24292E">);</span></span></code></pre>
+<p>这里我相信大家都很好理解</p>
+<ol>
+<li>
+<p>取出地址<code>0x10000</code></p>
+</li>
+<li>
+<p>再根据地址<code>0x10000</code>取出地址中的值</p>
+</li>
+</ol>
+<p>这个我相信对于学过C语言指针的大家都很好理解，如果我们换成数组名呢</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="c"><code><span class="line"><span style="color:#6F42C1">printf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%d</span><span style="color:#032F62">"</span><span style="color:#24292E">,</span><span style="color:#D73A49">*</span><span style="color:#E36209">a</span><span style="color:#24292E">);</span></span></code></pre>
+<p>如果我们按照指针的工作方式去理解它，那么第一步应该是取出地址，那么地址是什么呢，我们会惊人的发现这个<code>地址竟然是1</code>，这毫无疑问是一个无效地址，此时如果程序崩溃我们应该庆幸，否则将会产生无法预料的后果。</p>
+<p>但事实上，上面<code>*a</code>的方式也可以正确的取出值，这我们又是一个混淆指针和数组名的原因。</p>
+<p>由上我们不难发现，C语言在解引用时，对待数组名和指针的策略是不一样的。那我们不妨再细分一下它们的工作流程，仔细看看它们有什么区别。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221228102700430.png" alt=""></p>
+<p>我们假设<code>指针P</code>的地址是<code>0x20000</code>。</p>
+<p>我们先来看看<code>*p</code>的工作流程：</p>
+<ol>
+<li>找到指针P所在的地址<code>0x20000</code></li>
+<li>取出这个地址的值<code>0x10000</code></li>
+<li>最后再根据地址<code>0x10000</code>取出值<code>1</code></li>
+</ol>
+<p>再来看看<code>*a</code>的工作流程：</p>
+<ol>
+<li>找到<code>a</code>所在的地址<code>0x10000</code></li>
+<li>取出<code>0x10000</code>的值<code>1</code></li>
+</ol>
+<p>怎么样，是不是发现两者大不相同，至于是如何找到指针地址<code>0x20000</code>的，这个就要交给C语言本身了，我们不需要关心。</p>
+<p>好了，说了这么多，我并不是要说以前的用法都是错误的，事实上，C语言允许我们这样去处理，这样处理起来更方便，其实就够了，我们依然可以用以前的方法去做。主要目的还是希望大家在使用两者的同时更要清楚它们之间的区别，这样一是可以更好的使用它们，二是也减小了我们写出错误代码的可能性。</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/12/26/Dosbox%E5%92%8Cmasm%E6%90%AD%E5%BB%BA%E6%B1%87%E7%BC%96%E7%8E%AF%E5%A2%83/"><span>上一篇</span>Dosbox和masm搭建汇编环境</a></div><div><a href="/2023/01/01/gdb%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/"><span>下一篇</span>GDB快速入门</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="Shiro是什么 shiro是java的一个安全框架，关于它的优势和一些功能就不细讲了 Shiro的架构 先放一张经典的Shiro架构图 - Subject：可以理解为资源的请求者 - Shiro SecurityManager：作为一个中间的过度，管理着shiro各种资源 - Realm：存放着真"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/09/28/springboot%E4%BD%BF%E7%94%A8shiro%E5%AE%8C%E6%88%90%E9%89%B4%E6%9D%83/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="『springboot』shiro鉴权 · jking の 博客"><meta property="og:description" content="Shiro是什么 shiro是java的一个安全框架，关于它的优势和一些功能就不细讲了 Shiro的架构 先放一张经典的Shiro架构图 - Subject：可以理解为资源的请求者 - Shiro SecurityManager：作为一个中间的过度，管理着shiro各种资源 - Realm：存放着真"><meta property="og:url" content="https://jking412.github.io/2022/09/28/springboot%E4%BD%BF%E7%94%A8shiro%E5%AE%8C%E6%88%90%E9%89%B4%E6%9D%83/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-09-28T06:03:45.000Z"><title>『springboot』shiro鉴权 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-09-28T06:03:45.000Z">2022.09.28</time><span>jking</span></div><h1>『springboot』shiro鉴权</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/springboot/">springboot</a></li><li><a href="/tags/shiro/">shiro</a></li></ul></header><details class="toc"><summary>文章目录 <span>7 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#shiro是什么">Shiro是什么</a></li><li><a href="#shiro的架构">Shiro的架构</a></li><li><a href="#快速入门">快速入门</a></li><li><a href="#数据库的设计">数据库的设计</a></li><li><a href="#使用shiro">使用shiro</a></li><li class="nested"><a href="#realm配置">Realm配置</a></li><li class="nested"><a href="#shiroconfig配置">shiroconfig配置</a></li></ul></nav></details><div class="prose"><h1 id="shiro是什么">Shiro是什么</h1>
+<p>shiro是java的一个安全框架，关于它的优势和一些功能就不细讲了</p>
+<h1 id="shiro的架构">Shiro的架构</h1>
+<p>先放一张经典的Shiro架构图</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/v2-c0841dfc8cb19a94c322eef635371cf6_720w.webp" alt="img"></p>
+<ul>
+<li>Subject：可以理解为资源的请求者</li>
+<li>Shiro SecurityManager：作为一个中间的过度，管理着shiro各种资源</li>
+<li>Realm：存放着真正的认证和授权信息</li>
+</ul>
+<h1 id="快速入门">快速入门</h1>
+<p>下面就是一个shiro在项目中应用的简单例子，因为是shiro的快速入门，所以shiro之外的其它技术如何使用包括sql语句的编写不会去具体讲解，所以建议开始前把代码拉下来</p>
+<p>完整代码请访问仓库</p>
+<p><a href="https://github.com/jking412/java-example">jking412/java-example: 一些java的demo，主要是springboot整合框架的案例 (github.com)</a></p>
+<h2 id="数据库的设计">数据库的设计</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">create</span><span style="color:#D73A49"> table</span><span style="color:#6F42C1"> goods</span></span>
+<span class="line"><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#24292E">    id    </span><span style="color:#D73A49">int</span><span style="color:#24292E"> auto_increment</span></span>
+<span class="line"><span style="color:#D73A49">        primary key</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#D73A49">    name</span><span style="color:#D73A49">  varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">50</span><span style="color:#24292E">) </span><span style="color:#D73A49">null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    price </span><span style="color:#D73A49">int</span><span style="color:#D73A49">         null</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">    collate</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> utf8mb4_0900_ai_ci;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">create</span><span style="color:#D73A49"> table</span><span style="color:#6F42C1"> sys_permission</span></span>
+<span class="line"><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#24292E">    permission_id   </span><span style="color:#D73A49">int</span><span style="color:#24292E"> auto_increment</span></span>
+<span class="line"><span style="color:#D73A49">        primary key</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    permission_name </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">50</span><span style="color:#24292E">)  </span><span style="color:#D73A49">not null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    permission_desc </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">100</span><span style="color:#24292E">) </span><span style="color:#D73A49">not null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    permission_url  </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">100</span><span style="color:#24292E">) </span><span style="color:#D73A49">not null</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">    collate</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> utf8mb4_0900_ai_ci;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">create</span><span style="color:#D73A49"> table</span><span style="color:#6F42C1"> sys_role</span></span>
+<span class="line"><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#24292E">    role_id   </span><span style="color:#D73A49">int</span><span style="color:#24292E"> auto_increment</span></span>
+<span class="line"><span style="color:#D73A49">        primary key</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    role_name </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">50</span><span style="color:#24292E">)  </span><span style="color:#D73A49">not null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    role_desc </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">100</span><span style="color:#24292E">) </span><span style="color:#D73A49">not null</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">    collate</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> utf8mb4_0900_ai_ci;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">create</span><span style="color:#D73A49"> table</span><span style="color:#6F42C1"> sys_role_permission</span></span>
+<span class="line"><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#24292E">    role_id       </span><span style="color:#D73A49">int</span><span style="color:#D73A49"> not null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    permission_id </span><span style="color:#D73A49">int</span><span style="color:#D73A49"> not null</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">    collate</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> utf8mb4_0900_ai_ci;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">create</span><span style="color:#D73A49"> table</span><span style="color:#6F42C1"> sys_user</span></span>
+<span class="line"><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#24292E">    user_id       </span><span style="color:#D73A49">int</span><span style="color:#24292E"> auto_increment</span></span>
+<span class="line"><span style="color:#D73A49">        primary key</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    user_name     </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">50</span><span style="color:#24292E">) </span><span style="color:#D73A49">not null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    user_password </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">50</span><span style="color:#24292E">) </span><span style="color:#D73A49">not null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    user_salt     </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">50</span><span style="color:#24292E">) </span><span style="color:#D73A49">not null</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">    collate</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> utf8mb4_0900_ai_ci;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">create</span><span style="color:#D73A49"> table</span><span style="color:#6F42C1"> sys_user_role</span></span>
+<span class="line"><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#24292E">    user_id </span><span style="color:#D73A49">int</span><span style="color:#D73A49"> not null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    role_id </span><span style="color:#D73A49">int</span><span style="color:#D73A49"> not null</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">    collate</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> utf8mb4_0900_ai_ci;</span></span></code></pre>
+<p>我们需要六张表</p>
+<p>五张表用于系统的安全管理</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>表名</th><th>作用</th></tr></thead><tbody><tr><td>sys_user</td><td>用户信息</td></tr><tr><td>sys_role</td><td>角色</td></tr><tr><td>sys_permission</td><td>权限</td></tr><tr><td>sys_role_permission</td><td>角色和权限之间的关系</td></tr><tr><td>sys_user_role</td><td>用户于角色的关系</td></tr></tbody></table>
+<p>最后一张goods表用户测试，可以随意建</p>
+<h2 id="使用shiro">使用shiro</h2>
+<p>shiro的使用其实相当的简单，我们只需要配置好两个类即可</p>
+<h3 id="realm配置">Realm配置</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#24292E"> com.example.shirotest.config;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> com.example.shirotest.entity.SysPermission;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> com.example.shirotest.entity.SysRole;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> com.example.shirotest.entity.UserInfo;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> com.example.shirotest.mapper.SysPermissionMapper;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> com.example.shirotest.mapper.UserInfoMapper;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.authc.AuthenticationException;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.authc.AuthenticationInfo;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.authc.AuthenticationToken;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.authc.SimpleAuthenticationInfo;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.authz.AuthorizationInfo;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.authz.SimpleAuthorizationInfo;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.realm.AuthorizingRealm;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.subject.PrincipalCollection;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.util.ByteSource;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.springframework.beans.factory.annotation.Autowired;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> java.util.List;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">public</span><span style="color:#D73A49"> class</span><span style="color:#6F42C1"> ShiroRealm</span><span style="color:#D73A49"> extends</span><span style="color:#6F42C1"> AuthorizingRealm</span><span style="color:#24292E"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Autowired</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#24292E"> UserInfoMapper userInfoMapper;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Autowired</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#24292E"> SysPermissionMapper sysPermissionMapper;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Override</span></span>
+<span class="line"><span style="color:#D73A49">    protected</span><span style="color:#24292E"> AuthorizationInfo </span><span style="color:#6F42C1">doGetAuthorizationInfo</span><span style="color:#24292E">(PrincipalCollection </span><span style="color:#E36209">principalCollection</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">        UserInfo userInfo </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (UserInfo) principalCollection.</span><span style="color:#6F42C1">getPrimaryPrincipal</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        SimpleAuthorizationInfo simpleAuthorizationInfo </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> SimpleAuthorizationInfo</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">        for</span><span style="color:#24292E">(SysRole role </span><span style="color:#D73A49">:</span><span style="color:#24292E"> userInfo.</span><span style="color:#6F42C1">getRoles</span><span style="color:#24292E">()){</span></span>
+<span class="line"><span style="color:#24292E">            simpleAuthorizationInfo.</span><span style="color:#6F42C1">addRole</span><span style="color:#24292E">(role.</span><span style="color:#6F42C1">getRole</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#24292E">            List&#x3C;</span><span style="color:#D73A49">SysPermission</span><span style="color:#24292E">> sysPermissions </span><span style="color:#D73A49">=</span><span style="color:#24292E"> sysPermissionMapper.</span><span style="color:#6F42C1">selectPermissionByRoleId</span><span style="color:#24292E">(role.</span><span style="color:#6F42C1">getId</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#D73A49">            for</span><span style="color:#24292E">(SysPermission sysPermission </span><span style="color:#D73A49">:</span><span style="color:#24292E"> sysPermissions){</span></span>
+<span class="line"><span style="color:#24292E">                simpleAuthorizationInfo.</span><span style="color:#6F42C1">addStringPermission</span><span style="color:#24292E">(sysPermission.</span><span style="color:#6F42C1">getName</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> simpleAuthorizationInfo;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Override</span></span>
+<span class="line"><span style="color:#D73A49">    protected</span><span style="color:#24292E"> AuthenticationInfo </span><span style="color:#6F42C1">doGetAuthenticationInfo</span><span style="color:#24292E">(AuthenticationToken </span><span style="color:#E36209">authenticationToken</span><span style="color:#24292E">) </span><span style="color:#D73A49">throws</span><span style="color:#24292E"> AuthenticationException {</span></span>
+<span class="line"><span style="color:#24292E">        String username </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (String)authenticationToken.</span><span style="color:#6F42C1">getPrincipal</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        UserInfo userInfo </span><span style="color:#D73A49">=</span><span style="color:#24292E"> userInfoMapper.</span><span style="color:#6F42C1">findByUsername</span><span style="color:#24292E">(username);</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E">(username </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> null</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">        SimpleAuthenticationInfo simpleAuthenticationInfo </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> SimpleAuthenticationInfo</span><span style="color:#24292E">(userInfo,</span></span>
+<span class="line"><span style="color:#24292E">                userInfo.</span><span style="color:#6F42C1">getPassword</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#24292E">                ByteSource.Util.</span><span style="color:#6F42C1">bytes</span><span style="color:#24292E">(userInfo.</span><span style="color:#6F42C1">getSalt</span><span style="color:#24292E">()),</span></span>
+<span class="line"><span style="color:#005CC5">                this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">getName</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> simpleAuthenticationInfo;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<blockquote>
+<p>认证和授权</p>
+</blockquote>
+<p>认证是针对某个用户的，认证成功可以认为是登录成功</p>
+<p>虽然用户已经经过了登录，但用户并不对所有的资源具有操作权限，所以我们需要对用户进行授权</p>
+<p>授权是针对具体的某个操作的，给予用户具体的操作权限</p>
+<blockquote>
+<p>doGetAuthenticationInfo()</p>
+</blockquote>
+<p>完成认证的函数，在我们调用登录的方法时，我们可以通过<code>authenticationToken.getPrincipal()</code>取得token中的username，我们可以通过这个username来取出dao层中的用户相关数据，并且把从数据库中取出的数据放到shiro中，shiro会把密码和token中的密码进行自动比对。</p>
+<p>这里是在<code>UserController</code>中的登录代码</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#24292E">UsernamePasswordToken token </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> UsernamePasswordToken</span><span style="color:#24292E">(map.</span><span style="color:#6F42C1">get</span><span style="color:#24292E">(</span><span style="color:#032F62">"username"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">(),map.</span><span style="color:#6F42C1">get</span><span style="color:#24292E">(</span><span style="color:#032F62">"password"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">toString</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#24292E">subject.</span><span style="color:#6F42C1">login</span><span style="color:#24292E">(token);</span></span></code></pre>
+<blockquote>
+<p>userInfo.getSalt()</p>
+</blockquote>
+<p>这里是用户的盐，我们在存放用户密码时会对用户的密码进行加密，但是直接加密的方式还是不够安全，我们可以通过给密码添加上一段随机生成的字符再加密的方式提高用户密码的安全性</p>
+<blockquote>
+<p>doGetAuthorizationInfo()</p>
+</blockquote>
+<p>完成授权的函数，我们查询出用户的所有角色，然后查询角色拥有的权限，然后最后把这些数据都添加都shiro中</p>
+<h3 id="shiroconfig配置">shiroconfig配置</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#24292E"> com.example.shirotest.config;</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.authc.credential.HashedCredentialsMatcher;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.spring.web.ShiroFilterFactoryBean;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.web.mgt.DefaultWebSecurityManager;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.springframework.context.annotation.Bean;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.springframework.context.annotation.Configuration;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> org.apache.shiro.mgt.SecurityManager;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> java.util.LinkedHashMap;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> java.util.Map;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">@</span><span style="color:#D73A49">Configuration</span></span>
+<span class="line"><span style="color:#D73A49">public</span><span style="color:#D73A49"> class</span><span style="color:#6F42C1"> ShiroConfig</span><span style="color:#24292E"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Bean</span></span>
+<span class="line"><span style="color:#D73A49">    public</span><span style="color:#24292E"> ShiroFilterFactoryBean </span><span style="color:#6F42C1">shirFilter</span><span style="color:#24292E">(SecurityManager </span><span style="color:#E36209">securityManager</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">        ShiroFilterFactoryBean shiroFilterFactoryBean </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> ShiroFilterFactoryBean</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        shiroFilterFactoryBean.</span><span style="color:#6F42C1">setSecurityManager</span><span style="color:#24292E">(securityManager);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">        Map&#x3C;</span><span style="color:#D73A49">String</span><span style="color:#24292E">,</span><span style="color:#D73A49">String</span><span style="color:#24292E">> filterChainDefinitionMap </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#24292E"> LinkedHashMap&#x3C;</span><span style="color:#D73A49">String</span><span style="color:#24292E">,</span><span style="color:#D73A49">String</span><span style="color:#24292E">>();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">        // 配置不会被拦截的链接 顺序判断</span></span>
+<span class="line"><span style="color:#24292E">        filterChainDefinitionMap.</span><span style="color:#6F42C1">put</span><span style="color:#24292E">(</span><span style="color:#032F62">"/static/**"</span><span style="color:#24292E">, </span><span style="color:#032F62">"anon"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6A737D">        // 配置退出 过滤器,其中的具体的退出代码Shiro已经替我们实现了</span></span>
+<span class="line"><span style="color:#24292E">        filterChainDefinitionMap.</span><span style="color:#6F42C1">put</span><span style="color:#24292E">(</span><span style="color:#032F62">"/logout"</span><span style="color:#24292E">, </span><span style="color:#032F62">"logout"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6A737D">        // &#x3C;!-- 过滤链定义，从上向下顺序执行，一般将/**放在最为下边 -->:这是一个坑呢，一不小心代码就不好使了;</span></span>
+<span class="line"><span style="color:#6A737D">        // &#x3C;!-- authc:所有url都必须认证通过才可以访问; anon:所有url都都可以匿名访问--></span></span>
+<span class="line"><span style="color:#24292E">        filterChainDefinitionMap.</span><span style="color:#6F42C1">put</span><span style="color:#24292E">(</span><span style="color:#032F62">"/**"</span><span style="color:#24292E">, </span><span style="color:#032F62">"authc"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6A737D">        // 如果不设置默认会自动寻找Web工程根目录下的"/login.jsp"页面</span></span>
+<span class="line"><span style="color:#24292E">        shiroFilterFactoryBean.</span><span style="color:#6F42C1">setLoginUrl</span><span style="color:#24292E">(</span><span style="color:#032F62">"/login"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6A737D">        // 登录成功后要跳转的链接</span></span>
+<span class="line"><span style="color:#6A737D">//        shiroFilterFactoryBean.setSuccessUrl("/index");</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">        //未授权界面;</span></span>
+<span class="line"><span style="color:#6A737D">//        shiroFilterFactoryBean.setUnauthorizedUrl("/403");</span></span>
+<span class="line"><span style="color:#24292E">        shiroFilterFactoryBean.</span><span style="color:#6F42C1">setFilterChainDefinitionMap</span><span style="color:#24292E">(filterChainDefinitionMap);</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> shiroFilterFactoryBean;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Bean</span></span>
+<span class="line"><span style="color:#D73A49">    public</span><span style="color:#24292E"> HashedCredentialsMatcher </span><span style="color:#6F42C1">hashedCredentialsMatcher</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">        HashedCredentialsMatcher hashedCredentialsMatcher </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> HashedCredentialsMatcher</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        hashedCredentialsMatcher.</span><span style="color:#6F42C1">setHashAlgorithmName</span><span style="color:#24292E">(</span><span style="color:#032F62">"md5"</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        hashedCredentialsMatcher.</span><span style="color:#6F42C1">setHashIterations</span><span style="color:#24292E">(</span><span style="color:#005CC5">2</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> hashedCredentialsMatcher;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Bean</span></span>
+<span class="line"><span style="color:#D73A49">    public</span><span style="color:#24292E"> SecurityManager </span><span style="color:#6F42C1">securityManager</span><span style="color:#24292E">(ShiroRealm </span><span style="color:#E36209">shiroRealm</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">        DefaultWebSecurityManager securityManager </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> DefaultWebSecurityManager</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        securityManager.</span><span style="color:#6F42C1">setRealm</span><span style="color:#24292E">(shiroRealm);</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> securityManager;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Bean</span></span>
+<span class="line"><span style="color:#D73A49">    public</span><span style="color:#24292E"> ShiroRealm </span><span style="color:#6F42C1">shiroRealm</span><span style="color:#24292E">(){</span></span>
+<span class="line"><span style="color:#24292E">        ShiroRealm shiroRealm </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> ShiroRealm</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        shiroRealm.</span><span style="color:#6F42C1">setCredentialsMatcher</span><span style="color:#24292E">(</span><span style="color:#6F42C1">hashedCredentialsMatcher</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> shiroRealm;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Bean</span></span>
+<span class="line"><span style="color:#D73A49">    public</span><span style="color:#24292E"> AuthorizationAttributeSourceAdvisor </span><span style="color:#6F42C1">authorizationAttributeSourceAdvisor</span><span style="color:#24292E">(SecurityManager </span><span style="color:#E36209">securityManager</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">        AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> AuthorizationAttributeSourceAdvisor</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        authorizationAttributeSourceAdvisor.</span><span style="color:#6F42C1">setSecurityManager</span><span style="color:#24292E">(securityManager);</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> authorizationAttributeSourceAdvisor;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    /**</span></span>
+<span class="line"><span style="color:#6A737D">     * @description:解决权限注解不生效问题</span></span>
+<span class="line"><span style="color:#6A737D">     */</span></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Bean</span></span>
+<span class="line"><span style="color:#D73A49">    public</span><span style="color:#D73A49"> static</span><span style="color:#24292E"> DefaultAdvisorAutoProxyCreator </span><span style="color:#6F42C1">getDefaultAdvisorAutoProxyCreator</span><span style="color:#24292E">(){</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> DefaultAdvisorAutoProxyCreator</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这部分内容就是一些配置，配置了shiro需要的bean</p>
+<p>值得一提的是最后两个bean是启用shiro的注解的，所以如果使用注解配置shiro的过程中一定要加上</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/09/08/go-api-practice-15/"><span>上一篇</span>(十五)密码加密和jwt认证</a></div><div><a href="/2022/10/01/%E5%9C%A8Go%E4%B8%AD%E4%BD%BF%E7%94%A8JWT/"><span>下一篇</span>『Go』在Go中使用JWT</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

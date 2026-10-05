@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="CAS是什么 在认识CAS之前，我们先认识一下SSO。 SSO是Single Sign On的缩写，意为单点登录，是一种应用架构，用户只需要登录一次就可以访问所有相互信任的应用。 SSO只是一种架构，而CAS就是实现SSO的一套方案，CAS是Central Authentication Servic"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/11/18/cas%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E7%AE%80%E4%BB%8B/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="cas认证流程简介 · jking の 博客"><meta property="og:description" content="CAS是什么 在认识CAS之前，我们先认识一下SSO。 SSO是Single Sign On的缩写，意为单点登录，是一种应用架构，用户只需要登录一次就可以访问所有相互信任的应用。 SSO只是一种架构，而CAS就是实现SSO的一套方案，CAS是Central Authentication Servic"><meta property="og:url" content="https://jking412.github.io/2022/11/18/cas%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E7%AE%80%E4%BB%8B/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-11-18T03:06:56.000Z"><title>cas认证流程简介 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-11-18T03:06:56.000Z">2022.11.18</time><span>jking</span></div><h1>cas认证流程简介</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/sso/">sso</a></li><li><a href="/tags/cas/">cas</a></li></ul></header><details class="toc"><summary>文章目录 <span>7 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#cas是什么">CAS是什么</a></li><li><a href="#了解cas">了解CAS</a></li><li><a href="#cas的具体流程">CAS的具体流程</a></li><li><a href="#从tgc到app-cookie">从TGC到app cookie</a></li><li><a href="#未登录状态下无tgc的完整流程">未登录状态下（无TGC）的完整流程</a></li><li><a href="#有tgc状态下登录app">有TGC状态下登录APP</a></li><li><a href="#退出登录">退出登录</a></li></ul></nav></details><div class="prose"><h1 id="cas是什么">CAS是什么</h1>
+<p>在认识CAS之前，我们先认识一下SSO。</p>
+<p>SSO是<code>Single Sign On</code>的缩写，意为单点登录，是一种应用架构，用户只需要登录一次就可以访问所有相互信任的应用。</p>
+<p>SSO只是一种架构，而CAS就是实现SSO的一套方案，CAS是<code>Central Authentication Service</code>的简称。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/c967cd85751e4e739cd8455286c86302_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0.png" alt="c967cd85751e4e739cd8455286c86302_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0"></p>
+<h1 id="了解cas">了解CAS</h1>
+<p>我们先来用一个奇怪的游乐场模拟一下CAS整个运作的流程</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221118183917114.png" alt="image-20221118183917114"></p>
+<p>在这个游乐场中，我们只需要去<code>授权中心</code>买一次票就可以在全场畅玩。每个游乐设施都需要自己它们自己<code>单独的票据</code>，但是我们不需要在每个地点购买票据，只要有游乐场的通票，我们可以用这个通票让游乐设施的售票处找游乐场授权中心验证（防止通票伪造），验证通过以后售票处会给我们票据，拿着对应的票据我们就可以在对应的游乐设施快乐的玩耍了。</p>
+<p>在实际CAS实现中，对应关系如下</p>
+<ul>
+<li>游客——浏览器</li>
+<li>游乐场授权中心——cas server授权认证中心</li>
+<li>游乐设施——多个APP</li>
+<li>通票——TGC（Ticket Grangting Ticket）</li>
+<li>游乐设施专门的票据——app对应cookie</li>
+</ul>
+<p>关系图如下（限于CAS的流程实在比较繁琐，所以下面这个图省略了部分内容，主要省略在<code>验证通过</code>这里）</p>
+<p>但实际上，我们脱离cas本身复杂的流程来思考，cas只是把多个应用的登录功能抽离出来做了一个集成而已。这里先说明一下，在被省略的验证通过流程中，涉及<code>TGC</code>，<code>TGT</code>和<code>ST</code>三种票据，我们将在下面的具体流程中介绍（一方面不希望过早的把问题复杂化，一方面不希望误导读者，真是纠结啊，大家谅解一下）</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221118184737951.png" alt="image-20221118184737951"></p>
+<h1 id="cas的具体流程">CAS的具体流程</h1>
+<p>我会分别介绍四个方面内容</p>
+<ul>
+<li>从浏览器发出TGC到浏览器拿到app的cookie的过程中发生了什么（也就是省略内容）</li>
+<li>没有拿到TGC（没有在cas登陆过）的整个登录流程</li>
+<li>拿到TGC的整个流程</li>
+<li>退出登陆的流程</li>
+</ul>
+<p>如果看完前面拆分的流程图和第一部分仍然感到疑惑，那么可以仔细看看第2部分，那里有完整的流程，当然，你要有耐心（放大了图慢慢看，看的时候要保证脑子里有user，brower，cas server，app四个对象，要知道，仅凭文字这些流程会很抽象，要让流程动起来）</p>
+<h2 id="从tgc到app-cookie">从TGC到app cookie</h2>
+<ul>
+<li>
+<p>TGT：Ticket Grangting Ticket</p>
+</li>
+<li>
+<p>TGC：Ticket Granting Cookie</p>
+</li>
+<li>
+<p>ST：Service Ticket</p>
+</li>
+</ul>
+<p>TGC和TGC是cas server的一对cookie和session，这样理解就可以了，TGC是用户在cas server登录过的凭证</p>
+<p>ST是允许用户访问某一APP的凭据，这个讲起来比较抽象，下面看图，这个图假设用户已经获取了TGC（要注意，上面的流程图已经和这里不同了，也就是说上面的图为了简化流程本身就有错误的内容）</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221118190222832.png" alt="image-20221118190222832"></p>
+<p><code>是不是看完这些更加头晕了，由于拆分了流程，局部的认知可能还是会让你感到不明白，下面我们来看看整个流程</code></p>
+<h2 id="未登录状态下无tgc的完整流程">未登录状态下（无TGC）的完整流程</h2>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/5e8d855819894c3fa1f8ba85ead37cb2_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0.png" alt=""></p>
+<p>这里我能说的就是大家认真看图，一定要把四个角色在流程中做什么搞清楚</p>
+<h2 id="有tgc状态下登录app">有TGC状态下登录APP</h2>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/d3264e5b6f18444cb700616d6904fcf8_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0.png" alt=""></p>
+<p>流程和上面区别不大，唯一的区别就是免去了用户了登录，这也是cas最重要的地方</p>
+<h2 id="退出登录">退出登录</h2>
+<p>需要了解的是，使用cas server的App在一个退出登陆后会全部退出登录</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/a616807e5bd34deb985c72a201826695_tplv-k3u1fbpfcp-zoom-in-crop-mark_4536_0_0_0.png" alt=""></p>
+<p>流程有点多，静下心来也许才是最好的方法</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/11/17/swaggo%E7%9A%84%E4%BD%BF%E7%94%A8/"><span>上一篇</span>swaggo的使用</a></div><div><a href="/2022/11/22/%E4%BB%8Egithub-page%E5%88%B0github-action/"><span>下一篇</span>从github page到github action</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="vim是一款Linux下的文本编辑器，当我们需要在终端环境下编辑文本时，vim就是我们最好的选择。vim看起来似乎对初学者不太友，但是想要上手使用vim并不困难。 认识vim 我们先来宏观的认识vim，vim常用的有四个模式： 1. 正常模式（Normal-mode） 2. 插入模式（Insert-"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2023/06/07/vim%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="vim的基本用法 · jking の 博客"><meta property="og:description" content="vim是一款Linux下的文本编辑器，当我们需要在终端环境下编辑文本时，vim就是我们最好的选择。vim看起来似乎对初学者不太友，但是想要上手使用vim并不困难。 认识vim 我们先来宏观的认识vim，vim常用的有四个模式： 1. 正常模式（Normal-mode） 2. 插入模式（Insert-"><meta property="og:url" content="https://jking412.github.io/2023/06/07/vim%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2023-06-07T03:49:55.000Z"><title>vim的基本用法 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2023-06-07T03:49:55.000Z">2023.06.07</time><span>jking</span></div><h1>vim的基本用法</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/linux/">linux</a></li><li><a href="/tags/vim/">vim</a></li></ul></header><details class="toc"><summary>文章目录 <span>20 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#认识vim">认识vim</a></li><li><a href="#正常模式">正常模式</a></li><li><a href="#插入模式">插入模式</a></li><li><a href="#命令模式">命令模式</a></li><li><a href="#可视模式">可视模式</a></li><li><a href="#vim的基本操作">vim的基本操作</a></li><li><a href="#快速开始">快速开始</a></li><li><a href="#vim多窗口操作">vim多窗口操作</a></li><li><a href="#vim的模式">vim的模式</a></li><li><a href="#正常模式-1">正常模式</a></li><li class="nested"><a href="#移动光标">移动光标</a></li><li class="nested"><a href="#行内移动光标">行内移动光标</a></li><li class="nested"><a href="#跨行移动光标">跨行移动光标</a></li><li class="nested"><a href="#翻页">翻页</a></li><li class="nested"><a href="#复制粘贴删除">复制，粘贴，删除</a></li><li class="nested"><a href="#撤销与恢复">撤销与恢复</a></li><li class="nested"><a href="#大小写转换">大小写转换</a></li><li><a href="#插入模式-1">插入模式</a></li><li><a href="#命令模式-1">命令模式</a></li><li><a href="#可视模式-1">可视模式</a></li></ul></nav></details><div class="prose"><p>vim是一款Linux下的文本编辑器，当我们需要在终端环境下编辑文本时，vim就是我们最好的选择。vim看起来似乎对初学者不太友，但是想要上手使用vim并不困难。</p>
+<h1 id="认识vim">认识vim</h1>
+<p>我们先来宏观的认识vim，vim常用的有四个模式：</p>
+<ol>
+<li>正常模式（Normal-mode）</li>
+<li>插入模式（Insert-mode）</li>
+<li>命令模式（Command-mode）</li>
+<li>可视模式（Visual-mode）</li>
+</ol>
+<h2 id="正常模式">正常模式</h2>
+<p>当我们启动vim时，vim就处于正常模式，在正常模式下我们不能直接编辑文件，只能通过命令的形式使用复制，粘贴，剪切等操作来编辑文件。</p>
+<p>在其它任何模式下，我们都可以通过按下<code>Esc</code>键来返回正常模式（如果不行就按两下），<code>其它模式都需要在正常模式</code>下按下相应的键位触发。</p>
+<h2 id="插入模式">插入模式</h2>
+<p>在正常模式下我们按下一些键位就可以进入插入模式，这些按键较多，我们在基本操作中详细介绍这一部分的内容。</p>
+<p>比较常用的是<code>i</code>健，按下<code>i</code>之后我们就可以进入插入模式，此时我们可以像平时编辑文件一样操作我们的文件。</p>
+<h2 id="命令模式">命令模式</h2>
+<p>在按下<code>/</code>或者<code>:</code>键之后vim会进入命令模式，在命令模式下我们可以执行vim提供给我们的指令，具体的指令会在下面介绍。</p>
+<h2 id="可视模式">可视模式</h2>
+<p>按下<code>v</code>键即可进入可视模式，在可视模式下我们可以操作块状区域。</p>
+<h1 id="vim的基本操作">vim的基本操作</h1>
+<p>下面就开始介绍我们该如何使用vim</p>
+<h2 id="快速开始">快速开始</h2>
+<p>我们先来介绍如何使用vim打开，编辑，保存文件，如果只是想在vim下简单的修改文件，这个部分的几个命令就足够了。</p>
+<ul>
+<li>vim打开文件：</li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> vim</span><span style="color:#032F62"> file</span></span></code></pre>
+<ul>
+<li>vim修改文件：</li>
+</ul>
+<p>我们在vim正常模式下按下<code>i</code>进入插入模式，此时你可以正常编辑文件。</p>
+<ul>
+<li>保存文件</li>
+</ul>
+<p>先退出至正常模式，然后输入<code>:</code>进入命令模式，我们就可以键入vim命令：</p>
+<ol>
+<li><code>w</code>：保存文件</li>
+<li><code>q</code>：退出文件</li>
+<li><code>!</code>：强制操作</li>
+</ol>
+<p>如果不考虑效率问题，上面的三个操作已经可以满足你大部分的需求。</p>
+<p>但是vim真正的强大之处就是强大的编辑能力，接下来我们继续了解vim的操作。</p>
+<h2 id="vim多窗口操作">vim多窗口操作</h2>
+<p>vim打开多个文件</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> vim</span><span style="color:#032F62"> file1</span><span style="color:#032F62"> file2</span><span style="color:#032F62"> file3</span><span style="color:#032F62"> ...</span><span style="color:#24292E"> </span></span></code></pre>
+<p>此时我们就同时打开了多个文件，我们可以用下面的方式操作这些打开的文件：</p>
+<p>查看vim打开的文件</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>:ls</span></span></code></pre>
+<p>选择显示其它文件</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 选择进入第二个文件</span></span>
+<span class="line"><span style="color:#6F42C1">:b2</span></span>
+<span class="line"><span style="color:#6A737D"># 进入下一个打开的文件</span></span>
+<span class="line"><span style="color:#6F42C1">:bn</span></span>
+<span class="line"><span style="color:#6A737D"># 进入上一个打开的文件</span></span>
+<span class="line"><span style="color:#6F42C1">:bp</span></span></code></pre>
+<p>此外，我们可以使用分屏命令在一个终端中显示多个文件</p>
+<p>下面的命令可以左右分屏：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> vim</span><span style="color:#005CC5"> -O</span><span style="color:#032F62"> file1</span><span style="color:#032F62"> file2</span><span style="color:#032F62"> ...</span></span></code></pre>
+<p>上下分屏：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> vim</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> file1</span><span style="color:#032F62"> file2</span><span style="color:#032F62"> ...</span></span></code></pre>
+<p>但是这样分屏不太灵活，使用vim内置命令是更好的选择，首先我们要记住一个重要的组合键<code>Ctrl + w</code>，这是很多分屏操作的前置按键。</p>
+<p>先按下<code>Ctrl + w</code>，然后松开以后再按下<code>s</code>，将当前文件上下分割。</p>
+<p><code>Ctrl + w</code>，<code>s</code>：上下分割文件。</p>
+<p><code>Ctrl + w v</code>：左右分割文件</p>
+<p><code>:sp file</code>：上下展示当前文件和新打开文件</p>
+<p><code>:vsp file</code>：左右展示当前文件和新打开文件</p>
+<p>我们现在已经开启多个窗口，我们还需要灵活的移动光标以操作多窗口</p>
+<p>1.切换左右分屏的光标 ：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Ctrl + w h</span></span></code></pre>
+<p>将当前光标定位到左边的屏幕</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Ctrl + w l</span></span></code></pre>
+<p>将当前的光标定位到右边的屏幕</p>
+<p>2.移动左右分屏 ：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Ctrl + w H</span></span></code></pre>
+<p>将当前的分屏移动到左边</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Ctrl + w L</span></span></code></pre>
+<p>将当前的分屏移动到右边</p>
+<p>3.切换上下分屏的光标 ：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Ctrl + w j</span></span></code></pre>
+<p>将当前的光标移动到下面的分屏</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Ctrl + w k</span></span></code></pre>
+<p>将当前光标移动到上面的分屏</p>
+<p>4.移动上下分屏：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Ctrl + w J</span></span></code></pre>
+<p>将当前的分屏移动到下面的分屏</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Ctrl + w K</span></span></code></pre>
+<p>将当前的分屏移动到上面的分屏</p>
+<h1 id="vim的模式">vim的模式</h1>
+<p>下面来更详细的介绍一下正常模式，插入模式，命令模式和可视模式的用法。</p>
+<h2 id="正常模式-1">正常模式</h2>
+<p>正常模式是vim的默认模式，在正常模式中有很多快捷键，是否熟练掌握这些快捷键很大程度上决定了我们vim的效率。</p>
+<h3 id="移动光标">移动光标</h3>
+<p><code>h</code>：左</p>
+<p><code>j</code>：下</p>
+<p><code>k</code>：上</p>
+<p><code>l</code>：右</p>
+<h3 id="行内移动光标">行内移动光标</h3>
+<p><code>0 </code>移动到行头</p>
+<p><code>^</code> 移动到本行的第一个不是 blank 字符</p>
+<p><code>$</code> 移动到行尾</p>
+<p><code>g_</code> 移动到本行最后一个不是 blank 字符的位置</p>
+<p><code>w</code> 光标移动到下一个单词的开头</p>
+<p><code>e</code> 光标移动到下一个单词的结尾</p>
+<p><code>fa</code> 移动到本行下一个为 a 的字符处，fb 移动到下一个为 b 的字符处</p>
+<p><code>nfa</code> 移动到本行光标处开始的第 n 个 字符为 a 的地方（n 是 1，2，3，4 … 数字）</p>
+<p><code>Fa</code> 同 <code>fa</code> 一样，光标移动方向同 <code>fa</code> 相反</p>
+<p><code>nFa</code> 同 <code>nfa</code> 类似，光标移动方向同 <code>nfa</code>相反</p>
+<p><code>ta</code> 移动光标至 a 字符的前一个字符</p>
+<p><code>nta</code> 移动到第二个 a 字符的前一个字符处</p>
+<p><code>Ta</code> 同 <code>ta</code> 移动光标方向相反</p>
+<p><code>nTa</code> 同 <code>nta</code> 移动光标方向相反</p>
+<p><code>;</code> 和<code>,</code> 当使用 f, F, t ,T, 关键字指定字符跳转的时候，使用 <code>；</code>可以快速跳转到下一个指定的字符，<code>, </code>是跳到前一个指定的字符</p>
+<h3 id="跨行移动光标">跨行移动光标</h3>
+<p><code>nG </code>光标定位到第 n 行的行首</p>
+<p><code>gg </code>光标定位到第一行的行首</p>
+<p><code>G </code>光标定位到最后一行的行首</p>
+<p><code>H </code>光标定位到当前屏幕的第一行行首</p>
+<p><code>M</code> 光标移动到当前屏幕的中间</p>
+<p><code>L</code> 光标移动到当前屏幕的尾部</p>
+<p><code>zt</code> 把当前行移动到当前屏幕的最上方，也就是第一行</p>
+<p><code>zz</code> 把当前行移动到当前屏幕的中间</p>
+<p><code>zb</code> 把当前行移动到当前屏幕的尾部</p>
+<p><code>%</code> 匹配括号移动，包括 ( , { , [ 需要把光标先移动到括号上</p>
+<p><code>*</code> 和 <code>#</code> 匹配光标当前所在的单词，移动光标到下一个（或者上一个）匹配的单词（ <code>*</code> 是下一个，<code>#</code> 是上一个）</p>
+<h3 id="翻页">翻页</h3>
+<p><code>ctrl+f</code> 查看下一页内容</p>
+<p><code>ctrl+b</code> 查看上一页内容</p>
+<h3 id="复制粘贴删除">复制，粘贴，删除</h3>
+<p>三个重要的快捷键 <code>d</code> , <code>y</code> , <code>p</code></p>
+<p><code>d</code> 是删除的意思，通常搭配一个字符 ( 删除范围 ) 实现删除功能，常用的如下：</p>
+<p><code>dw</code> 删除一个单词</p>
+<p><code>dnw</code> 删除 n 个单词，</p>
+<p><code>dfa</code> 删除光标处到下一个 a 的字符处（ fa 定位光标到 a 处 ）</p>
+<p><code>dnfa</code> 删除光标处到第 n 个 a 的字符处</p>
+<p><code>dd</code> 删除一整行</p>
+<p><code>ndd</code> 删除光标处开始的 n 行</p>
+<p><code>d$</code> 删除光标到本行的结尾</p>
+<p><code>dH</code> 删除屏幕显示的第一行文本到光标所在的行</p>
+<p><code>dG</code> 删除光标所在行到文本的结束</p>
+<p><code>y</code> 是复制的意思，通常搭配一个字符（复制范围）实现复制的功能，常用的如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>yw` 复制一个单词，还有 `ynw</span></span>
+<span class="line"><span>yfa` 复制光标到下一个 a 的字符处,还有`ynfa</span></span>
+<span class="line"><span>yy` 复制一行，还有 `nyy</span></span></code></pre>
+<p><code>y$</code> 复制光标到本号的结尾</p>
+<p><code>yH</code> 复制屏幕显示的第一行文本到光标所在的行</p>
+<p><code>yG</code> 复制光标所在行到文本的结束</p>
+<p><code>p</code> ，<code>P</code>是黏贴的意思，当执行完复制或者黏贴的命令以后，VIM 会把文本寄存起来。</p>
+<p><code>p</code> 在光标后开始黏贴</p>
+<p><code>P</code> 大写的 P 光标前开始粘贴</p>
+<h3 id="撤销与恢复">撤销与恢复</h3>
+<p><code>u</code> 撤销刚才的操作</p>
+<p><code>ctrl + r</code> 恢复撤销操作</p>
+<h3 id="大小写转换">大小写转换</h3>
+<p><code>~</code>将光标下的字母改变大小写
+<code>3~</code>将光标位置开始的3个字母改变其大小写
+<code>g~~</code>改变当前行字母的大小写
+<code>gUU</code> 将当前行的字母改成大写
+<code>guu</code> 将当前行的字母全改成小写</p>
+<p><code>3gUU</code> 将从光标开始到下面3行字母改成大写
+<code>gUw</code> 将光标下的单词改成大写。
+<code>guw</code> 将光标下的单词改成小写</p>
+<h2 id="插入模式-1">插入模式</h2>
+<p>请记住下面几个常用启动录入文本的键盘字符 <code>i,I,a,A,o,O,s,S</code> 。</p>
+<p><code>i</code>是在光标所在的字符之前插入需要录入的文本。</p>
+<p><code>I</code> 是在光标所在行的行首插入需要录入的文本。</p>
+<p><code>a</code> 是在光标所在的字符之后插入需要录入的文本。</p>
+<p><code>A</code> 是在光标所在行的行尾插入需要录入的文本。</p>
+<p><code>o</code> 是光标所在行的下一行行首插入需要录入的文本。</p>
+<p><code>O</code> 是光标所在行的上一行行首插入需要录入的文本。</p>
+<p><code>s</code> 删除光标所在处的字符然后插入需要录入的文本。</p>
+<p><code>S</code> 删除光标所在行，在当前行的行首开始插入需要录入的文本。</p>
+<h2 id="命令模式-1">命令模式</h2>
+<p>下面介绍一些常用的内置命令</p>
+<p><code>set nu</code>：插入行号</p>
+<p><code>set nonu</code>：删除行号</p>
+<p><code>:n</code>：跳转至n行</p>
+<p><code>/{目标字符串}</code>：查找目标字符串，在执行该命令后，按下<code>n</code>跳转至下一个匹配，<code>N</code>跳转至上一个匹配</p>
+<p><code>:n1,n2d</code>：删除<code>n1~n2</code>范围内的行</p>
+<p><code>:{作用范围}s/{目标}/{替换}/{替换的标志}</code>：这是替换命令的格式</p>
+<p><code>:s/{target}/{replace}/g</code>：替换当前行所有的目标字符串</p>
+<p><code>:%s/{target}/{replace}/g</code>：替换全局的匹配字符串</p>
+<p><code>:s/{target}/{replace}</code>：只替换当前行匹配到的第一个目标字符串</p>
+<p><code>:%s/{target}/{replace}</code>：替换全局每一个的第一个匹配字符串（不是全局的第一个）</p>
+<p><code>:n1,n2s/{target}/{replace}/g</code>：替换<code>n1~n2</code>范围内的匹配字符串</p>
+<p><code>:'&#x3C;,'>s/{target}/{replace}/g</code>：在可视模式下，在我们选择中区域以后直接按下<code>:</code>会补全为<code>:'&#x3C;,'></code>，会替换选中区域的匹配字符串</p>
+<p><code>:!command</code>：在命令模式下执行Linux命令</p>
+<p><code>:r !command</code>：将命令的执行结果写入到光标位置</p>
+<h2 id="可视模式-1">可视模式</h2>
+<p>在可视模式下，我们可以通过<code>hjkl</code>上下左右移动区域，这与正常模式一致。</p>
+<p><code>h</code>：左</p>
+<p><code>j</code>：下</p>
+<p><code>k</code>：上</p>
+<p><code>l</code>：右</p>
+<p>在选好区域后，我们可以退出可视模式进行复制，删除等操作。</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2023/06/03/%E6%90%AD%E5%BB%BAriscv32%E7%8E%AF%E5%A2%83/"><span>上一篇</span>搭建riscv32环境</a></div><div><a href="/2023/06/07/tmux%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/"><span>下一篇</span>tmux使用教程</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

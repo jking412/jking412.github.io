@@ -1,0 +1,109 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="安装node.js 前往官网下载长期稳定版的node.js Node.js 下载完成以后检查一下能否打印出版本，正常打印就表示下载成功 安装hexo 我们用npm在全局安装hexo 检查一下是否下载成功 初始化博客 找到你想要放置博客的目录，在当前目录下执行初始化命令，后面跟着你想给博客目录取的名字"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/11/05/hexo%E5%BB%BA%E7%AB%99%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="hexo建站简明教程 · jking の 博客"><meta property="og:description" content="安装node.js 前往官网下载长期稳定版的node.js Node.js 下载完成以后检查一下能否打印出版本，正常打印就表示下载成功 安装hexo 我们用npm在全局安装hexo 检查一下是否下载成功 初始化博客 找到你想要放置博客的目录，在当前目录下执行初始化命令，后面跟着你想给博客目录取的名字"><meta property="og:url" content="https://jking412.github.io/2022/11/05/hexo%E5%BB%BA%E7%AB%99%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-11-05T01:26:38.000Z"><title>hexo建站简明教程 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-11-05T01:26:38.000Z">2022.11.05</time><span>jking</span></div><h1>hexo建站简明教程</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/hexo/">hexo</a></li></ul></header><details class="toc"><summary>文章目录 <span>8 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#安装nodejs">安装node.js</a></li><li><a href="#安装hexo">安装hexo</a></li><li><a href="#初始化博客">初始化博客</a></li><li><a href="#运行你的博客">运行你的博客</a></li><li><a href="#hexo初步使用">hexo初步使用</a></li><li><a href="#美化和定制化博客">美化和定制化博客</a></li><li><a href="#部署博客到github">部署博客到github</a></li><li><a href="#总结">总结</a></li></ul></nav></details><div class="prose"><h1 id="安装nodejs">安装node.js</h1>
+<p>前往官网下载长期稳定版的node.js</p>
+<p><a href="https://nodejs.org/zh-cn/">Node.js </a></p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105082507512.png" alt="image-20221105082507512"></p>
+<p>下载完成以后检查一下能否打印出版本，正常打印就表示下载成功</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#005CC5"> -v</span></span>
+<span class="line"><span style="color:#6F42C1">node</span><span style="color:#005CC5"> -v</span></span></code></pre>
+<h1 id="安装hexo">安装hexo</h1>
+<p>我们用npm在全局安装hexo</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> install</span><span style="color:#005CC5"> -g</span><span style="color:#032F62"> hexo-cli</span></span></code></pre>
+<p>检查一下是否下载成功</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#005CC5"> -v</span></span></code></pre>
+<h1 id="初始化博客">初始化博客</h1>
+<p>找到你想要放置博客的目录，在当前目录下执行初始化命令，后面跟着你想给博客目录取的名字</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>hexo init &#x3C;dir-name></span></span></code></pre>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105083029837.png" alt="image-20221105083029837"></p>
+<p>现在你可以看到当前目录下多出了<code>my-blog</code>目录，我们进入到这个文件夹中</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#005CC5">cd</span><span style="color:#032F62"> myblog</span></span></code></pre>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105083256875.png" alt="image-20221105083256875"></p>
+<p>你看到目录结构大概是这样的，作为使用者，我们不需要了解每个目录的作用，我们着重需要关注的是下面这些文件</p>
+<ul>
+<li>source——<code>保存你的博客文章的源文件，也就是以后你写的文章都会在这个目录里面</code>
+<ul>
+<li>点开source，我们会发现一个<code>_post</code>目录，这是存在已发布文章的目录，你可以看见这里面已经有一篇<code>helloworld</code>了</li>
+</ul>
+</li>
+<li>_config.yml——<code>博客的配置文件</code></li>
+</ul>
+<h1 id="运行你的博客">运行你的博客</h1>
+<p>接下来我们将运行你的博客</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> install</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> g</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> s</span></span></code></pre>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105083902252.png" alt="image-20221105083902252"></p>
+<p>然后在浏览器中输入<code>localhost:4000</code>，就可以看到你部署的博客</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105084002617.png" alt="image-20221105084002617"></p>
+<p>在控制台中输入<code>Ctrl+C</code>可以停止运行博客</p>
+<h1 id="hexo初步使用">hexo初步使用</h1>
+<p>我们现在已经安装好了我们的hexo博客，下面我们来简单的使用一下它</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6A737D"># 创建文章</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> new</span><span style="color:#032F62"> "my-first-post"</span></span></code></pre>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105084328948.png" alt="image-20221105084328948"></p>
+<p>然后进入到<code>source/_post</code>目录中查看</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105084355396.png" alt="image-20221105084355396"></p>
+<p>可以看到之前创建的文章，然后我们打开它，随便输入一点测试内容</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105084502155.png" alt="image-20221105084502155"></p>
+<p>我们已经写好了我们的文章，现在我们要把这篇文章发布到博客上，我们现在需要hexo框架帮助我们生成对应的内容</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> g</span></span></code></pre>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105084749897.png" alt="image-20221105084749897"></p>
+<p>这样就生成好了，最后，我们再次运行我们的博客查看部署的情况</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> s</span></span></code></pre>
+<p>刷新浏览器，点击<code>Archives</code> ，我们可以看到我们刚刚创建的文章</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105084936293.png" alt="image-20221105084936293"></p>
+<p>这样我们就初步掌握了hexo的使用，现在我来总结一些hexo常用命令</p>
+<ul>
+<li><code>hexo clean </code>:清除由<code>hexo g</code>生成的文件，一般来说没什么用，当部署出现问题的时候可以尝试清除然后重新生成</li>
+<li><code>hexo g</code>:把我们写好的文章生成对应的文件(其实是html)</li>
+<li><code>hexo s</code>：运行博客</li>
+<li><code>hexo new &#x3C;post-name></code>：生成文章模板</li>
+</ul>
+<p>接下来的步骤都要使用git，没有git的小伙伴可以先暂停去下载git</p>
+<h1 id="美化和定制化博客">美化和定制化博客</h1>
+<p>我们现在使用了博客默认的主题，有些人可能对这个主题并不满意，没有关系，hexo中有大量的主题可以供你选择，现在我们来尝试使用hexo最常用的博客主题之一——<code>butterfly</code></p>
+<p>下载安装<code>butterfly</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6A737D"># 先不要急着输入命令，检查一下你是否在正确的目录，注意命令在有_config.yml的根目录下执行</span></span>
+<span class="line"><span style="color:#6F42C1">git</span><span style="color:#032F62"> clone</span><span style="color:#005CC5"> -b</span><span style="color:#032F62"> master</span><span style="color:#032F62"> https://github.com/jerryc127/hexo-theme-butterfly.git</span><span style="color:#032F62"> themes/butterfly</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> install</span><span style="color:#032F62"> hexo-renderer-pug</span><span style="color:#032F62"> hexo-renderer-stylus</span><span style="color:#005CC5"> --save</span></span></code></pre>
+<p>然后我们可以看到出现了这个文件夹<code>themes/butterfly</code></p>
+<p>我们进入到这个文件夹中，复制一份<code>_config.yml</code>，将它改名为<code>_config.butterfly.yml</code>，然后把这个改名后的文件移动到你的博客目录下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105090235722.png" alt="image-20221105090235722"></p>
+<p>剪切到博客目录下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105090301838.png" alt="image-20221105090301838"></p>
+<p>打开博客目录下的<code>_config.yml</code>，修改主题为<code>butterfly</code></p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105090705931.png" alt="image-20221105090705931"></p>
+<p>最后重新生成文件然后运行博客，大功告成</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> g</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> s</span></span></code></pre>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105090745946.png" alt="image-20221105090745946"></p>
+<p>怎么样，是不是比原来的好看一点了，关于站点信息的配置和更加详细的定制化需求，可以自行阅读<code>butterfly</code>的官方文档和<code>hexo</code>的文档</p>
+<p><a href="https://butterfly.js.org/">Butterfly - A Simple and Card UI Design theme for Hexo</a></p>
+<p><a href="https://hexo.io/zh-cn/docs/configuration.html">配置 | Hexo</a></p>
+<p>如果想要配置其它的主题，可以自己上网搜索配置，主题的配置暂时就到这里了</p>
+<h1 id="部署博客到github">部署博客到github</h1>
+<p>下面的教程都假设你已经完成了git的配置并且已经注册好了github账号</p>
+<p>首先，我们创建一个仓库，仓库名叫做<code>&#x3C;github用户名>.github.io</code></p>
+<p>比如我的的github用户名叫做<code>jking412</code>，那么这个仓库名就是<code>jking412.github.io</code></p>
+<p>然后复制下你仓库的地址（我的仓库之前已经创建过了，新创建的仓库是空的）<img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221105091649357.png" alt="image-20221105091649357"></p>
+<p>在博客目录的<code>_config.yml</code>文件下的<code>deploy</code>中配置如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#22863A">deploy</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  type</span><span style="color:#24292E">: </span><span style="color:#032F62">git</span></span>
+<span class="line"><span style="color:#22863A">  repository</span><span style="color:#24292E">: </span><span style="color:#032F62">https://github.com/jking412/jking412.github.io.git</span><span style="color:#6A737D"> # 这里是你的仓库链接</span></span>
+<span class="line"><span style="color:#22863A">  branch</span><span style="color:#24292E">: </span><span style="color:#032F62">main</span></span></code></pre>
+<p>最后我们安装好依赖，就可以把我们本地的内容推送到github上了</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> install</span><span style="color:#032F62"> hexo-deployer-git</span><span style="color:#005CC5"> --save</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> d</span></span></code></pre>
+<p>在部署完成以后，我们可以访问<code>http://&#x3C;github用户名>.github.io</code>访问到你的博客</p>
+<p>比如我的博客网址就是<code>jking412.github.io</code></p>
+<p>部署可能会花费1~2分钟，我们耐心等待以后就可以看到啦</p>
+<h1 id="总结">总结</h1>
+<p>总结一下我们日常使用hexo的流程</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6A737D"># 创建文章</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> new</span><span style="color:#032F62"> "post"</span></span>
+<span class="line"><span style="color:#6A737D"># 修改文章以后生成</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> g</span></span>
+<span class="line"><span style="color:#6A737D"># 现在本地看一下博客有没有问题</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> s</span></span>
+<span class="line"><span style="color:#6A737D"># 没有问题就推送到github，注意不要推送的太频繁，可能会被github限制</span></span>
+<span class="line"><span style="color:#6F42C1">hexo</span><span style="color:#032F62"> d</span></span></code></pre>
+<p>有了博客，我们就可以记录下自己生活中的点点滴滴，博客也是帮助自己走向优秀的重要工具，要好好使用它呀</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/10/15/mysql%E8%AF%AD%E6%B3%95%E9%80%9F%E8%AE%B0/"><span>上一篇</span>『mysql』mysql语法速记</a></div><div><a href="/2022/11/07/%E5%A4%A7%E5%AD%A6%E7%89%A9%E7%90%86%E5%85%89%E5%AD%A6%E7%AC%94%E8%AE%B0/"><span>下一篇</span>大学物理光学笔记</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

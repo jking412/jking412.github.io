@@ -1,0 +1,120 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="什么是JWT JWT即JSON Web Token，工作机制是在用户通过鉴权之后，服务端发送一个JSON作为凭证给客户端，让客户端又权限可以访问一些资源 JWT 的三个部分依次如下。 我们需要注意的是Payload中的数据不会被加密，所以不要存放重要 签名保存在服务端，是绝对不可泄露的 最后，服务器"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/10/01/%E5%9C%A8Go%E4%B8%AD%E4%BD%BF%E7%94%A8JWT/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="『Go』在Go中使用JWT · jking の 博客"><meta property="og:description" content="什么是JWT JWT即JSON Web Token，工作机制是在用户通过鉴权之后，服务端发送一个JSON作为凭证给客户端，让客户端又权限可以访问一些资源 JWT 的三个部分依次如下。 我们需要注意的是Payload中的数据不会被加密，所以不要存放重要 签名保存在服务端，是绝对不可泄露的 最后，服务器"><meta property="og:url" content="https://jking412.github.io/2022/10/01/%E5%9C%A8Go%E4%B8%AD%E4%BD%BF%E7%94%A8JWT/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-10-01T11:02:20.000Z"><title>『Go』在Go中使用JWT · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-10-01T11:02:20.000Z">2022.10.01</time><span>jking</span></div><h1>『Go』在Go中使用JWT</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/go/">go</a></li><li><a href="/tags/jwt/">JWT</a></li></ul></header><div class="prose"><h1 id="什么是jwt">什么是JWT</h1>
+<p>JWT即<code>JSON Web Token</code>，工作机制是在用户通过鉴权之后，服务端发送一个JSON作为凭证给客户端，让客户端又权限可以访问一些资源</p>
+<p>JWT 的三个部分依次如下。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>- Header（头部）</span></span>
+<span class="line"><span>包含了一些元数据</span></span>
+<span class="line"><span>- Payload（负载）</span></span>
+<span class="line"><span>存放实际需要传递的数据</span></span>
+<span class="line"><span>- Signature（签名）</span></span>
+<span class="line"><span>对前两部分进行签名，防止jwt被篡改</span></span></code></pre>
+<p>我们需要注意的是<code>Payload</code>中的数据不会被加密，所以不要存放重要</p>
+<p>签名保存在服务端，是绝对不可泄露的</p>
+<p>最后，服务器会对整个JSON进行加密，然后把加密后的数据传回给客户端，最后我们拿到的jwt大概是这样的</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</span></span></code></pre>
+<h1 id="go使用jwt">GO使用JWT</h1>
+<p>下面的代码同时被保存在github仓库中</p>
+<p><a href="https://github.com/jking412/go-example">jking412/go-example: 小demo，go的整合技术案例 (github.com)</a></p>
+<p>我们先下载一种jwt包</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> get</span><span style="color:#032F62"> "github.com/golang-jwt/jwt"</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">fmt</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">github.com/golang-jwt/jwt</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">net/http</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">strconv</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">strings</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">time</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> JWTCustomClaims</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   UserId </span><span style="color:#D73A49">int</span></span>
+<span class="line"><span style="color:#6F42C1">   jwt</span><span style="color:#24292E">.</span><span style="color:#6F42C1">StandardClaims</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">   http.</span><span style="color:#6F42C1">HandleFunc</span><span style="color:#24292E">(</span><span style="color:#032F62">"/register"</span><span style="color:#24292E">, registerHandler)</span></span>
+<span class="line"><span style="color:#24292E">   http.</span><span style="color:#6F42C1">HandleFunc</span><span style="color:#24292E">(</span><span style="color:#032F62">"/login"</span><span style="color:#24292E">, loginHandler)</span></span>
+<span class="line"><span style="color:#24292E">   http.</span><span style="color:#6F42C1">HandleFunc</span><span style="color:#24292E">(</span><span style="color:#032F62">"/user"</span><span style="color:#24292E">, userHandler)</span></span>
+<span class="line"><span style="color:#24292E">   http.</span><span style="color:#6F42C1">ListenAndServe</span><span style="color:#24292E">(</span><span style="color:#032F62">":8080"</span><span style="color:#24292E">, </span><span style="color:#005CC5">nil</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> userHandler</span><span style="color:#24292E">(</span><span style="color:#E36209">w</span><span style="color:#6F42C1"> http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#E36209">r</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   token, err </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> authJWT</span><span style="color:#24292E">(r)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(</span><span style="color:#032F62">"权限不足"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#D73A49">      return</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">   id </span><span style="color:#D73A49">:=</span><span style="color:#032F62"> "user是:"</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> strconv.</span><span style="color:#6F42C1">Itoa</span><span style="color:#24292E">(token.Claims.(</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">JWTCustomClaims</span><span style="color:#24292E">).UserId)</span></span>
+<span class="line"><span style="color:#24292E">   w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(id))</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> registerHandler</span><span style="color:#24292E">(</span><span style="color:#E36209">w</span><span style="color:#6F42C1"> http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#E36209">r</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   token, err </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> generateToken</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(</span><span style="color:#032F62">"注册失败"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#D73A49">      return</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">   w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(token))</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> loginHandler</span><span style="color:#24292E">(</span><span style="color:#E36209">w</span><span style="color:#6F42C1"> http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#E36209">r</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   _, err </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> authJWT</span><span style="color:#24292E">(r)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(</span><span style="color:#032F62">"登录失败"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#D73A49">      return</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">   w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(</span><span style="color:#032F62">"登录成功"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> authJWT</span><span style="color:#24292E">(</span><span style="color:#E36209">r</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) (</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">jwt</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Token</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   tokenString, err </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> getJwtTokenFromHeader</span><span style="color:#24292E">(r)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#005CC5"> nil</span><span style="color:#24292E">, err</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   token, err </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> parseToken</span><span style="color:#24292E">(tokenString)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#005CC5"> nil</span><span style="color:#24292E">, err</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> token, </span><span style="color:#005CC5">nil</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> parseToken</span><span style="color:#24292E">(</span><span style="color:#E36209">tokenString</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) (</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">jwt</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Token</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   token, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> jwt.</span><span style="color:#6F42C1">ParseWithClaims</span><span style="color:#24292E">(tokenString, </span><span style="color:#D73A49">&#x26;</span><span style="color:#6F42C1">JWTCustomClaims</span><span style="color:#24292E">{}, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">token</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">jwt</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Token</span><span style="color:#24292E">) (</span><span style="color:#D73A49">interface</span><span style="color:#24292E">{}, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#24292E"> []</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(</span><span style="color:#032F62">"secret"</span><span style="color:#24292E">), </span><span style="color:#005CC5">nil</span></span>
+<span class="line"><span style="color:#24292E">   })</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> token, err</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> generateToken</span><span style="color:#24292E">(</span><span style="color:#E36209">userId</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) (</span><span style="color:#D73A49">string</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   claims </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> JWTCustomClaims</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">      userId,</span></span>
+<span class="line"><span style="color:#6F42C1">      jwt</span><span style="color:#24292E">.</span><span style="color:#6F42C1">StandardClaims</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">         ExpiresAt: time.</span><span style="color:#6F42C1">Now</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Unix</span><span style="color:#24292E">() </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 3600</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">         Issuer:    </span><span style="color:#032F62">"test"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">      },</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">   token </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> jwt.</span><span style="color:#6F42C1">NewWithClaims</span><span style="color:#24292E">(jwt.SigningMethodHS256, claims)</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> token.</span><span style="color:#6F42C1">SignedString</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(</span><span style="color:#032F62">"secret"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> getJwtTokenFromHeader</span><span style="color:#24292E">(</span><span style="color:#E36209">r</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) (</span><span style="color:#D73A49">string</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   tokenString </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> r.Header.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"Authorization"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">   fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(tokenString)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   tokenResult </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> strings.</span><span style="color:#6F42C1">SplitN</span><span style="color:#24292E">(tokenString, </span><span style="color:#032F62">" "</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#6F42C1"> len</span><span style="color:#24292E">(tokenResult) </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> 2</span><span style="color:#D73A49"> ||</span><span style="color:#24292E"> tokenResult[</span><span style="color:#005CC5">0</span><span style="color:#24292E">] </span><span style="color:#D73A49">!=</span><span style="color:#032F62"> "Bearer"</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#032F62"> ""</span><span style="color:#24292E">, fmt.</span><span style="color:#6F42C1">Errorf</span><span style="color:#24292E">(</span><span style="color:#032F62">"token格式错误"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> tokenResult[</span><span style="color:#005CC5">1</span><span style="color:#24292E">], </span><span style="color:#005CC5">nil</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这里只是一个简单实例，体会一下如何生成和解析JWT</p>
+<p><code>/register</code>接口可以像客户端随机生成一个JWT</p>
+<p><code>/login</code>接口模拟了用户的登录</p>
+<p><code>/user</code>模拟了需要JWT鉴权才能获取用户信息的过程</p>
+<p>客户端在拿到JWT之后，需要把JWT放在请求头中的<code>Authorization</code>字段中，</p>
+<p>使用方式如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Authorization:Bearer &#x3C;服务端的JWT></span></span></code></pre>
+<p>这样JWT的一个简单使用流程就结束了</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/09/28/springboot%E4%BD%BF%E7%94%A8shiro%E5%AE%8C%E6%88%90%E9%89%B4%E6%9D%83/"><span>上一篇</span>『springboot』shiro鉴权</a></div><div><a href="/2022/10/06/%E5%88%9B%E6%96%B0%E5%AE%9E%E8%B7%B5%E6%80%BB%E7%BB%931/"><span>下一篇</span>『创新实践』创新实践总结1</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

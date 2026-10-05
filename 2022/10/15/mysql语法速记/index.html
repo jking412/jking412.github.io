@@ -1,0 +1,736 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="一、数据定义 主要使用DDL，用于定义数据对象（数据库，数据表，视图，索引等） 数据库（DATABASE） 创建数据库 删除数据库 选择数据库 数据表（TABLE） 数据表的创建与删除 创建数据表 根据已有表创建 删除数据表 修改数据表 添加列 删除列 修改列 添加主键 删除主键 视图（VIEW） "><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/10/15/mysql%E8%AF%AD%E6%B3%95%E9%80%9F%E8%AE%B0/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="『mysql』mysql语法速记 · jking の 博客"><meta property="og:description" content="一、数据定义 主要使用DDL，用于定义数据对象（数据库，数据表，视图，索引等） 数据库（DATABASE） 创建数据库 删除数据库 选择数据库 数据表（TABLE） 数据表的创建与删除 创建数据表 根据已有表创建 删除数据表 修改数据表 添加列 删除列 修改列 添加主键 删除主键 视图（VIEW） "><meta property="og:url" content="https://jking412.github.io/2022/10/15/mysql%E8%AF%AD%E6%B3%95%E9%80%9F%E8%AE%B0/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-10-15T02:37:10.000Z"><title>『mysql』mysql语法速记 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-10-15T02:37:10.000Z">2022.10.15</time><span>jking</span></div><h1>『mysql』mysql语法速记</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/mysql/">mysql</a></li></ul></header><details class="toc"><summary>文章目录 <span>29 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#一数据定义">一、数据定义</a></li><li><a href="#数据库database">数据库（DATABASE）</a></li><li><a href="#数据表table">数据表（TABLE）</a></li><li class="nested"><a href="#数据表的创建与删除">数据表的创建与删除</a></li><li class="nested"><a href="#修改数据表">修改数据表</a></li><li><a href="#视图view">视图（VIEW）</a></li><li><a href="#索引index">索引（INDEX）</a></li><li><a href="#约束">约束</a></li><li><a href="#二增删改查">二、增删改查</a></li><li><a href="#插入数据">插入数据</a></li><li><a href="#更新数据">更新数据</a></li><li><a href="#删除数据">删除数据</a></li><li><a href="#查询数据">查询数据</a></li><li><a href="#三子查询">三、子查询</a></li><li><a href="#where">WHERE</a></li><li><a href="#in和between">IN和BETWEEN</a></li><li><a href="#andornot">AND、OR、NOT</a></li><li><a href="#like">LIKE</a></li><li><a href="#四连接和组合">四、连接和组合</a></li><li><a href="#连接join">连接（JOIN）</a></li><li><a href="#组合union">组合（UNION）</a></li><li><a href="#五函数">五、函数</a></li><li class="nested"><a href="#文本处理">文本处理</a></li><li class="nested"><a href="#日期和时间处理日期和时间处理">日期和时间处理日期和时间处理</a></li><li class="nested"><a href="#数值处理">数值处理</a></li><li class="nested"><a href="#汇总">汇总</a></li><li><a href="#六排序和分组">六、排序和分组</a></li><li><a href="#七事务处理">七、事务处理</a></li><li><a href="#八权限控制">八、权限控制</a></li></ul></nav></details><div class="prose"><h1 id="一数据定义">一、数据定义</h1>
+<p>主要使用DDL，用于定义数据对象（数据库，数据表，视图，索引等）</p>
+<h2 id="数据库database">数据库（DATABASE）</h2>
+<blockquote>
+<p>创建数据库</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">create</span><span style="color:#D73A49"> DATABASE</span><span style="color:#6F42C1"> test</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>删除数据库</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">DROP</span><span style="color:#D73A49"> DATABASE</span><span style="color:#24292E"> test</span></span></code></pre>
+<blockquote>
+<p>选择数据库</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">USE</span><span style="color:#24292E"> test;</span></span></code></pre>
+<h2 id="数据表table">数据表（TABLE）</h2>
+<h3 id="数据表的创建与删除">数据表的创建与删除</h3>
+<blockquote>
+<p>创建数据表</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">CREATE</span><span style="color:#D73A49"> TABLE</span><span style="color:#6F42C1"> user</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#24292E">  id </span><span style="color:#D73A49">int</span><span style="color:#24292E">(</span><span style="color:#005CC5">10</span><span style="color:#24292E">) unsigned </span><span style="color:#D73A49">NOT NULL</span><span style="color:#24292E"> COMMENT </span><span style="color:#032F62">'Id'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">  username </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">64</span><span style="color:#24292E">) </span><span style="color:#D73A49">NOT NULL</span><span style="color:#D73A49"> DEFAULT</span><span style="color:#032F62"> 'default'</span><span style="color:#24292E"> COMMENT </span><span style="color:#032F62">'用户名'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#D73A49">  password</span><span style="color:#D73A49"> varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">64</span><span style="color:#24292E">) </span><span style="color:#D73A49">NOT NULL</span><span style="color:#D73A49"> DEFAULT</span><span style="color:#032F62"> 'default'</span><span style="color:#24292E"> COMMENT </span><span style="color:#032F62">'密码'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">  email </span><span style="color:#D73A49">varchar</span><span style="color:#24292E">(</span><span style="color:#005CC5">64</span><span style="color:#24292E">) </span><span style="color:#D73A49">NOT NULL</span><span style="color:#D73A49"> DEFAULT</span><span style="color:#032F62"> 'default'</span><span style="color:#24292E"> COMMENT </span><span style="color:#032F62">'邮箱'</span></span>
+<span class="line"><span style="color:#24292E">) COMMENT</span><span style="color:#D73A49">=</span><span style="color:#032F62">'用户表'</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>根据已有表创建</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">CREATE</span><span style="color:#D73A49"> TABLE</span><span style="color:#6F42C1"> viper_user</span><span style="color:#D73A49"> AS</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user;</span></span></code></pre>
+<blockquote>
+<p>删除数据表</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">DROP</span><span style="color:#D73A49"> TABLE</span><span style="color:#24292E"> user;</span></span></code></pre>
+<h3 id="修改数据表">修改数据表</h3>
+<blockquote>
+<p>添加列</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">ALTER</span><span style="color:#D73A49"> TABLE</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">ADD</span><span style="color:#24292E"> age </span><span style="color:#D73A49">int</span><span style="color:#24292E">(</span><span style="color:#005CC5">3</span><span style="color:#24292E">);</span></span></code></pre>
+<blockquote>
+<p>删除列</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">ALTER</span><span style="color:#D73A49"> TABLE</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">DROP</span><span style="color:#24292E"> column age;</span></span></code></pre>
+<blockquote>
+<p>修改列</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">ALTER</span><span style="color:#D73A49"> TABLE</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">MODIFY</span><span style="color:#24292E"> COLUMN age </span><span style="color:#D73A49">tinyint</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>添加主键</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">ALTER</span><span style="color:#D73A49"> TABLE</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">ADD</span><span style="color:#D73A49"> PRIMARY KEY</span><span style="color:#24292E"> (id);</span></span></code></pre>
+<blockquote>
+<p>删除主键</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">ALTER</span><span style="color:#D73A49"> TABLE</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">DROP</span><span style="color:#D73A49"> PRIMARY KEY</span><span style="color:#24292E">;</span></span></code></pre>
+<h2 id="视图view">视图（VIEW）</h2>
+<p>视图是基于SQL语句的结果集的可视化表。视图是虚拟的表，本身不储存数据，也不处理数据。主要用于简化和方便我们的操作，但是视图的操作和普通的表的操作方式类似</p>
+<blockquote>
+<p>视图的作用</p>
+</blockquote>
+<ul>
+<li>简化复杂的sql操作</li>
+</ul>
+<blockquote>
+<p>创建视图</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">CREATE</span><span style="color:#D73A49"> VIEW</span><span style="color:#6F42C1"> top_10_user_view</span><span style="color:#D73A49"> AS</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> id,username </span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> id </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 10</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>删除视图</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">DROP</span><span style="color:#D73A49"> VIEW</span><span style="color:#24292E"> top_10_user_view;</span></span></code></pre>
+<h2 id="索引index">索引（INDEX）</h2>
+<p>索引可以更加高效的查询数据。用户无法看到索引，但是可以用它来加速查询。</p>
+<p>但是维护索引需要额外的空间和时间，所以更新一个含有索引的表花费的代价会比不含有索引的表更大，所以一般推荐是只在被频繁搜索的列上创建索引</p>
+<blockquote>
+<p>唯一索引</p>
+</blockquote>
+<p>表面此索引的每一个索引值都可以唯一标识表中的一个记录</p>
+<blockquote>
+<p>创建索引</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">CREATE</span><span style="color:#D73A49"> INDEX</span><span style="color:#6F42C1"> user_index</span></span>
+<span class="line"><span style="color:#D73A49">ON</span><span style="color:#24292E"> user (id);</span></span></code></pre>
+<blockquote>
+<p>创建唯一索引</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">CREATE</span><span style="color:#D73A49"> UNIQUE INDEX</span><span style="color:#6F42C1"> user_index</span></span>
+<span class="line"><span style="color:#D73A49">ON</span><span style="color:#24292E"> user (id);</span></span></code></pre>
+<blockquote>
+<p>删除索引</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">ALTER</span><span style="color:#D73A49"> TABlE</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">DROP</span><span style="color:#D73A49"> INDEX</span><span style="color:#24292E"> user_index;</span></span></code></pre>
+<h2 id="约束">约束</h2>
+<blockquote>
+<p>SQL 约束用于规定表中的数据规则。</p>
+</blockquote>
+<ul>
+<li>如果存在违反约束的数据行为，行为会被约束终止。</li>
+<li>约束可以在创建表时规定（通过 CREATE TABLE 语句），或者在表创建之后规定（通过 ALTER TABLE 语句）。</li>
+<li>约束类型
+<ul>
+<li><code>NOT NULL</code> - 指示某列不能存储 NULL 值。</li>
+<li><code>UNIQUE</code> - 保证某列的每行必须有唯一的值。</li>
+<li><code>PRIMARY KEY</code> - NOT NULL 和 UNIQUE 的结合。确保某列（或两个列多个列的结合）有唯一标识，有助于更容易更快速地找到表中的一个特定的记录。</li>
+<li><code>FOREIGN KEY</code> - 保证一个表中的数据匹配另一个表中的值的参照完整性。</li>
+<li><code>CHECK</code> - 保证列中的值符合指定的条件。</li>
+<li><code>DEFAULT</code> - 规定没有给列赋值时的默认值。</li>
+</ul>
+</li>
+</ul>
+<p>创建表时使用约束条件：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">CREATE</span><span style="color:#D73A49"> TABLE</span><span style="color:#6F42C1"> Users</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#24292E">  Id </span><span style="color:#D73A49">INT</span><span style="color:#24292E">(</span><span style="color:#005CC5">10</span><span style="color:#24292E">) UNSIGNED </span><span style="color:#D73A49">NOT NULL</span><span style="color:#24292E"> AUTO_INCREMENT COMMENT </span><span style="color:#032F62">'自增Id'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">  Username </span><span style="color:#D73A49">VARCHAR</span><span style="color:#24292E">(</span><span style="color:#005CC5">64</span><span style="color:#24292E">) </span><span style="color:#D73A49">NOT NULL</span><span style="color:#D73A49"> UNIQUE</span><span style="color:#D73A49"> DEFAULT</span><span style="color:#032F62"> 'default'</span><span style="color:#24292E"> COMMENT </span><span style="color:#032F62">'用户名'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#D73A49">  Password</span><span style="color:#D73A49"> VARCHAR</span><span style="color:#24292E">(</span><span style="color:#005CC5">64</span><span style="color:#24292E">) </span><span style="color:#D73A49">NOT NULL</span><span style="color:#D73A49"> DEFAULT</span><span style="color:#032F62"> 'default'</span><span style="color:#24292E"> COMMENT </span><span style="color:#032F62">'密码'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">  Email </span><span style="color:#D73A49">VARCHAR</span><span style="color:#24292E">(</span><span style="color:#005CC5">64</span><span style="color:#24292E">) </span><span style="color:#D73A49">NOT NULL</span><span style="color:#D73A49"> DEFAULT</span><span style="color:#032F62"> 'default'</span><span style="color:#24292E"> COMMENT </span><span style="color:#032F62">'邮箱地址'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#D73A49">  Enabled</span><span style="color:#D73A49"> TINYINT</span><span style="color:#24292E">(</span><span style="color:#005CC5">4</span><span style="color:#24292E">) </span><span style="color:#D73A49">DEFAULT</span><span style="color:#D73A49"> NULL</span><span style="color:#24292E"> COMMENT </span><span style="color:#032F62">'是否有效'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#D73A49">  PRIMARY KEY</span><span style="color:#24292E"> (Id)</span></span>
+<span class="line"><span style="color:#24292E">) ENGINE</span><span style="color:#D73A49">=</span><span style="color:#24292E">InnoDB AUTO_INCREMENT</span><span style="color:#D73A49">=</span><span style="color:#005CC5">2</span><span style="color:#D73A49"> DEFAULT</span><span style="color:#24292E"> CHARSET</span><span style="color:#D73A49">=</span><span style="color:#24292E">utf8mb4 COMMENT</span><span style="color:#D73A49">=</span><span style="color:#032F62">'用户表'</span><span style="color:#24292E">;</span></span></code></pre>
+<h1 id="二增删改查">二、增删改查</h1>
+<p>又称为CRUD，数据库基本操作</p>
+<ul>
+<li><code>create</code>-增</li>
+<li><code>delete</code>-删</li>
+<li><code>update</code>-改</li>
+<li><code>retrieve</code>-查</li>
+</ul>
+<h2 id="插入数据">插入数据</h2>
+<p>使用<code>INSERT INTO</code></p>
+<blockquote>
+<p>插入完整的行</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">INSERT INTO</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">VALUES</span><span style="color:#24292E"> (</span><span style="color:#005CC5">10</span><span style="color:#24292E">,</span><span style="color:#032F62">'root'</span><span style="color:#24292E">,</span><span style="color:#032F62">'root'</span><span style="color:#24292E">,</span><span style="color:#032F62">'test@test.com'</span><span style="color:#24292E">);</span></span></code></pre>
+<blockquote>
+<p>插入行的一部分</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">INSERT INTO</span><span style="color:#24292E"> user(username,</span><span style="color:#D73A49">password</span><span style="color:#24292E">,email)</span></span>
+<span class="line"><span style="color:#D73A49">VALUES</span><span style="color:#24292E">(</span><span style="color:#032F62">'root'</span><span style="color:#24292E">,</span><span style="color:#032F62">'root'</span><span style="color:#24292E">,</span><span style="color:#032F62">'test@test.com'</span><span style="color:#24292E">);</span></span></code></pre>
+<blockquote>
+<p>插入查询出来的数据</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">INSERT INTO</span><span style="color:#24292E"> user (username)</span></span>
+<span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> name</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> account;</span></span></code></pre>
+<h2 id="更新数据">更新数据</h2>
+<p>使用<code>UPDATE</code></p>
+<blockquote>
+<p>更新数据</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">UPDATE</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">SET</span><span style="color:#24292E"> username</span><span style="color:#D73A49">=</span><span style="color:#032F62">'Mike'</span><span style="color:#24292E">,</span><span style="color:#D73A49">password=</span><span style="color:#032F62">'test'</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> username</span><span style="color:#D73A49">=</span><span style="color:#032F62">'root'</span><span style="color:#24292E">;</span></span></code></pre>
+<h2 id="删除数据">删除数据</h2>
+<p>使用<code>DELETE</code></p>
+<blockquote>
+<p>删除指定数据</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">DELETE</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E">  user</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> username</span><span style="color:#D73A49">=</span><span style="color:#032F62">'root'</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>删除表中所有数据</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">TRUNCATE</span><span style="color:#D73A49"> TABLE</span><span style="color:#24292E"> user;</span></span></code></pre>
+<h2 id="查询数据">查询数据</h2>
+<ul>
+<li><code>SELECT</code>- 查询</li>
+<li><code>DISTINCT</code>-返回不同的值</li>
+<li><code>LIMIT</code>-限制返回的行数，可以接受两个参数，第一个参数是开始查询的行数，第一行是0；第二个是返回的总行数</li>
+</ul>
+<blockquote>
+<p>单列查询</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> id </span><span style="color:#D73A49">FROM</span><span style="color:#24292E"> user;</span></span></code></pre>
+<blockquote>
+<p>查询多列</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> id,username </span><span style="color:#D73A49">FROM</span><span style="color:#24292E"> user;</span></span></code></pre>
+<blockquote>
+<p>查询所有列</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user;</span></span></code></pre>
+<blockquote>
+<p>查询不同值</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT DISTINCT</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#D73A49">*</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> user;</span></span></code></pre>
+<blockquote>
+<p>限制查询结构</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#24292E"># 返回前5行</span></span>
+<span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user </span><span style="color:#D73A49">LIMIT</span><span style="color:#005CC5"> 5</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user </span><span style="color:#D73A49">LIMIT</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">,</span><span style="color:#005CC5">5</span></span>
+<span class="line"><span style="color:#24292E"># 返回3~5行</span></span>
+<span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user </span><span style="color:#D73A49">LIMIT</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">,</span><span style="color:#005CC5">3</span><span style="color:#24292E">;</span></span></code></pre>
+<h1 id="三子查询">三、子查询</h1>
+<p>子查询是嵌套较大的查询中的一个小查询，子查询也被称为<code>内部查询</code>或者<code>内部选择</code></p>
+<ul>
+<li>子查询嵌套在<code>SELECT</code>、<code>UPDATE</code>、<code>DELETE</code>、<code>INSERT</code> 或者另一个子查询中</li>
+<li>子查询需要用<code>()</code> 括起来</li>
+<li>子查询优先于父查询执行，因为需要先获得子查询的结果</li>
+</ul>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sql-subqueries.gif" alt="sql-subqueries"></p>
+<blockquote>
+<p>子查询中的子查询</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> cust_name, cust_contact</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> customers</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> cust_id </span><span style="color:#D73A49">IN</span><span style="color:#24292E"> (</span><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> cust_id</span></span>
+<span class="line"><span style="color:#D73A49">                  FROM</span><span style="color:#24292E"> orders</span></span>
+<span class="line"><span style="color:#D73A49">                  WHERE</span><span style="color:#24292E"> order_num </span><span style="color:#D73A49">IN</span><span style="color:#24292E"> (</span><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> order_num</span></span>
+<span class="line"><span style="color:#D73A49">                                      FROM</span><span style="color:#24292E"> orderitems</span></span>
+<span class="line"><span style="color:#D73A49">                                      WHERE</span><span style="color:#24292E"> prod_id </span><span style="color:#D73A49">=</span><span style="color:#032F62"> 'RGAN01'</span><span style="color:#24292E">));</span></span>
+<span class="line"></span></code></pre>
+<h2 id="where">WHERE</h2>
+<p><code>WHERE</code>用于过滤记录，<code>WHERE</code>后跟着一个<code>true</code>或者<code>false</code>的条件</p>
+<p>可以在<code>WHERE</code>中使用的操作符</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>运算符</th><th>描述</th></tr></thead><tbody><tr><td>=</td><td>等于</td></tr><tr><td>&#x3C;></td><td>不等于。注释：在 SQL 的一些版本中，该操作符可被写成 !=</td></tr><tr><td>></td><td>大于</td></tr><tr><td>&#x3C;</td><td>小于</td></tr><tr><td>>=</td><td>大于等于</td></tr><tr><td>&#x3C;=</td><td>小于等于</td></tr><tr><td>BETWEEN</td><td>在某个范围内</td></tr><tr><td>LIKE</td><td>搜索某种模式</td></tr><tr><td>IN</td><td>指定针对某个列的多个可能值</td></tr></tbody></table>
+<blockquote>
+<p>SELECT</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> username</span><span style="color:#D73A49">=</span><span style="color:#032F62">'root'</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>UPDATE</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">UPDATE</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">SET</span><span style="color:#24292E"> username</span><span style="color:#D73A49">=</span><span style="color:#032F62">'root'</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> username</span><span style="color:#D73A49">=</span><span style="color:#032F62">'Mike'</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>DELETE</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">DELETE</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> uesr</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> username</span><span style="color:#D73A49">=</span><span style="color:#032F62">'root'</span><span style="color:#24292E">;</span></span></code></pre>
+<h2 id="in和between">IN和BETWEEN</h2>
+<p><code>IN</code>在<code>WHERE</code>子句中使用，用于在记录中找到特定的值。</p>
+<p><code>BETWEEN</code>在<code>WHERE</code>子句中使用，用于在记录中找到特定范围的值。</p>
+<blockquote>
+<p>IN</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> username </span><span style="color:#D73A49">IN</span><span style="color:#24292E"> (</span><span style="color:#032F62">'root'</span><span style="color:#24292E">,</span><span style="color:#032F62">'Mike'</span><span style="color:#24292E">);</span></span></code></pre>
+<blockquote>
+<p>BETWEEN</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user </span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> age BWTWEEN </span><span style="color:#005CC5">30</span><span style="color:#D73A49"> AND</span><span style="color:#005CC5"> 35</span><span style="color:#24292E">;</span></span></code></pre>
+<h2 id="andornot">AND、OR、NOT</h2>
+<p>三者用于对过滤条件的逻辑处理</p>
+<blockquote>
+<p>AND</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> age </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span><span style="color:#D73A49"> AND</span><span style="color:#24292E"> username </span><span style="color:#D73A49">=</span><span style="color:#032F62"> 'root'</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>OR</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> age </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span><span style="color:#D73A49"> OR</span><span style="color:#24292E"> username </span><span style="color:#D73A49">=</span><span style="color:#032F62"> 'root'</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>NOT</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> user</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> id </span><span style="color:#D73A49">NOT</span><span style="color:#D73A49"> BETWEEN</span><span style="color:#005CC5"> 3</span><span style="color:#D73A49"> AND</span><span style="color:#005CC5"> 5</span><span style="color:#24292E">;</span></span></code></pre>
+<h2 id="like">LIKE</h2>
+<p><code>LIKE</code>在<code>WHERE</code>子句中使用，用于确定字符串是否匹配模式，所以只有在字段是文本值的时候才可以使用。</p>
+<p>LIKE支持两个通配符,<code>_</code>和<code>%</code></p>
+<ul>
+<li><code>_</code>表示任意字符出现一次</li>
+<li><code>%</code>表示任意字符出现任意次数</li>
+</ul>
+<p>不要随意的使用通配符，这可能会导致你的查询非常缓慢</p>
+<p>当我们要匹配的字符串中真的含有<code>_</code>和<code>%</code>时，我们可以使用转义字符<code>\%</code>和<code>\_</code></p>
+<blockquote>
+<p>%</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> USER</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> username </span><span style="color:#D73A49">LIKE</span><span style="color:#032F62"> '%root%'</span></span></code></pre>
+<blockquote>
+<p>_</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> USER</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> username </span><span style="color:#D73A49">LIKE</span><span style="color:#032F62"> '_root_'</span></span></code></pre>
+<h1 id="四连接和组合">四、连接和组合</h1>
+<h2 id="连接join">连接（JOIN）</h2>
+<p>连接用于连接多个表，而且条件语句使用<code>ON</code>而不是<code>WHERE</code>。</p>
+<p>连接可以替换子查询，而且效率往往比子查询效率更高。</p>
+<p>连接分为三种类型：</p>
+<ul>
+<li>外连接
+<ul>
+<li>左（外）连接</li>
+<li>右（外）连接</li>
+<li>全外连接</li>
+</ul>
+</li>
+<li>内连接
+<ul>
+<li>自连接</li>
+<li>自然连接</li>
+</ul>
+</li>
+<li>全外连接(mysql不支持)</li>
+</ul>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/sql-join.png" alt="sql-join"></p>
+<blockquote>
+<p>内连接(INNER JOIN)</p>
+</blockquote>
+<p>内连接又称等值连接，默认情况下，返回表之间的公共部分，没有条件的情况下返回笛卡尔积（最好不要这样做，这样会很容易返回爆炸多的行数）</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> users </span><span style="color:#D73A49">INNER JOIN</span><span style="color:#24292E"> students</span></span>
+<span class="line"><span style="color:#D73A49">ON</span><span style="color:#005CC5"> user</span><span style="color:#24292E">.</span><span style="color:#005CC5">id</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> students</span><span style="color:#24292E">.</span><span style="color:#005CC5">id</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>自连接(=)</p>
+</blockquote>
+<p>自连接看看出内连接的一种，只是连接的是表的自身而已。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#005CC5"> c1</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_id</span><span style="color:#24292E">, </span><span style="color:#005CC5">c1</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_name</span><span style="color:#24292E">, </span><span style="color:#005CC5">c1</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_contact</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> customers c1, customers c2</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#005CC5"> c1</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_name</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> c2</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_name</span></span>
+<span class="line"><span style="color:#D73A49">AND</span><span style="color:#005CC5"> c2</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_contact</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> 'Jim Jones'</span><span style="color:#24292E">;</span></span></code></pre>
+<p>ps：没感觉到用处</p>
+<p>为什么不直接</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#005CC5"> c1</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_id</span><span style="color:#24292E">, </span><span style="color:#005CC5">c1</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_name</span><span style="color:#24292E">, </span><span style="color:#005CC5">c1</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_contact</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> customers c1</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#005CC5"> c1</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_contact</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> 'Jim Jones'</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>自然连接(NATURAL JOIN)</p>
+</blockquote>
+<p>可以自动的连接同名列</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> users</span></span>
+<span class="line"><span style="color:#D73A49">NATURAL JOIN</span><span style="color:#24292E"> students;</span></span></code></pre>
+<p>等价于上面内连接的写法，但是内连接不同的是内连接可以自己指定列，而不需要列明相同</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> users </span><span style="color:#D73A49">INNER JOIN</span><span style="color:#24292E"> students</span></span>
+<span class="line"><span style="color:#D73A49">ON</span><span style="color:#005CC5"> user</span><span style="color:#24292E">.</span><span style="color:#005CC5">uid</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> students</span><span style="color:#24292E">.</span><span style="color:#005CC5">sid</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>外连接(OUTER JOIN)</p>
+</blockquote>
+<p>Mysql不支持</p>
+<blockquote>
+<p>左连接(LEFT JOIN)</p>
+</blockquote>
+<p>以左边的表为主，即便左边的表没有与右边的表关联也会被保留</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#005CC5"> customers</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_id</span><span style="color:#24292E">, </span><span style="color:#005CC5">orders</span><span style="color:#24292E">.</span><span style="color:#005CC5">order_num</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> customers </span><span style="color:#D73A49">LEFT JOIN</span><span style="color:#24292E"> orders</span></span>
+<span class="line"><span style="color:#D73A49">ON</span><span style="color:#005CC5"> customers</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_id</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> orders</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_id</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>右连接(RIGHT JOIN)</p>
+</blockquote>
+<p>与左连接相反，以右边的表为主</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#005CC5"> customers</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_id</span><span style="color:#24292E">, </span><span style="color:#005CC5">orders</span><span style="color:#24292E">.</span><span style="color:#005CC5">order_num</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> customers </span><span style="color:#D73A49">RIGHT JOIN</span><span style="color:#24292E"> orders</span></span>
+<span class="line"><span style="color:#D73A49">ON</span><span style="color:#005CC5"> customers</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_id</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> orders</span><span style="color:#24292E">.</span><span style="color:#005CC5">cust_id</span><span style="color:#24292E">;</span></span></code></pre>
+<h2 id="组合union">组合（UNION）</h2>
+<p><code>UNION</code>将多个结果集合并成一个并返回</p>
+<p>基本规则：</p>
+<ul>
+<li>所有查询的列数和列顺序必须相同</li>
+<li>列的数据类型必须兼容</li>
+</ul>
+<p>只能有一个<code>ORDER BY</code>语句，且位于语句的最后。
+默认去除相同行，如需保留，使用<code>UNION ALL</code>。</p>
+<p>应用场景：</p>
+<ul>
+<li>一个查询从多个表中返回结果</li>
+<li>一个表执行多个查询</li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> cust_name, cust_contact, cust_email</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> customers</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> cust_state </span><span style="color:#D73A49">IN</span><span style="color:#24292E"> (</span><span style="color:#032F62">'IL'</span><span style="color:#24292E">, </span><span style="color:#032F62">'IN'</span><span style="color:#24292E">, </span><span style="color:#032F62">'MI'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">UNION</span></span>
+<span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> cust_name, cust_contact, cust_email</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> customers</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> cust_name </span><span style="color:#D73A49">=</span><span style="color:#032F62"> 'Fun4All'</span><span style="color:#24292E">;</span></span></code></pre>
+<p>JOIN vs UNION</p>
+<ul>
+<li><code>JOIN</code>中连接的列可能不同，但是<code>UNION</code>中，查询的列数和顺序必须相同</li>
+<li><code>JOIN</code>把查询的列水平放置，也就是构成笛卡尔积， <code>UNION</code>把查询的列垂直放置</li>
+</ul>
+<h1 id="五函数">五、函数</h1>
+<p>不同数据库的函数往往不同，下面以Mysql为例</p>
+<h3 id="文本处理">文本处理</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="center">函数</th><th align="center">说明</th></tr></thead><tbody><tr><td align="center"><code>LEFT()</code>、<code>RIGHT()</code></td><td align="center">左边或者右边的字符</td></tr><tr><td align="center"><code>LOWER()</code>、<code>UPPER()</code></td><td align="center">转换为小写或者大写</td></tr><tr><td align="center"><code>LTRIM()</code>、<code>RTIM()</code></td><td align="center">去除左边或者右边的空格</td></tr><tr><td align="center"><code>LENGTH()</code></td><td align="center">长度</td></tr><tr><td align="center"><code>SOUNDEX()</code></td><td align="center">转换为语音值</td></tr></tbody></table>
+<p>其中， <strong>SOUNDEX()</strong> 可以将一个字符串转换为描述其语音表示的字母数字模式。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> mytable</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#005CC5"> SOUNDEX</span><span style="color:#24292E">(col1) </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> SOUNDEX</span><span style="color:#24292E">(</span><span style="color:#032F62">'apple'</span><span style="color:#24292E">)</span></span></code></pre>
+<h3 id="日期和时间处理日期和时间处理">日期和时间处理日期和时间处理</h3>
+<ul>
+<li>日期格式：<code>YYYY-MM-DD</code></li>
+<li>时间格式：<code>HH:MM:SS</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="center">函 数</th><th align="center">说 明</th></tr></thead><tbody><tr><td align="center"><code>AddDate()</code></td><td align="center">增加一个日期（天、周等）</td></tr><tr><td align="center"><code>AddTime()</code></td><td align="center">增加一个时间（时、分等）</td></tr><tr><td align="center"><code>CurDate()</code></td><td align="center">返回当前日期</td></tr><tr><td align="center"><code>CurTime()</code></td><td align="center">返回当前时间</td></tr><tr><td align="center"><code>Date()</code></td><td align="center">返回日期时间的日期部分</td></tr><tr><td align="center"><code>DateDiff()</code></td><td align="center">计算两个日期之差</td></tr><tr><td align="center"><code>Date_Add()</code></td><td align="center">高度灵活的日期运算函数</td></tr><tr><td align="center"><code>Date_Format()</code></td><td align="center">返回一个格式化的日期或时间串</td></tr><tr><td align="center"><code>Day()</code></td><td align="center">返回一个日期的天数部分</td></tr><tr><td align="center"><code>DayOfWeek()</code></td><td align="center">对于一个日期，返回对应的星期几</td></tr><tr><td align="center"><code>Hour()</code></td><td align="center">返回一个时间的小时部分</td></tr><tr><td align="center"><code>Minute()</code></td><td align="center">返回一个时间的分钟部分</td></tr><tr><td align="center"><code>Month()</code></td><td align="center">返回一个日期的月份部分</td></tr><tr><td align="center"><code>Now()</code></td><td align="center">返回当前日期和时间</td></tr><tr><td align="center"><code>Second()</code></td><td align="center">返回一个时间的秒部分</td></tr><tr><td align="center"><code>Time()</code></td><td align="center">返回一个日期时间的时间部分</td></tr><tr><td align="center"><code>Year()</code></td><td align="center">返回一个日期的年份部分</td></tr></tbody></table>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#24292E">mysql</span><span style="color:#D73A49">></span><span style="color:#D73A49"> SELECT</span><span style="color:#D73A49"> NOW</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#005CC5">2018</span><span style="color:#D73A49">-</span><span style="color:#005CC5">4</span><span style="color:#D73A49">-</span><span style="color:#005CC5">14</span><span style="color:#005CC5"> 20</span><span style="color:#24292E">:</span><span style="color:#005CC5">25</span><span style="color:#24292E">:</span><span style="color:#005CC5">11</span></span></code></pre>
+<h3 id="数值处理">数值处理</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="center">函数</th><th align="center">说明</th></tr></thead><tbody><tr><td align="center">SIN()</td><td align="center">正弦</td></tr><tr><td align="center">COS()</td><td align="center">余弦</td></tr><tr><td align="center">TAN()</td><td align="center">正切</td></tr><tr><td align="center">ABS()</td><td align="center">绝对值</td></tr><tr><td align="center">SQRT()</td><td align="center">平方根</td></tr><tr><td align="center">MOD()</td><td align="center">余数</td></tr><tr><td align="center">EXP()</td><td align="center">指数</td></tr><tr><td align="center">PI()</td><td align="center">圆周率</td></tr><tr><td align="center">RAND()</td><td align="center">随机数</td></tr></tbody></table>
+<h3 id="汇总">汇总</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="center">函 数</th><th align="center">说 明</th></tr></thead><tbody><tr><td align="center"><code>AVG()</code></td><td align="center">返回某列的平均值</td></tr><tr><td align="center"><code>COUNT()</code></td><td align="center">返回某列的行数</td></tr><tr><td align="center"><code>MAX()</code></td><td align="center">返回某列的最大值</td></tr><tr><td align="center"><code>MIN()</code></td><td align="center">返回某列的最小值</td></tr><tr><td align="center"><code>SUM()</code></td><td align="center">返回某列值之和</td></tr></tbody></table>
+<p><code>AVG()</code> 会忽略 NULL 行。</p>
+<p>使用 DISTINCT 可以让汇总函数值汇总不同的值。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#005CC5"> AVG</span><span style="color:#24292E">(</span><span style="color:#D73A49">DISTINCT</span><span style="color:#24292E"> col1) </span><span style="color:#D73A49">AS</span><span style="color:#24292E"> avg_col</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> mytable</span></span></code></pre>
+<h1 id="六排序和分组">六、排序和分组</h1>
+<blockquote>
+<p>order by</p>
+</blockquote>
+<p>用于对结果集排序，有两种排序模式</p>
+<ul>
+<li><code>ASC</code>：升序（默认）</li>
+<li><code>DESC</code>：降序</li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#D73A49"> *</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> products</span></span>
+<span class="line"><span style="color:#D73A49">ORDER BY</span><span style="color:#24292E"> prod_price </span><span style="color:#D73A49">DESC</span><span style="color:#24292E">,prod_name </span><span style="color:#D73A49">ASC</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>group by</p>
+</blockquote>
+<p>把记录分组到汇总行中，为每个汇总行返回一个记录</p>
+<p>通常配合汇总函数使用</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> cust_name, </span><span style="color:#005CC5">COUNT</span><span style="color:#24292E">(cust_address) </span><span style="color:#D73A49">AS</span><span style="color:#24292E"> addr_num</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> Customers </span><span style="color:#D73A49">GROUP BY</span><span style="color:#24292E"> cust_name</span></span></code></pre>
+<p>所有<code>cust_name</code>相同的字段会被汇总成一个字段返回</p>
+<blockquote>
+<p>HAVING</p>
+</blockquote>
+<p>专门用于过滤汇总的组记录</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> cust_name,</span><span style="color:#005CC5">COUNT</span><span style="color:#24292E">(</span><span style="color:#D73A49">*</span><span style="color:#24292E">) </span><span style="color:#D73A49">AS</span><span style="color:#24292E"> num</span></span>
+<span class="line"><span style="color:#D73A49">FROM</span><span style="color:#24292E"> Customers</span></span>
+<span class="line"><span style="color:#D73A49">WHERE</span><span style="color:#24292E"> cust_email </span><span style="color:#D73A49">IS NOT NULL</span></span>
+<span class="line"><span style="color:#24292E">GRUOP </span><span style="color:#D73A49">BY</span><span style="color:#24292E"> cust_name</span></span>
+<span class="line"><span style="color:#D73A49">HAVING</span><span style="color:#005CC5"> COUNT</span><span style="color:#24292E">(</span><span style="color:#D73A49">*</span><span style="color:#24292E">) </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span></code></pre>
+<h1 id="七事务处理">七、事务处理</h1>
+<p>MYSQL默认采用隐式提交策略(autocommit)，每执行一条语句就会把这条语句当成一个事务提交。</p>
+<p>通过<code>set autocommit=0</code>可以关闭自动提交，这是命令针对连接的、</p>
+<p>当我们显式的开启一个事务<code>START TRANSACTION</code>时，会关闭隐式提交；当<code>COMMIT</code>或者<code>ROLLBACK</code>之后会重新开启隐式提交</p>
+<p>事务命令:</p>
+<ul>
+<li><code>START TRANSACTION</code>-开启一个事务</li>
+<li><code>SAVEPOINT</code>-在事务中创建保存点</li>
+<li><code>ROLLBACK TO</code>-回滚到某个保存点，如果没有设置则返回到<code>START TRANSACTION</code>的位置</li>
+<li><code>COMMIT</code>-提交事务</li>
+</ul>
+<p>示例：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#24292E"># 开启事务</span></span>
+<span class="line"><span style="color:#D73A49">START TRANSACTION</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">INSERT INTO</span><span style="color:#032F62"> `user`</span></span>
+<span class="line"><span style="color:#D73A49">VALUES</span><span style="color:#24292E"> (</span><span style="color:#005CC5">1</span><span style="color:#24292E">,</span><span style="color:#032F62">'root'</span><span style="color:#24292E">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E"># 设置保存点</span></span>
+<span class="line"><span style="color:#24292E">SAVEPOINT updateA;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">INSERT INTO</span><span style="color:#032F62"> `user`</span></span>
+<span class="line"><span style="color:#D73A49">VALUES</span><span style="color:#24292E"> (</span><span style="color:#005CC5">2</span><span style="color:#24292E">,</span><span style="color:#032F62">'test'</span><span style="color:#24292E">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E"># 回滚到保存带你</span></span>
+<span class="line"><span style="color:#D73A49">ROLLBACK</span><span style="color:#D73A49"> TO</span><span style="color:#24292E"> updateA;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E"># 提交事务，此时只有第一个insert被提交</span></span>
+<span class="line"><span style="color:#D73A49">COMMIT</span><span style="color:#24292E">;</span></span></code></pre>
+<h1 id="八权限控制">八、权限控制</h1>
+<p>采用<code>GRANT</code>和<code>REVOKE</code>控制访问权限。</p>
+<p>该命令可以在以下这些层次上控制访问权限：</p>
+<ul>
+<li>整个服务器，使用<code>GRANT ALL</code> 和<code>REVOKE ALL</code></li>
+<li>整个数据库，使用<code>ON database.*</code>，第一个参数式数据库，第二个参数是数据表，<code>*</code>代表对全部表都授予权限</li>
+<li>特定的表，使用<code>ON database.table</code></li>
+<li>特定的列</li>
+<li>特定的储存过程</li>
+</ul>
+<blockquote>
+<p>查询mysql中的所有用户信息</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">USE</span><span style="color:#24292E"> mysql;</span></span>
+<span class="line"><span style="color:#D73A49">SELECT</span><span style="color:#24292E"> user </span><span style="color:#D73A49">from</span><span style="color:#24292E"> user;</span></span></code></pre>
+<blockquote>
+<p>创建账户</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">CREATE</span><span style="color:#D73A49"> user</span><span style="color:#6F42C1"> myuser</span><span style="color:#24292E"> INDENTIFIED </span><span style="color:#D73A49">BY</span><span style="color:#032F62"> 'mypassword'</span><span style="color:#24292E">;</span></span></code></pre>
+<blockquote>
+<p>修改账户名</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">UPDATE</span><span style="color:#24292E"> user </span><span style="color:#D73A49">SET</span><span style="color:#24292E"> user</span><span style="color:#D73A49">=</span><span style="color:#032F62">'newuser'</span><span style="color:#D73A49"> WHERE</span><span style="color:#24292E"> user</span><span style="color:#D73A49">=</span><span style="color:#032F62">'myeser'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">FLUSH PREVILEGES;</span></span></code></pre>
+<blockquote>
+<p>查看权限</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#24292E">SHOW GTANTS </span><span style="color:#D73A49">FOR</span><span style="color:#24292E"> myuser;</span></span></code></pre>
+<blockquote>
+<p>授予权限</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">GRANT</span><span style="color:#D73A49"> SELECT</span><span style="color:#24292E">, </span><span style="color:#D73A49">INSERT</span><span style="color:#D73A49"> ON</span><span style="color:#D73A49"> *</span><span style="color:#24292E">.</span><span style="color:#D73A49">*</span><span style="color:#D73A49"> TO</span><span style="color:#24292E"> myuser;</span></span></code></pre>
+<blockquote>
+<p>删除权限</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">REVOKE</span><span style="color:#D73A49"> SELECT</span><span style="color:#24292E">, </span><span style="color:#D73A49">INSERT</span><span style="color:#D73A49"> TO</span><span style="color:#D73A49"> *</span><span style="color:#24292E">.</span><span style="color:#D73A49">*</span><span style="color:#D73A49"> FROM</span><span style="color:#24292E"> myuser;</span></span></code></pre>
+<blockquote>
+<p>更改密码</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#D73A49">SET</span><span style="color:#D73A49"> PASSWORD</span><span style="color:#D73A49"> FOR</span><span style="color:#24292E"> myuser </span><span style="color:#D73A49">=</span><span style="color:#032F62"> 'mypass'</span><span style="color:#24292E">;</span></span></code></pre></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/10/15/mysql%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/"><span>上一篇</span>『mysql』mysql快速入门</a></div><div><a href="/2022/11/05/hexo%E5%BB%BA%E7%AB%99%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/"><span>下一篇</span>hexo建站简明教程</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

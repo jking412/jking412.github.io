@@ -1,0 +1,415 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="nginx是什么 nginx是一个由C语言编写的轻量级web服务器，占用内存小，并发能力强，性能非常优越，是当下非常流行的web服务器。除此以外，nginx还支持相当多的功能，包括但不限于 1. 反向代理 2. 负载均衡 3. 动静分离 这些也是nginx常见的应用场景，今天我们就来全面的介绍一下n"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/11/24/nginx%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="nginx基本使用指南 · jking の 博客"><meta property="og:description" content="nginx是什么 nginx是一个由C语言编写的轻量级web服务器，占用内存小，并发能力强，性能非常优越，是当下非常流行的web服务器。除此以外，nginx还支持相当多的功能，包括但不限于 1. 反向代理 2. 负载均衡 3. 动静分离 这些也是nginx常见的应用场景，今天我们就来全面的介绍一下n"><meta property="og:url" content="https://jking412.github.io/2022/11/24/nginx%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-11-24T11:07:56.000Z"><title>nginx基本使用指南 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-11-24T11:07:56.000Z">2022.11.24</time><span>jking</span></div><h1>nginx基本使用指南</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/nginx/">nginx</a></li></ul></header><details class="toc"><summary>文章目录 <span>29 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#nginx是什么">nginx是什么</a></li><li><a href="#环境准备">环境准备</a></li><li><a href="#nginx配置文件">nginx配置文件</a></li><li><a href="#nginx作为web服务器">nginx作为web服务器</a></li><li><a href="#listen">listen</a></li><li><a href="#server-name">server name</a></li><li><a href="#location">location</a></li><li><a href="#测试">测试</a></li><li><a href="#反向代理">反向代理</a></li><li><a href="#了解正向代理和反向代理">了解正向代理和反向代理</a></li><li><a href="#开始一个简单的服务">开始一个简单的服务</a></li><li><a href="#proxy_pass">proxy_pass</a></li><li><a href="#动静分离">动静分离</a></li><li><a href="#location匹配规则和修饰符">location匹配规则和修饰符</a></li><li><a href="#缓冲和缓存">缓冲和缓存</a></li><li><a href="#缓冲">缓冲</a></li><li class="nested"><a href="#proxy_buffering">proxy_buffering</a></li><li class="nested"><a href="#proxy_buffer_size">proxy_buffer_size</a></li><li class="nested"><a href="#proxy_buffers">proxy_buffers</a></li><li class="nested"><a href="#proxy_busy_buffers_size">proxy_busy_buffers_size</a></li><li class="nested"><a href="#proxy_max_temp_file_size">proxy_max_temp_file_size</a></li><li class="nested"><a href="#proxy_temp_file_write_size">proxy_temp_file_write_size</a></li><li><a href="#缓存">缓存</a></li><li class="nested"><a href="#proxy_cache_path">proxy_cache_path</a></li><li class="nested"><a href="#proxy_cache_bypass">proxy_cache_bypass</a></li><li class="nested"><a href="#proxy_cache_key">proxy_cache_key</a></li><li class="nested"><a href="#proxy_cache_methods">proxy_cache_methods</a></li><li class="nested"><a href="#proxy_cache_valid">proxy_cache_valid</a></li><li class="nested"><a href="#proxy_cache_min_uses">proxy_cache_min_uses</a></li></ul></nav></details><div class="prose"><h1 id="nginx是什么">nginx是什么</h1>
+<p>nginx是一个由C语言编写的轻量级<code>web服务器</code>，<code>占用内存小</code>，<code>并发能力强</code>，性能非常优越，是当下非常流行的web服务器。除此以外，nginx还支持相当多的功能，包括但不限于</p>
+<ol>
+<li>反向代理</li>
+<li>负载均衡</li>
+<li>动静分离</li>
+</ol>
+<p>这些也是nginx常见的应用场景，今天我们就来全面的介绍一下nginx的应用</p>
+<h1 id="环境准备">环境准备</h1>
+<p>操作系统采用<code>centos7</code></p>
+<p>nginx的安装相当简单，在centos中我们可以直接用yum安装</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> yum</span><span style="color:#032F62"> install</span><span style="color:#032F62"> nginx</span></span></code></pre>
+<p>在安装的众多文件中，有两个文件是要注意的</p>
+<ul>
+<li><code>/etc/nginx</code>：存放nginx的配置文件</li>
+<li><code>/usr/share/nginx/html</code>：nginx默认的web根</li>
+</ul>
+<p>接下来启动nginx试试</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> systemctl</span><span style="color:#032F62"> start</span><span style="color:#032F62"> nginx</span></span>
+<span class="line"><span style="color:#6A737D"># 再来测试看看，能正确返回内容即可</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> curl</span><span style="color:#032F62"> localhost</span></span></code></pre>
+<p>在浏览器中访问服务器ip，出现下图页面即成功</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20221124193645099.png" alt="image-20221124193645099"></p>
+<p>这里列出一下常用命令</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">nginx</span><span style="color:#005CC5"> -s</span><span style="color:#032F62"> reload</span><span style="color:#6A737D">  # 向主进程发送信号，重新加载配置文件，热重启</span></span>
+<span class="line"><span style="color:#6F42C1">nginx</span><span style="color:#005CC5"> -s</span><span style="color:#032F62"> reopen</span><span style="color:#6A737D">	 # 重启 Nginx</span></span>
+<span class="line"><span style="color:#6F42C1">nginx</span><span style="color:#005CC5"> -s</span><span style="color:#032F62"> stop</span><span style="color:#6A737D">    # 快速关闭</span></span>
+<span class="line"><span style="color:#6F42C1">nginx</span><span style="color:#005CC5"> -s</span><span style="color:#032F62"> quit</span><span style="color:#6A737D">    # 等待工作进程处理完成后关闭</span></span>
+<span class="line"><span style="color:#6F42C1">nginx</span><span style="color:#005CC5"> -T</span><span style="color:#6A737D">         # 查看当前 Nginx 最终的配置</span></span>
+<span class="line"><span style="color:#6F42C1">nginx</span><span style="color:#005CC5"> -t</span><span style="color:#005CC5"> -c</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#032F62">配置路</span><span style="color:#24292E">径</span><span style="color:#D73A49">></span><span style="color:#6A737D">    # 检查配置是否有问题，如果已经在配置目录，则不需要-c</span></span>
+<span class="line"><span style="color:#6F42C1">systemctl</span><span style="color:#032F62"> start</span><span style="color:#032F62"> nginx</span><span style="color:#6A737D">    # 启动 Nginx</span></span>
+<span class="line"><span style="color:#6F42C1">systemctl</span><span style="color:#032F62"> stop</span><span style="color:#032F62"> nginx</span><span style="color:#6A737D">     # 停止 Nginx</span></span>
+<span class="line"><span style="color:#6F42C1">systemctl</span><span style="color:#032F62"> restart</span><span style="color:#032F62"> nginx</span><span style="color:#6A737D">  # 重启 Nginx</span></span>
+<span class="line"><span style="color:#6F42C1">systemctl</span><span style="color:#032F62"> reload</span><span style="color:#032F62"> nginx</span><span style="color:#6A737D">   # 重新加载 Nginx，用于修改配置后</span></span>
+<span class="line"><span style="color:#6F42C1">systemctl</span><span style="color:#032F62"> enable</span><span style="color:#032F62"> nginx</span><span style="color:#6A737D">   # 设置开机启动 Nginx</span></span>
+<span class="line"><span style="color:#6F42C1">systemctl</span><span style="color:#032F62"> disable</span><span style="color:#032F62"> nginx</span><span style="color:#6A737D">  # 关闭开机启动 Nginx</span></span>
+<span class="line"><span style="color:#6F42C1">systemctl</span><span style="color:#032F62"> status</span><span style="color:#032F62"> nginx</span><span style="color:#6A737D">   # 查看 Nginx 运行状态</span></span></code></pre>
+<h1 id="nginx配置文件">nginx配置文件</h1>
+<p>我们先来看看nginx的主配置文件</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> cd</span><span style="color:#032F62"> /etc/nginx</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> cat</span><span style="color:#24292E"> </span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span># For more information on configuration, see:</span></span>
+<span class="line"><span>#   * Official English Documentation: http://nginx.org/en/docs/</span></span>
+<span class="line"><span>#   * Official Russian Documentation: http://nginx.org/ru/docs/</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>user nginx;</span></span>
+<span class="line"><span>worker_processes auto;</span></span>
+<span class="line"><span>error_log /var/log/nginx/error.log;</span></span>
+<span class="line"><span>pid /run/nginx.pid;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.</span></span>
+<span class="line"><span>include /usr/share/nginx/modules/*.conf;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>events {</span></span>
+<span class="line"><span>    worker_connections 1024;</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>http {</span></span>
+<span class="line"><span>    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '</span></span>
+<span class="line"><span>                      '$status $body_bytes_sent "$http_referer" '</span></span>
+<span class="line"><span>                      '"$http_user_agent" "$http_x_forwarded_for"';</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    access_log  /var/log/nginx/access.log  main;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    sendfile            on;</span></span>
+<span class="line"><span>    tcp_nopush          on;</span></span>
+<span class="line"><span>    tcp_nodelay         on;</span></span>
+<span class="line"><span>    keepalive_timeout   65;</span></span>
+<span class="line"><span>    types_hash_max_size 4096;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    include             /etc/nginx/mime.types;</span></span>
+<span class="line"><span>    default_type        application/octet-stream;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    # Load modular configuration files from the /etc/nginx/conf.d directory.</span></span>
+<span class="line"><span>    # See http://nginx.org/en/docs/ngx_core_module.html#include</span></span>
+<span class="line"><span>    # for more information.</span></span>
+<span class="line"><span>    include /etc/nginx/conf.d/*.conf;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>    server {</span></span>
+<span class="line"><span>        listen       80;</span></span>
+<span class="line"><span>        listen       [::]:80;</span></span>
+<span class="line"><span>        server_name  _;</span></span>
+<span class="line"><span>        root         /usr/share/nginx/html;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>        # Load configuration files for the default server block.</span></span>
+<span class="line"><span>        include /etc/nginx/default.d/*.conf;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>        error_page 404 /404.html;</span></span>
+<span class="line"><span>        location = /404.html {</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>        error_page 500 502 503 504 /50x.html;</span></span>
+<span class="line"><span>        location = /50x.html {</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># Settings for a TLS enabled server.</span></span>
+<span class="line"><span>#</span></span>
+<span class="line"><span>#    server {</span></span>
+<span class="line"><span>#        listen       443 ssl http2;</span></span>
+<span class="line"><span>#        listen       [::]:443 ssl http2;</span></span>
+<span class="line"><span>#        server_name  _;</span></span>
+<span class="line"><span>#        root         /usr/share/nginx/html;</span></span>
+<span class="line"><span>#</span></span>
+<span class="line"><span>#        ssl_certificate "/etc/pki/nginx/server.crt";</span></span>
+<span class="line"><span>#        ssl_certificate_key "/etc/pki/nginx/private/server.key";</span></span>
+<span class="line"><span>#        ssl_session_cache shared:SSL:1m;</span></span>
+<span class="line"><span>#        ssl_session_timeout  10m;</span></span>
+<span class="line"><span>#        ssl_ciphers HIGH:!aNULL:!MD5;</span></span>
+<span class="line"><span>#        ssl_prefer_server_ciphers on;</span></span>
+<span class="line"><span>#</span></span>
+<span class="line"><span>#        # Load configuration files for the default server block.</span></span>
+<span class="line"><span>#        include /etc/nginx/default.d/*.conf;</span></span>
+<span class="line"><span>#</span></span>
+<span class="line"><span>#        error_page 404 /404.html;</span></span>
+<span class="line"><span>#            location = /40x.html {</span></span>
+<span class="line"><span>#        }</span></span>
+<span class="line"><span>#</span></span>
+<span class="line"><span>#        error_page 500 502 503 504 /50x.html;</span></span>
+<span class="line"><span>#            location = /50x.html {</span></span>
+<span class="line"><span>#        }</span></span>
+<span class="line"><span>#    }</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>}</span></span></code></pre>
+<p>结构还是比较清晰的，基本语法如下</p>
+<ul>
+<li>每条指令由<code>;</code>结尾</li>
+<li>每个指令块由<code>{}</code>区分</li>
+<li><code>#</code>注释</li>
+</ul>
+<p>从上面的配置文件我相信你多少可以看出一些nginx的配置内容，但是这个文件还是过于复杂了，我们先从简单开始编写配置文件。</p>
+<p>这里只介绍一条指令</p>
+<p><code>include</code> :可以引入其它的nginx配置文件，我们可以看到nginx主配置文件已经引入了<code>/etc/nginx/conf.d/*.conf</code>文件，所以我们下面将会在<code>conf.d</code>文件夹下新建配置文件，这样既可以保持主配置文件的整洁性，也有利于划分模块。</p>
+<h1 id="nginx作为web服务器">nginx作为web服务器</h1>
+<p>先允许一下其它用户修改nginx配置文件</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> cd</span><span style="color:#032F62"> /etc/nginx</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> chmod</span><span style="color:#032F62"> o+x</span><span style="color:#032F62"> conf.d</span></span></code></pre>
+<p>在<code>conf.d</code>文件夹下我们新建<code>static.conf</code>文件</p>
+<p>文件内容如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#24292E">server{</span></span>
+<span class="line"><span style="color:#24292E">  </span></span>
+<span class="line"><span style="color:#D73A49">    listen </span><span style="color:#005CC5">8000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    server_name </span><span style="color:#24292E">localhost;</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#D73A49">    location</span><span style="color:#6F42C1"> / </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">        root </span><span style="color:#24292E">/home/admin/www;</span></span>
+<span class="line"><span style="color:#D73A49">        index </span><span style="color:#24292E">index.html;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">  </span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h2 id="listen">listen</h2>
+<p>该指令用户声明监听的位置，格式为有如下几种：</p>
+<ul>
+<li><code>127.0.0.1</code>——只声明ip，默认监听80</li>
+<li><code>80</code>——声明端口</li>
+<li><code>127.0.0.1:80</code>——声明具体的ip和端口</li>
+</ul>
+<h2 id="server-name">server name</h2>
+<p>用于区分请求的虚拟主机，也就是请求中的<code>Host</code>字段，例如：</p>
+<ul>
+<li>
+<p><code>localhost:8000</code>的Host是<code>localhost</code></p>
+</li>
+<li>
+<p><code>nginx:8000</code>的Host是<code>nginx</code></p>
+</li>
+</ul>
+<p>当nginx有多个server监听一个端口的时候可以用主机名区分，当主机名在<code>server_name</code>中没有匹配时，nginx会默认匹配第一个<code>server</code>，所以在只有一个server的使用server_name可以任意取</p>
+<h2 id="location">location</h2>
+<p>location用于匹配uri，声明匹配的路径和模式</p>
+<h2 id="测试">测试</h2>
+<p>与此同时我们创建好<code>/home/admin/www</code>目录，并且在目录下新建<code>index.html</code>，文件内容意思一下即可</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="html"><code><span class="line"><span style="color:#24292E">Static Server Success!</span></span></code></pre>
+<p>最后重启nginx</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6A737D"># 检查配置文件正确性</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> nginx</span><span style="color:#005CC5"> -t</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> nginx</span><span style="color:#005CC5"> -s</span><span style="color:#032F62"> reload</span></span>
+<span class="line"><span style="color:#6A737D"># 测试一下能否看到 Static Server Success!</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> curl</span><span style="color:#032F62"> localhost:8000</span></span></code></pre>
+<blockquote>
+<p>要注意，web根目录<code>/home/admin/www</code>中的所有文件夹都应该对其它用户有执行权限，否则nginx将产生403错误</p>
+<p>可以使用<code>chmod o+x -R admin</code>来解决</p>
+</blockquote>
+<h1 id="反向代理">反向代理</h1>
+<h2 id="了解正向代理和反向代理">了解正向代理和反向代理</h2>
+<p>先了解一下正向代理和反向代理</p>
+<ul>
+<li>正向代理</li>
+</ul>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/forward-proxy-flow.svg" alt=""></p>
+<p>给客户端做代理就是正向代理</p>
+<ul>
+<li>反向代理</li>
+</ul>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/reverse-proxy-flow.svg" alt=""></p>
+<p>反之，给服务器做代理就是反向代理</p>
+<h2 id="开始一个简单的服务">开始一个简单的服务</h2>
+<p>既然是反向代理，我们需要一个简单的http服务，这里用Go写一个</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> "</span><span style="color:#6F42C1">net/http</span><span style="color:#032F62">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	http.</span><span style="color:#6F42C1">HandleFunc</span><span style="color:#24292E">(</span><span style="color:#032F62">"/hello"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">w</span><span style="color:#6F42C1"> http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#E36209">req</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">		w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(</span><span style="color:#032F62">"hello"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	http.</span><span style="color:#6F42C1">HandleFunc</span><span style="color:#24292E">(</span><span style="color:#032F62">"/"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">w</span><span style="color:#6F42C1"> http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#E36209">req</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">		w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(req.RequestURI))</span></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	http.</span><span style="color:#6F42C1">ListenAndServe</span><span style="color:#24292E">(</span><span style="color:#032F62">":3000"</span><span style="color:#24292E">, </span><span style="color:#005CC5">nil</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span></code></pre>
+<p>看不懂也没有关系，这个服务就是监听了<code>3000</code>端口，访问<code>localhost:3000/hello</code>时返回<code>hello</code>，其余所有请求都会被匹配到第二个处理器，会打印出请求的<code>URI</code></p>
+<p>这里就使用nginx反向代理，让我们在<code>8001</code>端口发送的请求可以转发给<code>3000</code>端口</p>
+<p>新建文件<code>reverse_proxy.conf</code>，配置如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">server</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">  </span></span>
+<span class="line"><span style="color:#D73A49">  listen </span><span style="color:#005CC5">8001</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  </span></span>
+<span class="line"><span style="color:#D73A49">  server_name </span><span style="color:#24292E">localhost;</span></span>
+<span class="line"><span style="color:#24292E">  </span></span>
+<span class="line"><span style="color:#D73A49">  location</span><span style="color:#6F42C1"> / </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">    proxy_pass </span><span style="color:#24292E">http://localhost:3000;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h2 id="proxy_pass">proxy_pass</h2>
+<p>将接受的请求转发到指定的服务上</p>
+<p>这里要注意以下两种<code>location</code></p>
+<ul>
+<li>转发的地址结尾<code>没有路径</code></li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">location</span><span style="color:#6F42C1"> /api </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">    proxy_pass </span><span style="color:#24292E">http://localhost:3000;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<p>当配置如上时，请求的<code>URI</code>会被<code>全部追加到转发地址后面</code>，例如<code>localhost:8001/api/hello</code>，后面的<code>/api/hello</code>被追加到<code>localhost:3000</code>的后面，最后的转发地址是<code>localhost:3000/api/hello</code></p>
+<ul>
+<li>转发的地址结尾<code>有路径</code></li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">location</span><span style="color:#6F42C1"> /api </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">    proxy_pass </span><span style="color:#24292E">http://localhost:3000/v1;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<p>当配置如上时，<code>URI会在去掉前缀以后追加到转发地址后面</code></p>
+<p>例如请求：<code>localhost:8001/api/hello</code>，转发地址为<code>localhost:8001/v1/hello</code></p>
+<hr>
+<p>重新加载配置文件</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> nginx</span><span style="color:#005CC5"> -t</span><span style="color:#6A737D"> # 检查配置文件语法</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> nginx</span><span style="color:#005CC5"> -s</span><span style="color:#032F62"> reload</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> curl</span><span style="color:#032F62"> localhost:8001/hello</span><span style="color:#6A737D"> # 返回hello即为成功</span></span></code></pre>
+<p>我们试着改变<code>proxy_pass</code>如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">location</span><span style="color:#6F42C1"> /api </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">    proxy_pass </span><span style="color:#24292E">http://localhost:3000/v1;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> nginx</span><span style="color:#005CC5"> -t</span><span style="color:#6A737D"> # 检查配置文件语法</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> nginx</span><span style="color:#005CC5"> -s</span><span style="color:#032F62"> reload</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> curl</span><span style="color:#032F62"> localhost:8001/api/hello</span><span style="color:#6A737D"> # 返回结果是/v1/hello</span></span></code></pre>
+<h1 id="动静分离">动静分离</h1>
+<p>动静分离可以理解为把上面的两个功能结合，将静态文件的处理交给nginx，这样可以减小后端服务器的压力，提高性能。</p>
+<p>在使用动静分离之前我们先了解以下location的匹配规则和修饰符</p>
+<h2 id="location匹配规则和修饰符">location匹配规则和修饰符</h2>
+<p>location默认是最长前缀匹配，也就是说根据前缀去匹配路径，当有多个location符合时，选择最长的。</p>
+<p>此外，location还有下面四种最常用的修饰符，优先级从高到低列出</p>
+<ul>
+<li>
+<p><code>=</code>     等于，严格匹配 ，匹配优先级最高。</p>
+</li>
+<li>
+<p><code>^~</code>  表示普通字符匹配。使用前缀匹配。如果匹配成功，则不再匹配其它 location。优先级第二高。</p>
+</li>
+<li>
+<p><code>~ </code>    区分大小写</p>
+</li>
+<li>
+<p><code>~* </code> 不区分大小写</p>
+</li>
+<li>
+<p>无修饰符</p>
+</li>
+</ul>
+<p>可以发现<code>^~</code>和无修饰符匹配规则相同，但是优先级不同</p>
+<hr>
+<p>这里我们就直接来看两个处理静态资源的例子</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">location</span><span style="color:#D73A49"> ^~</span><span style="color:#032F62"> /images/ </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">    root </span><span style="color:#24292E">  /usr/share/nginx/html; </span><span style="color:#6A737D"># 静态资源目录</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">location</span><span style="color:#D73A49"> ~</span><span style="color:#032F62"> \.jpg </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">    root </span><span style="color:#24292E">  /usr/share/nginx/html;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>第一个是普通匹配，匹配<code>imags</code>开头的请求</p>
+<p>第二个是区分大小写的正则匹配，匹配含有<code>.jpg</code>的请求</p>
+<h1 id="缓冲和缓存">缓冲和缓存</h1>
+<p>首先我们要区别开缓冲与缓存。</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/nginx%E7%BC%93%E5%86%B2%E4%B8%8E%E7%BC%93%E5%AD%98.png" alt=""></p>
+<p>缓冲实际上并没有减少发送到服务端的请求数量。</p>
+<h2 id="缓冲">缓冲</h2>
+<p>当客户端与服务器之间网络状况不佳时，nginx可能要花费较长的时间把响应发送给客户端，这样会导致nginx与server端的连接被占用，导致资源的浪费，所有我们可以把响应先缓冲到nginx服务器，释放连接资源。</p>
+<h3 id="proxy_buffering">proxy_buffering</h3>
+<p>控制缓冲是否开启，打开为<code>on</code>，关闭为<code>off</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">proxy_buffering </span><span style="color:#005CC5">on</span><span style="color:#24292E">;</span></span></code></pre>
+<h3 id="proxy_buffer_size">proxy_buffer_size</h3>
+<p>用于设置读取server端的初始响应部分的大小，这个初始响应部分一般是<code>response header</code>，大小一般配置为<code>4K</code>或者<code>8K</code>，根据操作系统选择，在linux上查看方式如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> getconf</span><span style="color:#032F62"> PAGE_SIZE</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">proxy_buffer_size </span><span style="color:#005CC5">4k</span><span style="color:#24292E">;</span></span></code></pre>
+<h3 id="proxy_buffers">proxy_buffers</h3>
+<p>配置读取server端响应的缓冲区个数和大小，大小一般为内存页，值得注意的是这里的个数和大小是针对每个连接的</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">proxy_buffers </span><span style="color:#005CC5">16</span><span style="color:#005CC5"> 4K</span><span style="color:#24292E">;</span></span></code></pre>
+<h3 id="proxy_busy_buffers_size">proxy_busy_buffers_size</h3>
+<p>配置当server端未读取完成时，允许开始给客户端发送响应的缓冲区大小，通常设置成两个内存页的大小</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">proxy_busy_buffers_size </span><span style="color:#005CC5">8K</span><span style="color:#24292E">;</span></span></code></pre>
+<h3 id="proxy_max_temp_file_size">proxy_max_temp_file_size</h3>
+<p>当缓冲的大小超过缓冲区允许的内存大小之后，会把响应内容写入磁盘临时文件，该参数用于配置磁盘临时文件的最大空间</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">proxy_max_temp_file_size </span><span style="color:#005CC5">1024m</span><span style="color:#24292E">;</span></span></code></pre>
+<h3 id="proxy_temp_file_write_size">proxy_temp_file_write_size</h3>
+<p>配置每个连接允许写入磁盘临时文件的最大空间</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">proxy_temp_file_write_size </span><span style="color:#005CC5">8k</span><span style="color:#24292E">;</span></span></code></pre>
+<p>来看一个例子</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">http</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#D73A49">    server</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        listen </span><span style="color:#005CC5">80</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        location</span><span style="color:#6F42C1"> /cache  </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_pass </span><span style="color:#24292E">http://192.168.1.135:8080;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            #默认开启，开启代理缓冲区（内存）</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_buffering </span><span style="color:#005CC5">on</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">            #设置响应头的缓冲区设为8k</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_buffer_size </span><span style="color:#005CC5">8k</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">            #设置网页内容缓冲区个数为8，单个大小为8k</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_buffers </span><span style="color:#005CC5">8</span><span style="color:#005CC5"> 8k</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">            #设置当nginx还在读取被代理服务器的数据响应的同时间一次性向客户端响应的数据的最大为16k</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_busy_buffers_size </span><span style="color:#005CC5">16k</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">            #临时文件最大为1024m</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_max_temp_file_size </span><span style="color:#005CC5">1024m</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">            #设置一次往临时文件的大小最大为16k</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_temp_file_write_size </span><span style="color:#005CC5">16k</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">            #设置临时文件存放目录</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_temp_path </span><span style="color:#24292E">/tmp/proxy_temp;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span></code></pre>
+<h2 id="缓存">缓存</h2>
+<h3 id="proxy_cache_path">proxy_cache_path</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">proxy_cache_path </span><span style="color:#24292E"> /tmp/nginx/cache levels=1:2  keys_zone=mycache:10m max_size=10g;</span></span></code></pre>
+<p>配置nginx缓存，有如下选项</p>
+<ul>
+<li>
+<p><code>/tmp/nginx/cache</code>：缓存路径</p>
+</li>
+<li>
+<p><code>levels=1:2</code>：在默认情况下nginx缓存文件会放在一个文件夹下，但是这样会降低缓存性能，采用<code>1:2</code>的方式来设置多级目录，</p>
+<p>数字的含义是文件夹命名采用几位16进制，也就是第一级目录是1，采用1位16进制，有16个目录，二级目录有256个文件夹，总共有16*256个缓存文件</p>
+</li>
+<li>
+<p><code>key_zone</code>：配置共享内存中放置缓存key字符串的空间大小，通过key可以快速判断一个request是否命中缓存，<code>1m</code>的空间可以放置大约<code>8000</code>个key</p>
+</li>
+<li>
+<p><code>max_size</code>：缓存最大空间</p>
+</li>
+<li>
+<p><code>inactive</code>：设置未访问文件被删除的时间，即便这个文件没有过期</p>
+</li>
+</ul>
+<h3 id="proxy_cache_bypass">proxy_cache_bypass</h3>
+<p>配置何时不适用缓存，通常是在客户端请求带有<code>no-cache</code>参数时</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">proxy_cache_bypass </span><span style="color:#24292E">$arg_nocache $arg_comment;</span></span></code></pre>
+<h3 id="proxy_cache_key">proxy_cache_key</h3>
+<p>缓存的key值，该key值用于在内存中建立索引，其md5值是缓存文件名，格式一般设置如下</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">proxy_cache_key </span><span style="color:#24292E">$scheme$proxy_host$uri$is_args$args;</span></span></code></pre>
+<h3 id="proxy_cache_methods">proxy_cache_methods</h3>
+<p>缓存的请求方法</p>
+<h3 id="proxy_cache_valid">proxy_cache_valid</h3>
+<p>设置开启缓存的状态码和缓存的时间</p>
+<h3 id="proxy_cache_min_uses">proxy_cache_min_uses</h3>
+<p>设置开启缓存的最小请求次数，可以避免对低频率请求缓存</p>
+<p>下面是一个例子</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="nginx"><code><span class="line"><span style="color:#D73A49">http</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">    #设置缓存路径和相关参数（必选）</span></span>
+<span class="line"><span style="color:#D73A49">    proxy_cache_path </span><span style="color:#24292E"> /tmp/nginx/cache levels=1:2  keys_zone=mycache:10m max_size=10g;</span></span>
+<span class="line"><span style="color:#D73A49">    server</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        listen </span><span style="color:#005CC5">80</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        location</span><span style="color:#6F42C1"> /cache  </span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_pass </span><span style="color:#24292E">http://192.168.1.135:8080;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            #引用缓存配置（必选）</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_cache </span><span style="color:#24292E">mycache;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            #对响应状态码为200 302的响应缓存100s</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_cache_valid </span><span style="color:#005CC5">200</span><span style="color:#005CC5"> 302</span><span style="color:#005CC5"> 100s</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">            #对响应状态码为404的响应缓存200</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_cache_valid </span><span style="color:#005CC5">404</span><span style="color:#005CC5"> 200s</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            #请求参数带有nocache或者comment时不使用缓存</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_cache_bypass </span><span style="color:#24292E">$arg_nocache $arg_comment;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            #忽略被代理服务器设置的"Cache-Control"头信息</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_ignore_headers </span><span style="color:#032F62">"Cache-Control"</span><span style="color:#24292E">; </span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            #对GET HEAD POST方法进行缓存 </span></span>
+<span class="line"><span style="color:#D73A49">            proxy_cache_methods </span><span style="color:#24292E">GET HEAD POST;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            #当缓存过期时，当构造上游请求时，添加If-Modified-Since和If-None-Match头部，值为过期缓存中的Last-Modified值和Etag值。</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_cache_revalidate </span><span style="color:#005CC5">on</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">            #当被代理服务器返回403时，nginx可以使用历史缓存来响应客户端，该功能在一定程度上能能够为客户端提供不间断访问</span></span>
+<span class="line"><span style="color:#D73A49">            proxy_cache_use_stale </span><span style="color:#24292E">http_403;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span></code></pre>
+<p>未完待续…</p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/11/23/%E7%94%A8git-hooks%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2hexo/"><span>上一篇</span>用git hooks自动化部署hexo</a></div><div><a href="/2022/12/06/mysql%E7%B4%A2%E5%BC%95%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/"><span>下一篇</span>mysql索引使用指南</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

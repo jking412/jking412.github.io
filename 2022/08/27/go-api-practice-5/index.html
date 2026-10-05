@@ -1,0 +1,185 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="开始前的准备 简单好用的go验证包，可以自定义验证规则和错误信息 创建controller app/http/controllers/api/v1/baseapicontroller.go 和前面一样，先创建一个Controller基类 app/http/controllers/api/v1/aut"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/08/27/go-api-practice-5/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="(五)完成验证手机和邮箱是否存在接口 · jking の 博客"><meta property="og:description" content="开始前的准备 简单好用的go验证包，可以自定义验证规则和错误信息 创建controller app/http/controllers/api/v1/baseapicontroller.go 和前面一样，先创建一个Controller基类 app/http/controllers/api/v1/aut"><meta property="og:url" content="https://jking412.github.io/2022/08/27/go-api-practice-5/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-08-27T01:57:58.000Z"><title>(五)完成验证手机和邮箱是否存在接口 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-08-27T01:57:58.000Z">2022.08.27</time><span>jking</span></div><h1>(五)完成验证手机和邮箱是否存在接口</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/go/">go</a></li></ul></header><details class="toc"><summary>文章目录 <span>5 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#开始前的准备">开始前的准备</a></li><li><a href="#创建controller">创建controller</a></li><li><a href="#创建验证函数">创建验证函数</a></li><li><a href="#分配路由">分配路由</a></li><li><a href="#测试">测试</a></li></ul></nav></details><div class="prose"><h1 id="开始前的准备">开始前的准备</h1>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> get</span><span style="color:#032F62"> github.com/thedevsaddam/govalidator</span></span></code></pre>
+<p>简单好用的go验证包，可以自定义验证规则和错误信息</p>
+<h1 id="创建controller">创建controller</h1>
+<p><code>app/http/controllers/api/v1/base_api_controller.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> BaseController</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>和前面一样，先创建一个Controller基类</p>
+<p><code>app/http/controllers/api/v1/auth/signup_controller.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> SignupController</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">   v1</span><span style="color:#24292E">.</span><span style="color:#6F42C1">BaseController</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">sc </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">SignupController</span><span style="color:#24292E">) </span><span style="color:#6F42C1">IsPhoneExist</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   request </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> requests</span><span style="color:#24292E">.</span><span style="color:#6F42C1">SignupPhoneExistRequest</span><span style="color:#24292E">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> c.</span><span style="color:#6F42C1">ShouldBindJSON</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">request); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      c.</span><span style="color:#6F42C1">AbortWithStatusJSON</span><span style="color:#24292E">(http.StatusUnprocessableEntity, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "error"</span><span style="color:#24292E">: err.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#24292E">      })</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">      fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(err.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">())</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">      return</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   errs </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> requests.</span><span style="color:#6F42C1">ValidateSignupPhoneExist</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">request, c)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#6F42C1"> len</span><span style="color:#24292E">(errs) </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      c.</span><span style="color:#6F42C1">AbortWithStatusJSON</span><span style="color:#24292E">(http.StatusUnprocessableEntity, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "error"</span><span style="color:#24292E">: errs,</span></span>
+<span class="line"><span style="color:#24292E">      })</span></span>
+<span class="line"><span style="color:#D73A49">      return</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   c.</span><span style="color:#6F42C1">JSON</span><span style="color:#24292E">(http.StatusOK, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">      "exist"</span><span style="color:#24292E">: user.</span><span style="color:#6F42C1">IsPhoneExist</span><span style="color:#24292E">(request.Phone),</span></span>
+<span class="line"><span style="color:#24292E">   })</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">sc </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">SignupController</span><span style="color:#24292E">) </span><span style="color:#6F42C1">IsEmailExist</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 初始化请求对象</span></span>
+<span class="line"><span style="color:#24292E">   request </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> requests</span><span style="color:#24292E">.</span><span style="color:#6F42C1">SignupEmailExistRequest</span><span style="color:#24292E">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 解析 JSON 请求</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> c.</span><span style="color:#6F42C1">ShouldBindJSON</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">request); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">      // 解析失败，返回 422 状态码和错误信息</span></span>
+<span class="line"><span style="color:#24292E">      c.</span><span style="color:#6F42C1">AbortWithStatusJSON</span><span style="color:#24292E">(http.StatusUnprocessableEntity, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "error"</span><span style="color:#24292E">: err.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#24292E">      })</span></span>
+<span class="line"><span style="color:#6A737D">      // 打印错误信息</span></span>
+<span class="line"><span style="color:#24292E">      fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(err.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#6A737D">      // 出错了，中断请求</span></span>
+<span class="line"><span style="color:#D73A49">      return</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 表单验证</span></span>
+<span class="line"><span style="color:#24292E">   errs </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> requests.</span><span style="color:#6F42C1">ValidateSignupEmailExist</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">request, c)</span></span>
+<span class="line"><span style="color:#6A737D">   // errs 返回长度等于零即通过，大于 0 即有错误发生</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#6F42C1"> len</span><span style="color:#24292E">(errs) </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">      // 验证失败，返回 422 状态码和错误信息</span></span>
+<span class="line"><span style="color:#24292E">      c.</span><span style="color:#6F42C1">AbortWithStatusJSON</span><span style="color:#24292E">(http.StatusUnprocessableEntity, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "errors"</span><span style="color:#24292E">: errs,</span></span>
+<span class="line"><span style="color:#24292E">      })</span></span>
+<span class="line"><span style="color:#D73A49">      return</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   //  检查数据库并返回响应</span></span>
+<span class="line"><span style="color:#24292E">   c.</span><span style="color:#6F42C1">JSON</span><span style="color:#24292E">(http.StatusOK, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">      "exist"</span><span style="color:#24292E">: user.</span><span style="color:#6F42C1">IsEmailExist</span><span style="color:#24292E">(request.Email),</span></span>
+<span class="line"><span style="color:#24292E">   })</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>部分验证包中的结构体和相关函数还未创建</p>
+<p>控制器中的逻辑：</p>
+<ol>
+<li>解析前端的数据到用户模型</li>
+<li>验证这些数据是否符合规范</li>
+<li>从数据库检查数据是否已经存在</li>
+</ol>
+<blockquote>
+<p>ShouldBindJSON</p>
+</blockquote>
+<p>把上下文中的json信息解析到结构体中</p>
+<h1 id="创建验证函数">创建验证函数</h1>
+<p><code>app/requests/signup_request.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> SignupPhoneExistRequest</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   Phone </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"phone,omitempty" valid:"phone"`</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> ValidateSignupPhoneExist</span><span style="color:#24292E">(</span><span style="color:#E36209">data</span><span style="color:#D73A49"> interface</span><span style="color:#24292E">{}, </span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) </span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">][]</span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">   // 自定义验证规则</span></span>
+<span class="line"><span style="color:#24292E">   rules </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> govalidator</span><span style="color:#24292E">.</span><span style="color:#6F42C1">MapData</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">      "phone"</span><span style="color:#24292E">: []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span><span style="color:#032F62">"required"</span><span style="color:#24292E">, </span><span style="color:#032F62">"digits:11"</span><span style="color:#24292E">},</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 自定义验证出错时的提示</span></span>
+<span class="line"><span style="color:#24292E">   messages </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> govalidator</span><span style="color:#24292E">.</span><span style="color:#6F42C1">MapData</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">      "phone"</span><span style="color:#24292E">: []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "required:手机号为必填项，参数名称 phone"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">         "digits:手机号长度必须为 11 位的数字"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">      },</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 配置初始化</span></span>
+<span class="line"><span style="color:#24292E">   opts </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> govalidator</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Options</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">      Data:          data,</span></span>
+<span class="line"><span style="color:#24292E">      Rules:         rules,</span></span>
+<span class="line"><span style="color:#24292E">      TagIdentifier: </span><span style="color:#032F62">"valid"</span><span style="color:#24292E">, </span><span style="color:#6A737D">// 模型中的 Struct 标签标识符</span></span>
+<span class="line"><span style="color:#24292E">      Messages:      messages,</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 开始验证</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> govalidator.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(opts).</span><span style="color:#6F42C1">ValidateStruct</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>定制自己所需的验证信息，最后返回的错误信息保存在一个map中</p>
+<p>验证邮箱的代码与验证手机类似</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> SignupEmailExistRequest</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   Email </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"email,omitempty" valid:"email"`</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> ValidateSignupEmailExist</span><span style="color:#24292E">(</span><span style="color:#E36209">data</span><span style="color:#D73A49"> interface</span><span style="color:#24292E">{}, </span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) </span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">][]</span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 自定义验证规则</span></span>
+<span class="line"><span style="color:#24292E">   rules </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> govalidator</span><span style="color:#24292E">.</span><span style="color:#6F42C1">MapData</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">      "email"</span><span style="color:#24292E">: []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span><span style="color:#032F62">"required"</span><span style="color:#24292E">, </span><span style="color:#032F62">"min:4"</span><span style="color:#24292E">, </span><span style="color:#032F62">"max:30"</span><span style="color:#24292E">, </span><span style="color:#032F62">"email"</span><span style="color:#24292E">},</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 自定义验证出错时的提示</span></span>
+<span class="line"><span style="color:#24292E">   messages </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> govalidator</span><span style="color:#24292E">.</span><span style="color:#6F42C1">MapData</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">      "email"</span><span style="color:#24292E">: []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "required:Email 为必填项"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">         "min:Email 长度需大于 4"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">         "max:Email 长度需小于 30"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">         "email:Email 格式不正确，请提供有效的邮箱地址"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">      },</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 配置初始化</span></span>
+<span class="line"><span style="color:#24292E">   opts </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> govalidator</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Options</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">      Data:          data,</span></span>
+<span class="line"><span style="color:#24292E">      Rules:         rules,</span></span>
+<span class="line"><span style="color:#24292E">      TagIdentifier: </span><span style="color:#032F62">"valid"</span><span style="color:#24292E">, </span><span style="color:#6A737D">// 模型中的 Struct 标签标识符</span></span>
+<span class="line"><span style="color:#24292E">      Messages:      messages,</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">   // 开始验证</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> govalidator.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(opts).</span><span style="color:#6F42C1">ValidateStruct</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>通过这两个例子，我相信你可以大致理解这个包的用法，还是要提醒一点，在模仿代码过程中细节还是很容易出错的，你可以看看有没有以下问题</p>
+<ul>
+<li><code>&#x26;</code></li>
+<li><code>:</code></li>
+<li><code>大小写</code></li>
+</ul>
+<p>​	…</p>
+<h1 id="分配路由">分配路由</h1>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">v1 </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> router.</span><span style="color:#6F42C1">Group</span><span style="color:#24292E">(</span><span style="color:#032F62">"/v1"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">{ </span><span style="color:#6A737D">//这个大括号是为了让结构更加清晰</span></span>
+<span class="line"><span style="color:#24292E">    v1.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">"/"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">        c.</span><span style="color:#6F42C1">JSON</span><span style="color:#24292E">(http.StatusOK, </span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">H</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">            "hello"</span><span style="color:#24292E">: </span><span style="color:#032F62">"world"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        })</span></span>
+<span class="line"><span style="color:#24292E">    })</span></span>
+<span class="line"><span style="color:#24292E">    authGroup </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> v1.</span><span style="color:#6F42C1">Group</span><span style="color:#24292E">(</span><span style="color:#032F62">"/auth"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    { </span><span style="color:#6A737D">//这个大括号也是为了让结构更加清晰</span></span>
+<span class="line"><span style="color:#24292E">        suc </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> new</span><span style="color:#24292E">(</span><span style="color:#6F42C1">auth</span><span style="color:#24292E">.</span><span style="color:#6F42C1">SignupController</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">        authGroup.</span><span style="color:#6F42C1">POST</span><span style="color:#24292E">(</span><span style="color:#032F62">"/signup/phone/exist"</span><span style="color:#24292E">, suc.IsPhoneExist)</span></span>
+<span class="line"><span style="color:#24292E">        authGroup.</span><span style="color:#6F42C1">POST</span><span style="color:#24292E">(</span><span style="color:#032F62">"/signup/email/exist"</span><span style="color:#24292E">, suc.IsEmailExist)</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h1 id="测试">测试</h1>
+<p>我们在apifox中创建这两个auth文件夹，然后把这两个接口都放在其中</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20220827093243047.png" alt=""></p>
+<p>这是一个长度只有10位的错误手机号，请求结果如下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20220827093623168.png" alt=""></p>
+<p>我们向末尾多添加一个0，结果如下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20220827093723445.png" alt=""></p>
+<p>之后我们可以在数据库中手动创建包含这个手机号的用户然后再尝试，这些测试就交给你们自己了</p>
+<ul>
+<li>创建数据后尝试</li>
+<li>请求邮箱接口</li>
+</ul></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/08/27/go-api-practice-4/"><span>上一篇</span>(四)集成gorm</a></div><div><a href="/2022/08/27/go-api-practice-6/"><span>下一篇</span>(六)封装验证器</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

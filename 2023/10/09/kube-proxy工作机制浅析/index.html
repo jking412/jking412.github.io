@@ -1,0 +1,124 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="kube-proxy是k8s中的重要组件，在k8s的整个网络模型中有着重要的作用，kube-proxy有着多种工作模式，本博客只考虑在iptables模式下工作的kube-proxy iptables iptables是linux中著名的防火墙，有着过滤，转发等多种功能，iptables中有多张ta"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2023/10/09/kube-proxy%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6%E6%B5%85%E6%9E%90/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="kube-proxy工作机制浅析 · jking の 博客"><meta property="og:description" content="kube-proxy是k8s中的重要组件，在k8s的整个网络模型中有着重要的作用，kube-proxy有着多种工作模式，本博客只考虑在iptables模式下工作的kube-proxy iptables iptables是linux中著名的防火墙，有着过滤，转发等多种功能，iptables中有多张ta"><meta property="og:url" content="https://jking412.github.io/2023/10/09/kube-proxy%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6%E6%B5%85%E6%9E%90/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2023-10-09T01:15:59.000Z"><title>kube-proxy工作机制浅析 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2023-10-09T01:15:59.000Z">2023.10.09</time><span>jking</span></div><h1>kube-proxy工作机制浅析</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/kubernetes/">kubernetes</a></li></ul></header><details class="toc"><summary>文章目录 <span>4 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#iptables">iptables</a></li><li><a href="#kube-proxy的工作机制">kube-proxy的工作机制</a></li><li><a href="#kube-proxy-工作实例">kube-proxy 工作实例</a></li><li><a href="#查看kube-proxy在iptables中创建的rules">查看kube-proxy在iptables中创建的rules</a></li></ul></nav></details><div class="prose"><p>kube-proxy是k8s中的重要组件，在k8s的整个网络模型中有着重要的作用，kube-proxy有着多种工作模式，本博客只考虑在<code>iptables</code>模式下工作的kube-proxy</p>
+<h1 id="iptables">iptables</h1>
+<p>iptables是linux中著名的防火墙，有着过滤，转发等多种功能，iptables中有多张table，每张table有着不同的功能，一张table由多条chain组成，chain中的规则决定了包最后的走向</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/20231009135911.png" alt="20231009135911"></p>
+<p>nat table有PREROUTING，OUTPUT，POSTROUTING等chains，这些chains中有若干rules，chains中的rules会决定流入的包的走向，特殊的，本地进程发出的包会走向OUTPUT，而外部的包不会</p>
+<h1 id="kube-proxy的工作机制">kube-proxy的工作机制</h1>
+<p>kube-proxy接受api-server的信息，接收到地址的映射信息以后修改iptables的内容，通过linux的iptables实现kubernetes的网络</p>
+<p>可以通过下面的命令查看kube-proxy的工作模式</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> curl</span><span style="color:#032F62"> localhost:10249/proxyMode</span></span></code></pre>
+<p>返回的内容就是kube-proxy的工作模式</p>
+<h2 id="kube-proxy-工作实例">kube-proxy 工作实例</h2>
+<p>先创建一个deployment和service</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#22863A">apiVersion</span><span style="color:#24292E">: </span><span style="color:#032F62">v1</span></span>
+<span class="line"><span style="color:#22863A">kind</span><span style="color:#24292E">: </span><span style="color:#032F62">ConfigMap</span></span>
+<span class="line"><span style="color:#22863A">metadata</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  name</span><span style="color:#24292E">: </span><span style="color:#032F62">ngx-conf</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">data</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  default.conf</span><span style="color:#24292E">: </span><span style="color:#D73A49">|</span></span>
+<span class="line"><span style="color:#032F62">    server {</span></span>
+<span class="line"><span style="color:#032F62">      listen 80;</span></span>
+<span class="line"><span style="color:#032F62">      location / {</span></span>
+<span class="line"><span style="color:#032F62">        default_type text/plain;</span></span>
+<span class="line"><span style="color:#032F62">        return 200</span></span>
+<span class="line"><span style="color:#032F62">          'srv : $server_addr:$server_port\nhost: $hostname\nuri : $request_method $host $request_uri\ndate: $time_iso8601\n';</span></span>
+<span class="line"><span style="color:#032F62">      }</span></span>
+<span class="line"><span style="color:#032F62">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">apiVersion</span><span style="color:#24292E">: </span><span style="color:#032F62">apps/v1</span></span>
+<span class="line"><span style="color:#22863A">kind</span><span style="color:#24292E">: </span><span style="color:#032F62">Deployment</span></span>
+<span class="line"><span style="color:#22863A">metadata</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  name</span><span style="color:#24292E">: </span><span style="color:#032F62">ngx-dep</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">spec</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  replicas</span><span style="color:#24292E">: </span><span style="color:#005CC5">2</span></span>
+<span class="line"><span style="color:#22863A">  selector</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">    matchLabels</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">      app</span><span style="color:#24292E">: </span><span style="color:#032F62">ngx-dep</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">  template</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">    metadata</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">      labels</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">        app</span><span style="color:#24292E">: </span><span style="color:#032F62">ngx-dep</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#22863A">    spec</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">      volumes</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">name</span><span style="color:#24292E">: </span><span style="color:#032F62">ngx-conf-vol</span></span>
+<span class="line"><span style="color:#22863A">        configMap</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">          name</span><span style="color:#24292E">: </span><span style="color:#032F62">ngx-conf</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">      containers</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">      - </span><span style="color:#22863A">image</span><span style="color:#24292E">: </span><span style="color:#032F62">nginx:alpine</span></span>
+<span class="line"><span style="color:#22863A">        name</span><span style="color:#24292E">: </span><span style="color:#032F62">nginx</span></span>
+<span class="line"><span style="color:#22863A">        ports</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">        - </span><span style="color:#22863A">containerPort</span><span style="color:#24292E">: </span><span style="color:#005CC5">80</span></span>
+<span class="line"><span style="color:#24292E">      </span></span>
+<span class="line"><span style="color:#22863A">        volumeMounts</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">        - </span><span style="color:#22863A">mountPath</span><span style="color:#24292E">: </span><span style="color:#032F62">/etc/nginx/conf.d</span></span>
+<span class="line"><span style="color:#22863A">          name</span><span style="color:#24292E">: </span><span style="color:#032F62">ngx-conf-vol</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">apiVersion</span><span style="color:#24292E">: </span><span style="color:#032F62">v1</span></span>
+<span class="line"><span style="color:#22863A">kind</span><span style="color:#24292E">: </span><span style="color:#032F62">Service</span></span>
+<span class="line"><span style="color:#22863A">metadata</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  name</span><span style="color:#24292E">: </span><span style="color:#032F62">ngx-svc</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">spec</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">  selector</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#22863A">    app</span><span style="color:#24292E">: </span><span style="color:#032F62">ngx-dep</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#22863A">  ports</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">  - </span><span style="color:#22863A">port</span><span style="color:#24292E">: </span><span style="color:#005CC5">80</span></span>
+<span class="line"><span style="color:#22863A">    targetPort</span><span style="color:#24292E">: </span><span style="color:#005CC5">80</span></span>
+<span class="line"><span style="color:#22863A">    protocol</span><span style="color:#24292E">: </span><span style="color:#032F62">TCP</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> kubectl</span><span style="color:#032F62"> apply</span><span style="color:#005CC5"> -f</span><span style="color:#032F62"> ngx.yaml</span></span></code></pre>
+<p>创建完成我们查看service的clusterIP和两个pod的ip</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> kubectl</span><span style="color:#032F62"> get</span><span style="color:#032F62"> svc</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE</span></span>
+<span class="line"><span>kubernetes   ClusterIP   10.43.0.1       &#x3C;none>        443/TCP        2d15h</span></span>
+<span class="line"><span>ngx-svc      NodePort    10.43.120.124   &#x3C;none>        80/TCP         4s</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> kubectl</span><span style="color:#032F62"> get</span><span style="color:#032F62"> pod</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> wide</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>NAME                      READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES</span></span>
+<span class="line"><span>ngx-dep-9bf586b97-kshgd   1/1     Running   0          98s   10.42.0.148   honor   &#x3C;none>           &#x3C;none></span></span>
+<span class="line"><span>ngx-dep-9bf586b97-zbwww   1/1     Running   0          98s   10.42.0.149   honor   &#x3C;none>           &#x3C;none></span></span></code></pre>
+<h2 id="查看kube-proxy在iptables中创建的rules">查看kube-proxy在iptables中创建的rules</h2>
+<p>现在可以通过service的固定ip访问到pod，那么iptables中的规则是怎么样的呢，我们一步步查看包在chains中的流向，<code>-L可以选择显示的chain</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> iptables</span><span style="color:#005CC5"> -t</span><span style="color:#032F62"> nat</span><span style="color:#005CC5"> -L</span><span style="color:#032F62"> PREROUTING</span></span></code></pre>
+<p>output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Chain PREROUTING (policy ACCEPT)</span></span>
+<span class="line"><span>target     prot opt source               destination         </span></span>
+<span class="line"><span>KUBE-SERVICES  all  --  anywhere             anywhere             /* kubernetes service portals */</span></span>
+<span class="line"><span>DOCKER     all  --  anywhere             anywhere             ADDRTYPE match dst-type LOCAL</span></span>
+<span class="line"><span>CNI-HOSTPORT-DNAT  all  --  anywhere             anywhere             ADDRTYPE match dst-type LOCAL</span></span></code></pre>
+<p>我们可以看到kube-proxy在iptables中创建了<code>KUBE-SERVICES</code>的chain target，我们继续跟踪这个chain</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> iptables</span><span style="color:#005CC5"> -t</span><span style="color:#032F62"> nat</span><span style="color:#005CC5"> -L</span><span style="color:#032F62"> KUBE-SERVICES</span></span></code></pre>
+<p>output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Chain KUBE-SERVICES (2 references)</span></span>
+<span class="line"><span>target     prot opt source               destination         </span></span>
+<span class="line"><span>KUBE-SVC-NPX46M4PTMTKRN6Y  tcp  --  anywhere             10.43.0.1            /* default/kubernetes:https cluster IP */ tcp dpt:https</span></span>
+<span class="line"><span>KUBE-SVC-DQYKF4NVSQPF2JO7  tcp  --  anywhere             10.43.120.124        /* default/ngx-svc cluster IP */ tcp dpt:http</span></span>
+<span class="line"><span>KUBE-NODEPORTS  all  --  anywhere             anywhere             /* kubernetes service nodeports; NOTE: this must be the last rule in this chain */ ADDRTYPE match dst-type LOCAL</span></span></code></pre>
+<p>可以看到，在这里的<code>KUBE-SVC-DQYKF4NVSQPF2JO7</code>指定了目标为<code>10.43.120.124</code>的包，这也是service的ip，继续跟踪这条chains</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> iptables</span><span style="color:#005CC5"> -t</span><span style="color:#032F62"> nat</span><span style="color:#005CC5"> -L</span><span style="color:#032F62"> KUBE-SVC-DQYKF4NVSQPF2JO7</span></span></code></pre>
+<p>output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Chain KUBE-SVC-DQYKF4NVSQPF2JO7 (2 references)</span></span>
+<span class="line"><span>target     prot opt source               destination         </span></span>
+<span class="line"><span>KUBE-MARK-MASQ  tcp  -- !10.42.0.0/16         10.43.120.124        /* default/ngx-svc cluster IP */ tcp dpt:http</span></span>
+<span class="line"><span>KUBE-SEP-WHP752REJFIVTA3A  all  --  anywhere             anywhere             /* default/ngx-svc -> 10.42.0.148:80 */ statistic mode random probability 0.50000000000</span></span>
+<span class="line"><span>KUBE-SEP-KOUJFWPU7NB2K4H6  all  --  anywhere             anywhere             /* default/ngx-svc -> 10.42.0.149:80 */</span></span></code></pre>
+<p>最终，我们发现这个包会被转发到<code>10.42.0.148:80或者10.42.0.149:80</code>，也就是两个pod所在的ip和port，最后查看这两个chain</p>
+<p>output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Chain KUBE-SEP-WHP752REJFIVTA3A (1 references)</span></span>
+<span class="line"><span>target     prot opt source               destination         </span></span>
+<span class="line"><span>KUBE-MARK-MASQ  all  --  10.42.0.148          anywhere             /* default/ngx-svc */</span></span>
+<span class="line"><span>DNAT       tcp  --  anywhere             anywhere             /* default/ngx-svc */ tcp to:10.42.0.148:80</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Chain KUBE-SEP-KOUJFWPU7NB2K4H6 (1 references)</span></span>
+<span class="line"><span>target     prot opt source               destination         </span></span>
+<span class="line"><span>KUBE-MARK-MASQ  all  --  10.42.0.149          anywhere             /* default/ngx-svc */</span></span>
+<span class="line"><span>DNAT       tcp  --  anywhere             anywhere             /* default/ngx-svc */ tcp to:10.42.0.149:80</span></span></code></pre></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2023/10/05/Go-init%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90/"><span>上一篇</span>Go init函数分析</a></div><div><a href="/2023/10/10/%E5%9C%A8linux%E4%B8%8A%E5%AE%89%E8%A3%85wireshark/"><span>下一篇</span>在linux上安装wireshark</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

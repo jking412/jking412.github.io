@@ -1,0 +1,298 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="开始前的准备 开始编码 封装sms pkg/sms/driverinterface.go pkg/sms/driveraliyun.go pkg/sms/sms.go 我们先把阿里云的sms包封装成一个Send函数 验证手机验证码 在这里值得一提的是，我们要注意在整个用手机发送短信的过程中，有两个不"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2022/09/08/go-api-practice-11/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="(十一)利用阿里云平台发送短信 · jking の 博客"><meta property="og:description" content="开始前的准备 开始编码 封装sms pkg/sms/driverinterface.go pkg/sms/driveraliyun.go pkg/sms/sms.go 我们先把阿里云的sms包封装成一个Send函数 验证手机验证码 在这里值得一提的是，我们要注意在整个用手机发送短信的过程中，有两个不"><meta property="og:url" content="https://jking412.github.io/2022/09/08/go-api-practice-11/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2022-09-08T05:27:16.000Z"><title>(十一)利用阿里云平台发送短信 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2022-09-08T05:27:16.000Z">2022.09.08</time><span>jking</span></div><h1>(十一)利用阿里云平台发送短信</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/go/">go</a></li></ul></header><details class="toc"><summary>文章目录 <span>7 节</span></summary><nav aria-label="文章目录"><ul><li><a href="#开始前的准备">开始前的准备</a></li><li><a href="#开始编码">开始编码</a></li><li><a href="#封装sms">封装sms</a></li><li><a href="#验证手机验证码">验证手机验证码</a></li><li><a href="#验证captcha验证码">验证captcha验证码</a></li><li><a href="#完成控制器">完成控制器</a></li><li><a href="#测试">测试</a></li></ul></nav></details><div class="prose"><h1 id="开始前的准备">开始前的准备</h1>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> get</span><span style="color:#032F62"> github.com/KenmyZhang/aliyun-communicate</span></span>
+<span class="line"><span style="color:#6A737D"># 此外我们还需要在阿里云申请短信服务并且获取accesskey ID和accesskey secret</span></span></code></pre>
+<p><img src="https://cdn.learnku.com/uploads/images/202201/03/1/SujCwVOftn.png!large" alt="阿里短信平台"><img src="https://cdn.learnku.com/uploads/images/202201/03/1/k8BaDVS2Xu.png!large" alt="阿里短信平台"></p>
+<h1 id="开始编码">开始编码</h1>
+<h2 id="封装sms">封装sms</h2>
+<p><code>pkg/sms/driver_interface.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> sms</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Driver</span><span style="color:#D73A49"> interface</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">   Send</span><span style="color:#24292E">(</span><span style="color:#E36209">phone</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">message</span><span style="color:#6F42C1"> Message</span><span style="color:#24292E">, </span><span style="color:#E36209">config</span><span style="color:#D73A49"> map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">string</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>pkg/sms/driver_aliyun.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> sms</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">encoding/json</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">   aliyunsmsclient </span><span style="color:#032F62">"</span><span style="color:#6F42C1">github.com/KenmyZhang/aliyun-communicate</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/logger</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Aliyun</span><span style="color:#D73A49"> struct</span><span style="color:#24292E">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Aliyun</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Send</span><span style="color:#24292E">(</span><span style="color:#E36209">phone</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">message</span><span style="color:#6F42C1"> Message</span><span style="color:#24292E">, </span><span style="color:#E36209">config</span><span style="color:#D73A49"> map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">string</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   smsClient </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> aliyunsmsclient.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(</span><span style="color:#032F62">"http://dysmsapi.aliyuncs.com/"</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   templateParam, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> json.</span><span style="color:#6F42C1">Marshal</span><span style="color:#24292E">(message.Data)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      logger.</span><span style="color:#6F42C1">ErrorString</span><span style="color:#24292E">(</span><span style="color:#032F62">"Aliyun sms error"</span><span style="color:#24292E">, </span><span style="color:#032F62">"json.Marshal error"</span><span style="color:#24292E">, err.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   logger.</span><span style="color:#6F42C1">DebugJSON</span><span style="color:#24292E">(</span><span style="color:#032F62">"Aliyun sms"</span><span style="color:#24292E">, </span><span style="color:#032F62">"config"</span><span style="color:#24292E">, config)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   result, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> smsClient.</span><span style="color:#6F42C1">Execute</span><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#24292E">      config[</span><span style="color:#032F62">"access_key_id"</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">      config[</span><span style="color:#032F62">"access_key_secret"</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">      phone,</span></span>
+<span class="line"><span style="color:#24292E">      config[</span><span style="color:#032F62">"sign_name"</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">      message.Template,</span></span>
+<span class="line"><span style="color:#D73A49">      string</span><span style="color:#24292E">(templateParam),</span></span>
+<span class="line"><span style="color:#24292E">   )</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   logger.</span><span style="color:#6F42C1">DebugJSON</span><span style="color:#24292E">(</span><span style="color:#032F62">"Aliyun sms"</span><span style="color:#24292E">, </span><span style="color:#032F62">"request"</span><span style="color:#24292E">, smsClient.Request)</span></span>
+<span class="line"><span style="color:#24292E">   logger.</span><span style="color:#6F42C1">DebugJSON</span><span style="color:#24292E">(</span><span style="color:#032F62">"Aliyun sms"</span><span style="color:#24292E">, </span><span style="color:#032F62">"result"</span><span style="color:#24292E">, result)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      logger.</span><span style="color:#6F42C1">ErrorString</span><span style="color:#24292E">(</span><span style="color:#032F62">"Aliyun sms error"</span><span style="color:#24292E">, </span><span style="color:#032F62">"Execute error"</span><span style="color:#24292E">, err.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   resultJSON, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> json.</span><span style="color:#6F42C1">Marshal</span><span style="color:#24292E">(result)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      logger.</span><span style="color:#6F42C1">ErrorString</span><span style="color:#24292E">(</span><span style="color:#032F62">"Aliyun sms error"</span><span style="color:#24292E">, </span><span style="color:#032F62">"json.Marshal error"</span><span style="color:#24292E">, err.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> result.</span><span style="color:#6F42C1">IsSuccessful</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">      logger.</span><span style="color:#6F42C1">DebugString</span><span style="color:#24292E">(</span><span style="color:#032F62">"Aliyun sms"</span><span style="color:#24292E">, </span><span style="color:#032F62">"success"</span><span style="color:#24292E">, </span><span style="color:#032F62">""</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#005CC5"> true</span></span>
+<span class="line"><span style="color:#24292E">   } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      logger.</span><span style="color:#6F42C1">ErrorString</span><span style="color:#24292E">(</span><span style="color:#032F62">"Aliyun sms"</span><span style="color:#24292E">, </span><span style="color:#032F62">"error"</span><span style="color:#24292E">, </span><span style="color:#D73A49">string</span><span style="color:#24292E">(resultJSON))</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>pkg/sms/sms.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> sms</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/config</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">sync</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Message</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   Template </span><span style="color:#D73A49">string</span></span>
+<span class="line"><span style="color:#24292E">   Data     </span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">string</span></span>
+<span class="line"><span style="color:#24292E">   Content  </span><span style="color:#D73A49">string</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> SMS</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   Driver </span><span style="color:#6F42C1">Driver</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> once </span><span style="color:#6F42C1">sync</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Once</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> internalSMS </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">SMS</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> NewSMS</span><span style="color:#24292E">() </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">SMS</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   once.</span><span style="color:#6F42C1">Do</span><span style="color:#24292E">(</span><span style="color:#D73A49">func</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">      internalSMS </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">SMS</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">         Driver: </span><span style="color:#D73A49">&#x26;</span><span style="color:#6F42C1">Aliyun</span><span style="color:#24292E">{},</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"><span style="color:#24292E">   })</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> internalSMS</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">sms </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">SMS</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Send</span><span style="color:#24292E">(</span><span style="color:#E36209">phone</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">message</span><span style="color:#6F42C1"> Message</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> sms.Driver.</span><span style="color:#6F42C1">Send</span><span style="color:#24292E">(phone, message, config.</span><span style="color:#6F42C1">GetStringMapString</span><span style="color:#24292E">(</span><span style="color:#032F62">"sms.aliyun"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>我们先把阿里云的sms包封装成一个<code>Send</code>函数</p>
+<h2 id="验证手机验证码">验证手机验证码</h2>
+<p>在这里值得一提的是，我们要注意在整个用手机发送短信的过程中，有两个不同的验证码，由<code>captcha</code>生成的验证码和手机发送的验证码，这里我们先来完成验证手机验证码的逻辑</p>
+<p><code>pkg/verifycode/store_interface.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> verifycode</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Store</span><span style="color:#D73A49"> interface</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">   Set</span><span style="color:#24292E">(</span><span style="color:#E36209">id</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">value</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span></span>
+<span class="line"><span style="color:#6F42C1">   Get</span><span style="color:#24292E">(</span><span style="color:#E36209">id</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">clear</span><span style="color:#D73A49"> bool</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span></span>
+<span class="line"><span style="color:#6F42C1">   Verify</span><span style="color:#24292E">(</span><span style="color:#E36209">id</span><span style="color:#24292E">, </span><span style="color:#E36209">answer</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">clear</span><span style="color:#D73A49"> bool</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>虽然是两个不同的验证码，但是处理逻辑是类似的，这里的接口和<code>captcha</code>中的<code>Store</code>实际上是一致的，接下来我们来实现这个接口</p>
+<p><code>pkg/verifycode/store_redis.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> verifycode</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/app</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/config</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/redis</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">time</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> RedisStore</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   RedisClient </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">redis</span><span style="color:#24292E">.</span><span style="color:#6F42C1">RedisClient</span></span>
+<span class="line"><span style="color:#24292E">   keyPrefix   </span><span style="color:#D73A49">string</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">RedisStore</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Set</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">value</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   ExpireTime </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> time.Minute </span><span style="color:#D73A49">*</span><span style="color:#24292E"> time.</span><span style="color:#6F42C1">Duration</span><span style="color:#24292E">(config.</span><span style="color:#6F42C1">GetInt64</span><span style="color:#24292E">(</span><span style="color:#032F62">"verifycode.expire_time"</span><span style="color:#24292E">))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> app.</span><span style="color:#6F42C1">IsLocal</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">      ExpireTime </span><span style="color:#D73A49">=</span><span style="color:#24292E"> time.Minute </span><span style="color:#D73A49">*</span><span style="color:#24292E"> time.</span><span style="color:#6F42C1">Duration</span><span style="color:#24292E">(config.</span><span style="color:#6F42C1">GetInt64</span><span style="color:#24292E">(</span><span style="color:#032F62">"verifycode.debug.expire_time"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> s.RedisClient.</span><span style="color:#6F42C1">Set</span><span style="color:#24292E">(s.keyPrefix</span><span style="color:#D73A49">+</span><span style="color:#24292E">key, value, ExpireTime)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">RedisStore</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">clear</span><span style="color:#D73A49"> bool</span><span style="color:#24292E">) (</span><span style="color:#E36209">value</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   key </span><span style="color:#D73A49">=</span><span style="color:#24292E"> s.keyPrefix </span><span style="color:#D73A49">+</span><span style="color:#24292E"> key</span></span>
+<span class="line"><span style="color:#24292E">   val </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> s.RedisClient.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(key)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> clear {</span></span>
+<span class="line"><span style="color:#24292E">      s.RedisClient.</span><span style="color:#6F42C1">Del</span><span style="color:#24292E">(key)</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> val</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">RedisStore</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Verify</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">answer</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">clear</span><span style="color:#D73A49"> bool</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   value </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(key, clear)</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> value </span><span style="color:#D73A49">==</span><span style="color:#24292E"> answer</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>可以发现与<code>captcha</code>中的逻辑基本一致，最后再把这些函数封装到一个功能完善的包中</p>
+<p><code>pkg/verifycode/verifycode.go</code></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> verifycode</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/helpers</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/app</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/config</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/logger</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/redis</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/sms</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">strings</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">sync</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> VerifyCode</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   Store </span><span style="color:#6F42C1">Store</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> once </span><span style="color:#6F42C1">sync</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Once</span></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> internalVerifyCode </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">VerifyCode</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> NewVerifyCode</span><span style="color:#24292E">() </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">VerifyCode</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   once.</span><span style="color:#6F42C1">Do</span><span style="color:#24292E">(</span><span style="color:#D73A49">func</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">      internalVerifyCode </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">VerifyCode</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">         Store: </span><span style="color:#D73A49">&#x26;</span><span style="color:#6F42C1">RedisStore</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">            RedisClient: redis.Redis,</span></span>
+<span class="line"><span style="color:#24292E">            keyPrefix:   config.</span><span style="color:#6F42C1">GetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"app.name"</span><span style="color:#24292E">) </span><span style="color:#D73A49">+</span><span style="color:#032F62"> ":verifycode:"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">         },</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"><span style="color:#24292E">   })</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> internalVerifyCode</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">vc </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">VerifyCode</span><span style="color:#24292E">) </span><span style="color:#6F42C1">SendSMS</span><span style="color:#24292E">(</span><span style="color:#E36209">phone</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   code </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> vc.</span><span style="color:#6F42C1">generateVerifyCode</span><span style="color:#24292E">(phone)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#D73A49"> !</span><span style="color:#24292E">app.</span><span style="color:#6F42C1">IsProduction</span><span style="color:#24292E">() </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#24292E"> strings.</span><span style="color:#6F42C1">HasPrefix</span><span style="color:#24292E">(phone, config.</span><span style="color:#6F42C1">GetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"verifycode.debug_phone_prefix"</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#005CC5"> true</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> sms.</span><span style="color:#6F42C1">NewSMS</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Send</span><span style="color:#24292E">(phone, </span><span style="color:#6F42C1">sms</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Message</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">      Template: config.</span><span style="color:#6F42C1">GetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"sms.aliyun.template_code"</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">      Data: </span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "code"</span><span style="color:#24292E">: code,</span></span>
+<span class="line"><span style="color:#24292E">      },</span></span>
+<span class="line"><span style="color:#24292E">   })</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">vc </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">VerifyCode</span><span style="color:#24292E">) </span><span style="color:#6F42C1">CheckAnswer</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">answer</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   logger.</span><span style="color:#6F42C1">DebugJSON</span><span style="color:#24292E">(</span><span style="color:#032F62">"验证码"</span><span style="color:#24292E">, </span><span style="color:#032F62">"检查验证码"</span><span style="color:#24292E">, </span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">string</span><span style="color:#24292E">{key: answer})</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#D73A49"> !</span><span style="color:#24292E">app.</span><span style="color:#6F42C1">IsProduction</span><span style="color:#24292E">() </span><span style="color:#D73A49">&#x26;&#x26;</span></span>
+<span class="line"><span style="color:#24292E">      (strings.</span><span style="color:#6F42C1">HasSuffix</span><span style="color:#24292E">(key, config.</span><span style="color:#6F42C1">GetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"verifycode.debug_email_suffix"</span><span style="color:#24292E">)) </span><span style="color:#D73A49">||</span></span>
+<span class="line"><span style="color:#24292E">         strings.</span><span style="color:#6F42C1">HasPrefix</span><span style="color:#24292E">(key, config.</span><span style="color:#6F42C1">GetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"verifycode.debug_phone_prefix"</span><span style="color:#24292E">))) {</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#005CC5"> true</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> vc.Store.</span><span style="color:#6F42C1">Verify</span><span style="color:#24292E">(key, answer, </span><span style="color:#005CC5">false</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">vc </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">VerifyCode</span><span style="color:#24292E">) </span><span style="color:#6F42C1">generateVerifyCode</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   code </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> helpers.</span><span style="color:#6F42C1">RandomNumber</span><span style="color:#24292E">(config.</span><span style="color:#6F42C1">GetInt</span><span style="color:#24292E">(</span><span style="color:#032F62">"verifycode.code_length"</span><span style="color:#24292E">))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> app.</span><span style="color:#6F42C1">IsLocal</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">      code </span><span style="color:#D73A49">=</span><span style="color:#24292E"> config.</span><span style="color:#6F42C1">GetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"verifycode.debug_code"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   logger.</span><span style="color:#6F42C1">DebugJSON</span><span style="color:#24292E">(</span><span style="color:#032F62">"验证码"</span><span style="color:#24292E">, </span><span style="color:#032F62">"生成验证码"</span><span style="color:#24292E">, </span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">string</span><span style="color:#24292E">{key: code})</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   vc.Store.</span><span style="color:#6F42C1">Set</span><span style="color:#24292E">(key, code)</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> code</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">if</span><span style="color:#D73A49"> !</span><span style="color:#24292E">app.</span><span style="color:#6F42C1">IsProduction</span><span style="color:#24292E">() </span><span style="color:#D73A49">&#x26;&#x26;</span></span>
+<span class="line"><span style="color:#24292E">(strings.</span><span style="color:#6F42C1">HasSuffix</span><span style="color:#24292E">(key, config.</span><span style="color:#6F42C1">GetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"verifycode.debug_email_suffix"</span><span style="color:#24292E">)) </span><span style="color:#D73A49">||</span></span>
+<span class="line"><span style="color:#24292E"> strings.</span><span style="color:#6F42C1">HasPrefix</span><span style="color:#24292E">(key, config.</span><span style="color:#6F42C1">GetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"verifycode.debug_phone_prefix"</span><span style="color:#24292E">))) {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> true</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>与前面验证<code>captcha</code>类似，这里我们对于特殊的邮箱和手机号，我们直接放行</p>
+<h2 id="验证captcha验证码">验证captcha验证码</h2>
+<p>刚刚我们已经提过了，我们除了验证手机验证码，还要验证<code>captcha</code>验证码</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> requests</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">github.com/gin-gonic/gin</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">github.com/thedevsaddam/govalidator</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">   "</span><span style="color:#6F42C1">go-api-practice/pkg/captcha</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> VerifyCodePhoneRequest</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   CaptchaID     </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"captcha_id,omitempty" valid:"captcha_id"`</span></span>
+<span class="line"><span style="color:#24292E">   CaptchaAnswer </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"captcha_answer,omitempty" valid:"captcha_answer"`</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   Phone </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"phone,omitempty" valid:"phone"`</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> VerifyCodePhone</span><span style="color:#24292E">(</span><span style="color:#E36209">data</span><span style="color:#D73A49"> interface</span><span style="color:#24292E">{}, </span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) </span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">][]</span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">   rules </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> govalidator</span><span style="color:#24292E">.</span><span style="color:#6F42C1">MapData</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">      "captcha_id"</span><span style="color:#24292E">:     []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span><span style="color:#032F62">"required"</span><span style="color:#24292E">},</span></span>
+<span class="line"><span style="color:#032F62">      "captcha_answer"</span><span style="color:#24292E">: []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span><span style="color:#032F62">"required"</span><span style="color:#24292E">, </span><span style="color:#032F62">"digits:6"</span><span style="color:#24292E">},</span></span>
+<span class="line"><span style="color:#032F62">      "phone"</span><span style="color:#24292E">:          []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span><span style="color:#032F62">"required"</span><span style="color:#24292E">, </span><span style="color:#032F62">"digits:11"</span><span style="color:#24292E">},</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   messages </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> govalidator</span><span style="color:#24292E">.</span><span style="color:#6F42C1">MapData</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">      "captcha_id"</span><span style="color:#24292E">: []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "required:请输入验证码"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">      },</span></span>
+<span class="line"><span style="color:#032F62">      "captcha_answer"</span><span style="color:#24292E">: []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "required:请输入验证码"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">         "digits:验证码长度必须是6位"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">      },</span></span>
+<span class="line"><span style="color:#032F62">      "phone"</span><span style="color:#24292E">: []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#032F62">         "required:请输入手机号"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">         "digits:手机号长度必须是11位"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">      },</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">   errs </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> validate</span><span style="color:#24292E">(data, rules, messages)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">   _data </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> data.(</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">VerifyCodePhoneRequest</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> ok </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> captcha.</span><span style="color:#6F42C1">NewCaptcha</span><span style="color:#24292E">().</span><span style="color:#6F42C1">VerifyCaptcha</span><span style="color:#24292E">(_data.CaptchaID, _data.CaptchaAnswer); </span><span style="color:#D73A49">!</span><span style="color:#24292E">ok {</span></span>
+<span class="line"><span style="color:#24292E">      errs[</span><span style="color:#032F62">"captcha_answer"</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(errs[</span><span style="color:#032F62">"captcha_answer"</span><span style="color:#24292E">], </span><span style="color:#032F62">"验证码错误"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#D73A49">   return</span><span style="color:#24292E"> errs</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>我们从前端接受验证码和手机号并且验证它们</p>
+<h2 id="完成控制器">完成控制器</h2>
+<p>在我们完成之前的工具包之后，控制器就变得简洁了</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">vc </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">VerifyCodeController</span><span style="color:#24292E">) </span><span style="color:#6F42C1">SendUsingPhone</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gin</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">   request </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> requests</span><span style="color:#24292E">.</span><span style="color:#6F42C1">VerifyCodePhoneRequest</span><span style="color:#24292E">{}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> ok </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> requests.</span><span style="color:#6F42C1">Validate</span><span style="color:#24292E">(c, </span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">request, requests.VerifyCodePhone); </span><span style="color:#D73A49">!</span><span style="color:#24292E">ok {</span></span>
+<span class="line"><span style="color:#D73A49">      return</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">   if</span><span style="color:#24292E"> ok </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> verifycode.</span><span style="color:#6F42C1">NewVerifyCode</span><span style="color:#24292E">().</span><span style="color:#6F42C1">SendSMS</span><span style="color:#24292E">(request.Phone); </span><span style="color:#D73A49">!</span><span style="color:#24292E">ok {</span></span>
+<span class="line"><span style="color:#24292E">      response.</span><span style="color:#6F42C1">Abort500</span><span style="color:#24292E">(c, </span><span style="color:#032F62">"发送失败"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">   } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">      response.</span><span style="color:#6F42C1">Success</span><span style="color:#24292E">(c)</span></span>
+<span class="line"><span style="color:#24292E">   }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>最后我们在路由中注册</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">vcc </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> new</span><span style="color:#24292E">(</span><span style="color:#6F42C1">auth</span><span style="color:#24292E">.</span><span style="color:#6F42C1">VerifyCodeController</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">authGroup.</span><span style="color:#6F42C1">POST</span><span style="color:#24292E">(</span><span style="color:#032F62">"/verify-codes/captcha"</span><span style="color:#24292E">, vcc.ShowCaptcha)</span></span>
+<span class="line"><span style="color:#24292E">authGroup.</span><span style="color:#6F42C1">POST</span><span style="color:#24292E">(</span><span style="color:#032F62">"/verify-codes/phone"</span><span style="color:#24292E">, vcc.SendUsingPhone)</span></span></code></pre>
+<h2 id="测试">测试</h2>
+<p>我们在apifox中创建接口，看看短信能否发送成功</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20220902140331279.png" alt=""></p>
+<p>成功结果如下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/image-20220902140538586.png" alt=""></p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2022/09/08/go-api-practice-10/"><span>上一篇</span>(十)统一返回格式</a></div><div><a href="/2022/09/08/go-api-practice-12/"><span>下一篇</span>(十二)用邮件来发送验证码</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>

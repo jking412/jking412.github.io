@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Astro v7.3.5"><meta name="description" content="最近突然想美化一下自己ubuntu的风格，想试一试macos风格的ubuntu，本博客记录这次的美化过程。 视频参考： https://www.bilibili.com/video/BV1gT411m7FF/?spmidfrom=333.337.search-card.all.click 此外先下载"><meta name="theme-color" content="#f7f8f3"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://jking412.github.io/2023/06/08/ubuntu%E7%BE%8E%E5%8C%96macos%E4%B8%BB%E9%A2%98/"><link rel="alternate" type="application/rss+xml" title="jking の 博客" href="/rss.xml"><meta property="og:type" content="article"><meta property="og:title" content="ubuntu美化macos主题 · jking の 博客"><meta property="og:description" content="最近突然想美化一下自己ubuntu的风格，想试一试macos风格的ubuntu，本博客记录这次的美化过程。 视频参考： https://www.bilibili.com/video/BV1gT411m7FF/?spmidfrom=333.337.search-card.all.click 此外先下载"><meta property="og:url" content="https://jking412.github.io/2023/06/08/ubuntu%E7%BE%8E%E5%8C%96macos%E4%B8%BB%E9%A2%98/"><meta property="og:site_name" content="jking の 博客"><meta property="article:published_time" content="2023-06-08T09:23:20.000Z"><title>ubuntu美化macos主题 · jking の 博客</title><link rel="stylesheet" href="/_astro/_..D4atBbkP.css"><link rel="stylesheet" href="/_astro/BaseLayout.CRiE9fLd.css"></head><body><a class="skip-link" href="#main">跳到正文</a><header class="site-header shell"><a class="brand" href="/" aria-label="jking の 博客首页">jking<span class="brand-dot">.</span></a><nav aria-label="主导航"><a href="/">文章</a><a href="/archives/">归档</a><a href="/tags/">标签</a><a href="/about/">关于</a></nav></header><main id="main" class="shell"><div class="article-container"><a class="back-link" href="/archives/">← 文章归档</a><article><header class="article-header"><div class="article-meta"><time datetime="2023-06-08T09:23:20.000Z">2023.06.08</time><span>jking</span></div><h1>ubuntu美化macos主题</h1><ul class="tag-links" aria-label="文章标签"><li><a href="/tags/ubuntu/">ubuntu</a></li></ul></header><div class="prose"><p>最近突然想美化一下自己ubuntu的风格，想试一试macos风格的ubuntu，本博客记录这次的美化过程。</p>
+<p>视频参考：</p>
+<p><a href="https://www.bilibili.com/video/BV1gT411m7FF/?spm_id_from=333.337.search-card.all.click">https://www.bilibili.com/video/BV1gT411m7FF/?spm_id_from=333.337.search-card.all.click</a></p>
+<p>此外先下载一下需要的文件：</p>
+<p><a href="https://sky-public-resource.oss-cn-hangzhou.aliyuncs.com/ubunmac.zip">https://sky-public-resource.oss-cn-hangzhou.aliyuncs.com/ubunmac.zip</a></p>
+<p>下面是美化过程</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> apt</span><span style="color:#032F62"> update</span><span style="color:#24292E"> &#x26;&#x26; </span><span style="color:#6F42C1">sudo</span><span style="color:#032F62"> apt</span><span style="color:#032F62"> upgrade</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> apt</span><span style="color:#032F62"> install</span><span style="color:#032F62"> gnome-tweaks</span><span style="color:#032F62"> gnome-shell-extensions</span><span style="color:#005CC5"> -y</span></span></code></pre>
+<p>打开火狐浏览器，在插件搜索<code>gnome shell</code>并安装</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230609082608796.png" alt="image-20230609082608796"></p>
+<p>然后进入<code>gnome</code>插件下载网址下载gnome插件</p>
+<p><a href="https://extensions.gnome.org/">https://extensions.gnome.org/</a></p>
+<p>下载插件</p>
+<ul>
+<li><code>User Themes</code></li>
+</ul>
+<p>解压之前下载的<code>WhiteSur-gtk-theme-master.zip</code></p>
+<p>进入到目录执行以下命令</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="shell"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> ./install.sh</span><span style="color:#005CC5"> -t</span><span style="color:#032F62"> all</span><span style="color:#005CC5"> -N</span><span style="color:#032F62"> glassy</span><span style="color:#005CC5"> -s</span><span style="color:#005CC5"> 220</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> ./tweaks.sh</span><span style="color:#005CC5"> -g</span></span></code></pre>
+<p>然后在家目录下新建<code>.icons</code>目录，将<code>Mkos-Big-Sur-master</code>文件解压到目录下。</p>
+<p>进入到<code>设置外观</code>，修改配置如下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230609085510969.png" alt="image-20230609085510969"></p>
+<p>然后打开菜单，打开优化，设置如下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230609085931409.png" alt="image-20230609085931409"></p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230609090010154.png" alt="image-20230609090010154"></p>
+<p>重新回到我们的<code>gnome</code>插件网页，下载如下插件</p>
+<ul>
+<li>
+<p><code>Blur my shell</code></p>
+<p>修改配置如下</p>
+<p><img src="https://skynesserblog.oss-cn-hangzhou.aliyuncs.com/linux/image-20230609090224061.png" alt="image-20230609090224061"></p>
+</li>
+<li>
+<p><code>frippery move clock</code></p>
+</li>
+<li>
+<p><code>lock screen background  </code></p>
+</li>
+</ul>
+<p>再更换桌面壁纸为压缩包中的图片</p>
+<p>接下来执行命令</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>sudo nautilus</span></span></code></pre>
+<p>进入到<code>/usr/share/plymouth/themes</code></p>
+<p>修改<code>default.plymouth</code>中的配置</p>
+<p><code>WatermarkVerticalAlignment=.5</code></p></div></article><nav class="post-navigation" aria-label="相邻文章"><div><a href="/2023/06/07/tmux%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/"><span>上一篇</span>tmux使用教程</a></div><div><a href="/2023/06/29/linux%E6%90%AD%E5%BB%BAdosbox%E7%8E%AF%E5%A2%83/"><span>下一篇</span>linux搭建dosbox环境</a></div></nav></div></main><footer class="site-footer shell"><p>© 2026 jking <span class="footer-separator">/</span> 用文字留下思考</p><div><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/jking412/blog" target="_blank" rel="noreferrer">GitHub</a></div></footer></body></html>
